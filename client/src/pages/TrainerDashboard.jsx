@@ -1487,18 +1487,18 @@ public class OrderEventPublisher {
 
         {/* Tabs Bar: ONLY SHOWN IF !sidebarOpen (Keep any one at once: either sidebar or attached tabs) */}
         {!sidebarOpen && (
-          <div className="border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 pb-1">
+          <div className="border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 pb-1">
             <div className="flex flex-wrap gap-2 text-sm font-semibold">
               <button
                 onClick={() => setActiveTab('published-assignments')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   currentAssignmentSubTab === 'published' && isAssignmentsArea
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200 font-bold'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800 font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
                 <span>Published Assignments</span>
-                <span className="text-xs px-1.5 py-0.2 bg-slate-100 text-slate-700 font-bold rounded border border-slate-200">
+                <span className="text-xs px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded border border-slate-200 dark:border-slate-700">
                   {assignments.length}
                 </span>
               </button>
@@ -1507,12 +1507,12 @@ public class OrderEventPublisher {
                 onClick={() => setActiveTab('assignment-submissions')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   currentAssignmentSubTab === 'submissions' && isAssignmentsArea
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200 font-bold'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800 font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
                 <span>Student Submissions & Lifecycle</span>
-                <span className="text-xs px-1.5 py-0.2 bg-slate-100 text-slate-700 font-bold rounded border border-slate-200">
+                <span className="text-xs px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded border border-slate-200 dark:border-slate-700">
                   {submissions.length}
                 </span>
               </button>
@@ -1521,12 +1521,12 @@ public class OrderEventPublisher {
                 onClick={() => setActiveTab('assignment-audit-trail')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   currentAssignmentSubTab === 'audit' && isAssignmentsArea
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200 font-bold'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800 font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
                 <span>Permission & Edit History Audit Trail</span>
-                <span className="text-xs px-1.5 py-0.2 bg-slate-100 text-slate-700 font-bold rounded border border-slate-200">
+                <span className="text-xs px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded border border-slate-200 dark:border-slate-700">
                   {filteredAuditLogs.length}
                 </span>
               </button>
@@ -1535,12 +1535,12 @@ public class OrderEventPublisher {
                 onClick={() => setActiveTab('projects')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'projects'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800 font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
                 <span>Project Hub & Deliverables</span>
-                <span className="text-xs px-1.5 py-0.2 bg-slate-100 text-slate-700 font-bold rounded border border-slate-200">
+                <span className="text-xs px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded border border-slate-200 dark:border-slate-700">
                   {projects.length}
                 </span>
               </button>
@@ -1549,12 +1549,12 @@ public class OrderEventPublisher {
                 onClick={() => setActiveTab('scheduled-exams')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'scheduled-exams'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800 font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
                 <span>Scheduled Exams</span>
-                <span className="text-xs px-1.5 py-0.2 bg-slate-100 text-slate-700 font-bold rounded border border-slate-200">
+                <span className="text-xs px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded border border-slate-200 dark:border-slate-700">
                   {exams.length}
                 </span>
               </button>
@@ -1563,12 +1563,12 @@ public class OrderEventPublisher {
                 onClick={() => setActiveTab('student-attempts')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'student-attempts'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800 font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
                 <span>Student Attempts</span>
-                <span className="text-xs px-1.5 py-0.2 bg-slate-100 text-slate-700 font-bold rounded border border-slate-200">
+                <span className="text-xs px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded border border-slate-200 dark:border-slate-700">
                   {allAttempts.length}
                 </span>
               </button>
@@ -1577,12 +1577,12 @@ public class OrderEventPublisher {
                 onClick={() => setActiveTab('recordings')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'recordings'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800 font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
                 <span>Recorded Lectures & Study Materials</span>
-                <span className="text-xs px-1.5 py-0.2 bg-slate-100 text-slate-700 font-bold rounded border border-slate-200">
+                <span className="text-xs px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded border border-slate-200 dark:border-slate-700">
                   {sessions.length}
                 </span>
               </button>
@@ -1590,10 +1590,10 @@ public class OrderEventPublisher {
 
             <button
               onClick={handleToggleSidebar}
-              className="flex items-center gap-2 px-3 py-1.5 mb-1 text-xs font-semibold rounded-lg border bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 mb-1 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white shadow-2xs transition-all"
               title="Switch to full left sidebar"
             >
-              <PanelLeftOpen className="w-4 h-4 text-blue-600" />
+              <PanelLeftOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <span>Switch to Sidebar</span>
             </button>
           </div>
@@ -1724,27 +1724,27 @@ public class OrderEventPublisher {
                         <span className="text-[11px] text-blue-700 font-semibold">{a.subjectName}</span>
                       </td>
                       <td className="p-3">
-                        <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                           {a.submissionType || 'PDF'}
                         </span>
                         {a.pdfAttachmentUrl && (
-                          <a href={a.pdfAttachmentUrl} target="_blank" rel="noreferrer" className="block text-[11px] text-blue-600 hover:underline mt-0.5">
+                          <a href={a.pdfAttachmentUrl} target="_blank" rel="noreferrer" className="block text-[11px] text-blue-600 dark:text-blue-400 hover:underline mt-0.5">
                             View PDF Attachment
                           </a>
                         )}
                       </td>
                       <td className="p-3">
                         {a.assignedToAll ? (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                             All Enrolled Students
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                             Selective Students ({a.assignedStudentIds ? a.assignedStudentIds.split(',').length : 0})
                           </span>
                         )}
                       </td>
-                      <td className="p-3 font-mono text-slate-700">
+                      <td className="p-3 font-mono text-slate-700 dark:text-slate-300">
                         {a.dueDateTime ? new Date(a.dueDateTime).toLocaleString() : 'Open'}
                       </td>
                       <td className="p-3">
@@ -1752,8 +1752,8 @@ public class OrderEventPublisher {
                           onClick={() => handleToggleResubmission(a.id, a.allowResubmission)}
                           className={`px-2.5 py-1 rounded text-xs font-bold transition-colors inline-flex items-center gap-1.5 ${
                             a.allowResubmission
-                              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900 border border-emerald-300 dark:border-emerald-800'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700'
                           }`}
                         >
                           {a.allowResubmission ? (
@@ -1835,22 +1835,22 @@ public class OrderEventPublisher {
                   ) : (
                     submissions.map((sub) => (
                       <tr key={sub.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="p-3 font-semibold text-slate-900">{sub.studentName}</td>
-                        <td className="p-3 text-slate-800 font-medium">{sub.assignmentTitle}</td>
+                        <td className="p-3 font-semibold text-slate-900 dark:text-white">{sub.studentName}</td>
+                        <td className="p-3 text-slate-800 dark:text-slate-200 font-medium">{sub.assignmentTitle}</td>
                         <td className="p-3">
                           {sub.pdfSubmissionUrl ? (
                             <a
                               href={sub.pdfSubmissionUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-blue-600 hover:underline flex items-center gap-1 font-mono font-bold"
+                              className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-mono font-bold"
                             >
-                              <FileText className="w-3.5 h-3.5 text-rose-600" />
+                              <FileText className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                               <span>View PDF Submission</span>
                               <ExternalLink className="w-3 h-3" />
                             </a>
                           ) : (
-                            <span className="text-slate-600">{sub.submissionContent || 'Text/File Submission'}</span>
+                            <span className="text-slate-600 dark:text-slate-300">{sub.submissionContent || 'Text/File Submission'}</span>
                           )}
                         </td>
                         <td className="p-3 font-mono text-slate-500 dark:text-slate-400">
@@ -1859,10 +1859,10 @@ public class OrderEventPublisher {
                         <td className="p-3">
                           <span className={`px-2.5 py-1 rounded text-xs font-bold border ${
                             sub.status === 'CHECKED'
-                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                               : sub.status === 'UNDER_REVIEW'
-                              ? 'bg-amber-100 text-amber-800 border-amber-300'
-                              : 'bg-blue-100 text-blue-800 border-blue-300'
+                              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                              : 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800'
                           }`}>
                             {sub.status}
                           </span>
@@ -1870,7 +1870,7 @@ public class OrderEventPublisher {
                         <td className="p-3">
                           {sub.status === 'CHECKED' ? (
                             <div className="font-bold text-slate-900 dark:text-white">
-                              {sub.score} / 100 <span className="text-emerald-700">({sub.grade || 'A'})</span>
+                              {sub.score} / 100 <span className="text-emerald-700 dark:text-emerald-400">({sub.grade || 'A'})</span>
                             </div>
                           ) : (
                             <span className="text-slate-400 italic">Not evaluated</span>
@@ -1879,19 +1879,19 @@ public class OrderEventPublisher {
                         <td className="p-3">
                           <button
                             onClick={() => handleToggleStudentEdit(sub.id, sub.canEdit)}
-                            className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold border ${
                               sub.canEdit
-                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
-                                : 'bg-slate-100 text-slate-600 border border-slate-300'
+                                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-700'
                             }`}
                           >
                             {sub.canEdit ? 'Edit Allowed' : 'Edit Locked'}
                           </button>
                         </td>
-                        <td className="p-3 text-right space-x-1.5">
+                        <td className="p-3 text-right space-x-1.5 whitespace-nowrap">
                           <button
                             onClick={() => handleReviewSubmission(sub)}
-                            className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded font-semibold text-xs"
+                            className="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800 rounded font-semibold text-xs transition-colors"
                           >
                             Review
                           </button>
@@ -1904,7 +1904,7 @@ public class OrderEventPublisher {
                                 feedback: sub.feedback || 'Good submission verified.'
                               });
                             }}
-                            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold text-xs"
+                            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold text-xs transition-colors"
                           >
                             Grade & Check
                           </button>
@@ -2073,20 +2073,20 @@ public class OrderEventPublisher {
             ) : (
               <div className="space-y-6">
                 {projects.map((topic) => (
-                  <div key={topic.id} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
+                  <div key={topic.id} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-slate-900">
                     {/* Topic Header */}
                     <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
+                          <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">
                             {topic.subjectName || 'Computer Science & AI'}
                           </span>
-                          <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded border border-indigo-200">
+                          <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
                             Team Size: Min {topic.minTeamSize || 2} - Max {topic.maxTeamSize || 4} Students
                           </span>
                         </div>
-                        <h4 className="text-base font-bold text-slate-900 mt-1">{topic.title}</h4>
-                        <p className="text-xs text-slate-600 mt-0.5">{topic.description}</p>
+                        <h4 className="text-base font-bold text-slate-900 dark:text-white mt-1">{topic.title}</h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">{topic.description}</p>
                       </div>
                       <div className="text-xs text-right flex flex-col items-end gap-1.5">
                         <span className="text-slate-500 dark:text-slate-400 font-mono">Deadline: {topic.deadline || 'Open'}</span>
@@ -2114,12 +2114,12 @@ public class OrderEventPublisher {
 
                     {/* Formed Teams List */}
                     <div className="p-4 space-y-3">
-                      <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      <h5 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                         Student Teams & Shared Deliverables
                       </h5>
 
                       {(!topic.teams || topic.teams.length === 0) ? (
-                        <div className="p-4 text-center text-xs text-slate-500 bg-slate-50/50 rounded-lg border border-slate-100">
+                        <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-850 rounded-lg border border-slate-100 dark:border-slate-800">
                           No student teams formed yet for this project topic.
                         </div>
                       ) : (
@@ -2132,24 +2132,24 @@ public class OrderEventPublisher {
                                 <div className="flex items-start justify-between">
                                   <div>
                                     <div className="flex items-center gap-2">
-                                      <h6 className="text-sm font-bold text-slate-900">{t.teamName}</h6>
+                                      <h6 className="text-sm font-bold text-slate-900 dark:text-white">{t.teamName}</h6>
                                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
                                         t.status === 'EVALUATED'
-                                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                          ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                                           : t.status === 'SUBMITTED'
-                                          ? 'bg-blue-100 text-blue-800 border-blue-300'
-                                          : 'bg-amber-100 text-amber-800 border-amber-300'
+                                          ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800'
+                                          : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
                                       }`}>
                                         {t.status}
                                       </span>
                                     </div>
-                                    <p className="text-[11px] text-slate-500 mt-0.5">
-                                      Leader: <span className="font-semibold text-slate-800">{t.leaderName}</span>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                      Leader: <span className="font-semibold text-slate-800 dark:text-slate-200">{t.leaderName}</span>
                                     </p>
                                   </div>
                                   <div className="text-right">
                                     {t.score != null ? (
-                                      <span className="text-sm font-extrabold text-emerald-700">
+                                      <span className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
                                         Score: {t.score} / 100
                                       </span>
                                     ) : (
@@ -2161,7 +2161,7 @@ public class OrderEventPublisher {
                                             feedback: t.feedback || 'Deliverables verified.'
                                           });
                                         }}
-                                        className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold"
+                                        className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold transition-colors"
                                       >
                                         Grade Team
                                       </button>
@@ -2171,12 +2171,12 @@ public class OrderEventPublisher {
 
                                 {/* Team Members Roster */}
                                 <div>
-                                  <span className="text-[11px] font-semibold text-slate-600">Teammates ({members.length}):</span>
+                                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Teammates ({members.length}):</span>
                                   <div className="flex flex-wrap gap-1.5 mt-1">
                                     {members.map((m) => (
                                       <span
                                         key={m.id}
-                                        className="px-2 py-0.5 rounded text-[11px] bg-white border border-slate-200 text-slate-800 flex items-center gap-1"
+                                        className="px-2 py-0.5 rounded text-[11px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 flex items-center gap-1"
                                       >
                                         <span className="font-semibold">{m.studentName}</span>
                                         {m.role === 'LEADER' && (
@@ -2188,31 +2188,31 @@ public class OrderEventPublisher {
                                 </div>
 
                                 {/* Shared Deliverables Links */}
-                                <div className="pt-2 border-t border-slate-200 space-y-1.5">
-                                  <span className="text-[11px] font-semibold text-slate-600">Shared Deliverables:</span>
+                                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
+                                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Shared Deliverables:</span>
                                   <div className="flex flex-wrap gap-2 text-xs">
                                     {t.zipFileUrl && (
-                                      <a href={t.zipFileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 font-bold hover:underline">
-                                        <Archive className="w-3.5 h-3.5 text-amber-600" /> ZIP Code
+                                      <a href={t.zipFileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold hover:underline">
+                                        <Archive className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> ZIP Code
                                       </a>
                                     )}
                                     {t.pptFileUrl && (
-                                      <a href={t.pptFileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 font-bold hover:underline">
-                                        <Presentation className="w-3.5 h-3.5 text-rose-600" /> PPT Slides
+                                      <a href={t.pptFileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold hover:underline">
+                                        <Presentation className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" /> PPT Slides
                                       </a>
                                     )}
                                     {t.pdfReportUrl && (
-                                      <a href={t.pdfReportUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 font-bold hover:underline">
-                                        <FileText className="w-3.5 h-3.5 text-emerald-600" /> PDF Report
+                                      <a href={t.pdfReportUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold hover:underline">
+                                        <FileText className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> PDF Report
                                       </a>
                                     )}
                                     {t.githubRepoUrl && (
-                                      <a href={t.githubRepoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-slate-800 font-bold hover:underline">
+                                      <a href={t.githubRepoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-slate-800 dark:text-slate-200 font-bold hover:underline">
                                         <FolderGit2 className="w-3.5 h-3.5" /> GitHub Repo
                                       </a>
                                     )}
                                     {t.liveDemoUrl && (
-                                      <a href={t.liveDemoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-emerald-700 font-bold hover:underline">
+                                      <a href={t.liveDemoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-bold hover:underline">
                                         <ExternalLink className="w-3.5 h-3.5" /> Live Demo
                                       </a>
                                     )}
@@ -2221,12 +2221,12 @@ public class OrderEventPublisher {
                                     )}
                                   </div>
                                   {t.lastUpdatedByName && (
-                                    <p className="text-[10px] text-slate-500 italic">
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 italic">
                                       Last updated by: {t.lastUpdatedByName}
                                     </p>
                                   )}
                                   {t.feedback && (
-                                    <div className="p-2 bg-emerald-50 border border-emerald-200 rounded text-[11px] text-emerald-900 mt-1">
+                                    <div className="p-2 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded text-[11px] text-emerald-900 dark:text-emerald-300 mt-1">
                                       <strong>Trainer Feedback:</strong> {t.feedback}
                                     </div>
                                   )}
@@ -2426,40 +2426,40 @@ public class OrderEventPublisher {
                     .map((att, idx) => (
                     <tr key={att.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="p-3 text-slate-400 font-mono">{idx + 1}</td>
-                      <td className="p-3 font-semibold text-slate-900">{att.studentName}</td>
+                      <td className="p-3 font-semibold text-slate-900 dark:text-white">{att.studentName}</td>
                       <td className="p-3 font-mono text-slate-600 dark:text-slate-300">
                         {att.completedAt
                           ? new Date(att.completedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
                           : new Date(att.startedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
                       </td>
-                      <td className="p-3 font-bold text-slate-900">
+                      <td className="p-3 font-bold text-slate-900 dark:text-white">
                         {att.score} / {att.totalMarks}
-                        <span className="ml-1.5 text-slate-500 font-normal">({att.percentage}%)</span>
+                        <span className="ml-1.5 text-slate-500 dark:text-slate-400 font-normal">({att.percentage}%)</span>
                       </td>
                       <td className="p-3">
-                        <span className={`font-bold ${att.violationCount > 0 ? 'text-rose-600' : 'text-slate-500'}`}>
+                        <span className={`font-bold ${att.violationCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
                           {att.violationCount} {att.violationCount === 1 ? 'strike' : 'strikes'}
                         </span>
                       </td>
                       <td className="p-3">
                         {att.status === 'TERMINATED_BY_VIOLATION' ? (
                           <span className="px-2.5 py-1 rounded text-[11px] font-bold bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800 flex items-center gap-1 w-fit">
-                            <ShieldAlert className="w-3 h-3 text-rose-600" />
+                            <ShieldAlert className="w-3 h-3 text-rose-600 dark:text-rose-400" />
                             Terminated (Fraud)
                           </span>
                         ) : (
-                          <span className="px-2.5 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          <span className="px-2.5 py-1 rounded text-xs font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                             Done
                           </span>
                         )}
                       </td>
                       <td className="p-3 font-bold">
                         {att.status === 'TERMINATED_BY_VIOLATION' ? (
-                          <span className="text-rose-700 font-bold">ABORTED</span>
+                          <span className="text-rose-700 dark:text-rose-400 font-bold">ABORTED</span>
                         ) : att.passed ? (
-                          <span className="text-emerald-700">PASSED</span>
+                          <span className="text-emerald-700 dark:text-emerald-400">PASSED</span>
                         ) : (
-                          <span className="text-rose-700">FAILED</span>
+                          <span className="text-rose-700 dark:text-rose-400">FAILED</span>
                         )}
                       </td>
                       <td className="p-3 text-right">
@@ -2467,8 +2467,8 @@ public class OrderEventPublisher {
                           onClick={() => handleToggleReattempt(att.id, att.canReattempt)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1.5 ${
                             att.canReattempt
-                              ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700'
                           }`}
                         >
                           {att.canReattempt ? (
@@ -2498,8 +2498,8 @@ public class OrderEventPublisher {
             {/* Subject Selector & Concerned Faculty Authorization Bar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl">
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-blue-600" />
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   Subject:
                 </label>
                 <select
@@ -2509,7 +2509,7 @@ public class OrderEventPublisher {
                     setSelectedCourseId(nextId);
                     fetchCourseDetail(nextId);
                   }}
-                  className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-slate-900 shadow-2xs outline-none max-w-md"
+                  className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-2xs outline-none max-w-md"
                 >
                   {courses.map((c) => {
                     const isMine = (user?.id && c.trainerId === user.id) || (user?.fullName && c.trainerName && c.trainerName.toLowerCase().includes(user.fullName.toLowerCase()));
@@ -2524,13 +2524,13 @@ public class OrderEventPublisher {
 
               {/* Status Badge */}
               {isConcernedFaculty ? (
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded-lg text-xs font-bold">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>Concerned Faculty: Authorized to manage modules & upload study materials.</span>
                 </div>
               ) : (
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-900 border border-amber-300 rounded-lg text-xs font-medium">
-                  <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800 rounded-lg text-xs font-medium">
+                  <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                   <span>Restricted: Only concerned faculty ({selectedCourse?.trainerName || 'Assigned Trainer'}) can upload materials.</span>
                 </div>
               )}
@@ -2552,11 +2552,11 @@ public class OrderEventPublisher {
                 <div className="p-3.5 bg-slate-50/90 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-blue-600" />
-                      <span className="text-xs font-bold text-slate-900">
+                      <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
                         Faculty Specialists Assigned to &quot;{selectedCourse?.title || 'Selected Subject'}&quot;
                       </span>
-                      <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[10px] font-bold">
                         {assignedTeam.length} {assignedTeam.length === 1 ? 'Faculty' : 'Faculty Specialists'}
                       </span>
                     </div>
@@ -2573,12 +2573,12 @@ public class OrderEventPublisher {
                           key={tr.trainerId || tr.id}
                           className={`p-2.5 rounded-lg border text-xs transition-all ${
                             isMe
-                              ? 'bg-blue-50/80 border-blue-300 shadow-2xs'
-                              : 'bg-white border-slate-200'
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800 shadow-2xs'
+                              : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700'
                           }`}
                         >
                           <div className="flex items-center justify-between gap-1 mb-1">
-                            <span className="font-bold text-slate-900 truncate">
+                            <span className="font-bold text-slate-900 dark:text-white truncate">
                               {tr.trainerName}
                             </span>
                             {isMe ? (
@@ -2586,18 +2586,18 @@ public class OrderEventPublisher {
                                 You
                               </span>
                             ) : (
-                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 shrink-0">
+                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0">
                                 Faculty
                               </span>
                             )}
                           </div>
                           <div className="mb-1">
-                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-900 bg-amber-100/90 border border-amber-300/80 px-2 py-0.5 rounded-full">
-                              <Target className="w-3 h-3 text-amber-700" />
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-900 dark:text-amber-300 bg-amber-100/90 dark:bg-amber-950/60 border border-amber-300/80 dark:border-amber-800 px-2 py-0.5 rounded-full">
+                              <Target className="w-3 h-3 text-amber-700 dark:text-amber-400" />
                               <span className="truncate">Specialization: {tr.trainerSpecialization || 'Domain Specialist'}</span>
                             </span>
                           </div>
-                          <p className="text-[10px] text-slate-500 truncate">
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
                             {tr.trainerEmail}
                           </p>
                         </div>
@@ -2610,13 +2610,13 @@ public class OrderEventPublisher {
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
               <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>{selectedCourse?.title || 'Subject Curriculum'}</span>
-                  <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-700 font-normal rounded border border-slate-200">
+                  <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-normal rounded border border-slate-200 dark:border-slate-700">
                     Faculty In-Charge: {selectedCourse?.trainerName || 'Trainer'}
                   </span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Manage syllabus modules and upload interactive learning articles, code implementations, and technical documentation.
                 </p>
               </div>
@@ -2679,14 +2679,14 @@ public class OrderEventPublisher {
                     <div key={mod.id} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-2xs bg-white dark:bg-slate-900">
                       <div className="p-3.5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="w-5 h-5 rounded bg-slate-200 text-slate-800 text-[11px] font-bold flex items-center justify-center font-mono">
+                          <span className="w-5 h-5 rounded bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-bold flex items-center justify-center font-mono">
                             {idx + 1}
                           </span>
-                          <h4 className="text-sm font-bold text-slate-900">{mod.title}</h4>
-                          <span className="text-[11px] text-slate-500 hidden sm:inline">({resources.length} topics)</span>
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white">{mod.title}</h4>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">({resources.length} topics)</span>
                           {mItem.moduleExam && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 inline-flex items-center gap-1">
-                              <ShieldCheck className="w-3 h-3 text-indigo-600" />
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 inline-flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                               <span>Module Test Active ({mItem.questionCount || 0} MCQs)</span>
                             </span>
                           )}
@@ -2708,7 +2708,7 @@ public class OrderEventPublisher {
                               setMaterialQuestions([]);
                               setShowMaterialModal(true);
                             }}
-                            className="px-2.5 py-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded transition-colors flex items-center gap-1"
+                            className="px-2.5 py-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded transition-colors flex items-center gap-1"
                             title="Add topic with attached module test questions"
                           >
                             <ShieldCheck className="w-3 h-3" />
@@ -2729,45 +2729,45 @@ public class OrderEventPublisher {
                               setMaterialQuestions([]);
                               setShowMaterialModal(true);
                             }}
-                            className="px-2.5 py-1 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                            className="px-2.5 py-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded transition-colors"
                           >
                             + Add Topic
                           </button>
                         </div>
                       </div>
 
-                      <div className="divide-y divide-slate-100 p-2 text-xs">
+                      <div className="divide-y divide-slate-100 dark:divide-slate-800 p-2 text-xs">
                         {resources.length === 0 ? (
-                          <div className="p-3 text-center text-slate-400 italic">No topics published in this module yet.</div>
+                          <div className="p-3 text-center text-slate-400 dark:text-slate-500 italic">No topics published in this module yet.</div>
                         ) : (
                           resources.map((res) => (
-                            <div key={res.id} className="p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/50 rounded-lg">
+                            <div key={res.id} className="p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 rounded-lg">
                               <div>
-                                <span className="font-bold text-slate-900 block">{res.title}</span>
+                                <span className="font-bold text-slate-900 dark:text-white block">{res.title}</span>
                                 <span className="text-[11px] text-slate-500 dark:text-slate-400">{res.description || 'Article with code examples'}</span>
                               </div>
                               <div className="flex items-center gap-2 text-[11px]">
                                 {res.visibilityScope === 'BOTH' ? (
-                                  <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 flex items-center gap-1">
-                                    <Layers className="w-3 h-3 text-emerald-600" />
+                                  <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                                    <Layers className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                                     Global & Institution
                                   </span>
                                 ) : res.visibilityScope === 'INSTITUTION' ? (
-                                  <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-bold border border-purple-200 flex items-center gap-1">
-                                    <Building2 className="w-3 h-3 text-purple-600" />
+                                  <span className="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                                    <Building2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                                     {res.institutionName || 'Institution'} Private
                                   </span>
                                 ) : (
-                                  <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold border border-blue-200 flex items-center gap-1">
-                                    <Globe className="w-3 h-3 text-blue-600" />
+                                  <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-bold border border-blue-200 dark:border-blue-800 flex items-center gap-1">
+                                    <Globe className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                                     Global Library
                                   </span>
                                 )}
-                                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono font-semibold border border-slate-200">
+                                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-200 dark:border-slate-700">
                                   {res.resourceType || 'ARTICLE'}
                                 </span>
                                 {res.urlOrPath && (
-                                  <a href={res.urlOrPath} target="_blank" rel="noreferrer" className="text-blue-600 font-bold hover:underline flex items-center gap-0.5">
+                                  <a href={res.urlOrPath} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline flex items-center gap-0.5">
                                     <span>Attachment</span>
                                     <ExternalLink className="w-3 h-3" />
                                   </a>
@@ -2808,22 +2808,22 @@ public class OrderEventPublisher {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                   {sessions.map((sess) => (
                     <tr key={sess.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="p-3 font-bold text-slate-900">{sess.title}</td>
-                      <td className="p-3 text-slate-600 font-mono">
+                      <td className="p-3 font-bold text-slate-900 dark:text-white">{sess.title}</td>
+                      <td className="p-3 text-slate-600 dark:text-slate-300 font-mono">
                         {new Date(sess.scheduledAt).toLocaleDateString()} ({sess.platform})
                       </td>
                       <td className="p-3">
                         {sess.recordingVideoUrl ? (
-                          <a href={sess.recordingVideoUrl} target="_blank" rel="noreferrer" className="text-blue-600 font-bold hover:underline flex items-center gap-1">
-                            <Video className="w-3.5 h-3.5 text-blue-600" />
+                          <a href={sess.recordingVideoUrl} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline flex items-center gap-1">
+                            <Video className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                             <span>Watch Recording</span>
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         ) : (
-                          <span className="text-slate-400 italic">No recording uploaded</span>
+                          <span className="text-slate-400 dark:text-slate-500 italic">No recording uploaded</span>
                         )}
                       </td>
-                      <td className="p-3 text-slate-600 max-w-xs truncate">{sess.recordingNotes || '—'}</td>
+                      <td className="p-3 text-slate-600 dark:text-slate-300 max-w-xs truncate">{sess.recordingNotes || '—'}</td>
                       <td className="p-3 text-right">
                         <button
                           onClick={() => {
@@ -2834,7 +2834,7 @@ public class OrderEventPublisher {
                             });
                             setShowRecordingModal(true);
                           }}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 text-xs font-semibold"
+                          className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors"
                         >
                           {sess.recordingVideoUrl ? 'Update Video Link' : 'Upload Video Link'}
                         </button>
@@ -2853,7 +2853,7 @@ public class OrderEventPublisher {
       {/* MODAL 1: Create Assignment */}
       {showAssignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white border border-slate-200 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="bg-[#0F172A] text-white p-5 flex items-center justify-between border-b border-slate-800">
               <div>
                 <h3 className="text-base font-bold">Create New Assignment</h3>
@@ -2866,20 +2866,20 @@ public class OrderEventPublisher {
 
             <form onSubmit={handleCreateAssignment} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Assignment Title *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Assignment Title *</label>
                 <input
                   type="text"
                   required
                   value={assignForm.title}
                   onChange={(e) => setAssignForm({ ...assignForm, title: e.target.value })}
                   placeholder="e.g. Asynchronous Microservices & Docker Builds"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Assigned Subject *</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Assigned Subject *</label>
                   <select
                     value={assignForm.courseId}
                     onChange={(e) => {
@@ -2891,31 +2891,31 @@ public class OrderEventPublisher {
                         subjectName: sel?.title || assignForm.subjectName
                       });
                     }}
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
                     {courses.length === 0 ? (
-                      <option value="" disabled>No assigned subjects available</option>
+                      <option value="" disabled className="dark:bg-slate-800">No assigned subjects available</option>
                     ) : (
                       courses.map((c) => (
-                        <option key={c.id} value={c.id}>{c.title}</option>
+                        <option key={c.id} value={c.id} className="dark:bg-slate-800">{c.title}</option>
                       ))
                     )}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Strict Deadline *</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Strict Deadline *</label>
                   <input
                     type="datetime-local"
                     required
                     value={assignForm.dueDateTime}
                     onChange={(e) => setAssignForm({ ...assignForm, dueDateTime: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Assignment Instructions / Manual Question Description *
                 </label>
                 <textarea
@@ -2924,7 +2924,7 @@ public class OrderEventPublisher {
                   value={assignForm.description}
                   onChange={(e) => setAssignForm({ ...assignForm, description: e.target.value })}
                   placeholder="Write the complete assignment details, problem statement, and expected submission format..."
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
 
@@ -2939,28 +2939,28 @@ public class OrderEventPublisher {
                 />
               </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg space-y-2">
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     id="assignAll"
                     checked={assignForm.assignedToAll}
                     onChange={(e) => setAssignForm({ ...assignForm, assignedToAll: e.target.checked })}
-                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
                   />
-                  <label htmlFor="assignAll" className="text-xs font-bold text-slate-900 cursor-pointer">
+                  <label htmlFor="assignAll" className="text-xs font-bold text-slate-900 dark:text-white cursor-pointer">
                     Assign to All Enrolled Students in this Institution
                   </label>
                 </div>
 
                 {!assignForm.assignedToAll && (
-                  <div className="pt-2 border-t border-slate-200 space-y-1">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Select Individual Students:
                     </label>
                     <div className="max-h-32 overflow-y-auto space-y-1">
                       {students.map((st) => (
-                        <label key={st.id} className="flex items-center gap-2 text-xs text-slate-700 hover:bg-slate-100 p-1 rounded cursor-pointer">
+                        <label key={st.id} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 p-1 rounded cursor-pointer">
                           <input
                             type="checkbox"
                             checked={assignForm.assignedStudentIds.includes(String(st.id))}
@@ -2981,30 +2981,30 @@ public class OrderEventPublisher {
                 )}
               </div>
 
-              <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg">
                 <input
                   type="checkbox"
                   id="allowResub"
                   checked={assignForm.allowResubmission}
                   onChange={(e) => setAssignForm({ ...assignForm, allowResubmission: e.target.checked })}
-                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
                 />
-                <label htmlFor="allowResub" className="text-xs font-bold text-slate-900 cursor-pointer">
+                <label htmlFor="allowResub" className="text-xs font-bold text-slate-900 dark:text-white cursor-pointer">
                   Allow Students to Edit / Re-submit after initial submission
                 </label>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowAssignModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg transition-colors border border-transparent dark:border-slate-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition-colors"
+                  className="px-4 py-2 bg-[#0F172A] hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors"
                 >
                   Publish Assignment
                 </button>
@@ -3018,45 +3018,45 @@ public class OrderEventPublisher {
       {showReviewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Submission Under Review</h3>
-                <span className="text-xs px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                <span className="text-xs px-2 py-0.5 rounded font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                   UNDER_REVIEW
                 </span>
               </div>
-              <button onClick={() => setShowReviewModal(null)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setShowReviewModal(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-2 text-xs">
-              <p><strong>Student:</strong> {showReviewModal.studentName}</p>
-              <p><strong>Format:</strong> {showReviewModal.submissionType}</p>
+            <div className="space-y-2 text-xs text-slate-800 dark:text-slate-200">
+              <p><strong>Student:</strong> <span className="text-slate-900 dark:text-white font-semibold">{showReviewModal.studentName}</span></p>
+              <p><strong>Format:</strong> <span className="font-mono">{showReviewModal.submissionType}</span></p>
               {showReviewModal.pdfSubmissionUrl && (
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                  <p className="font-semibold mb-1">Attached PDF File:</p>
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg">
+                  <p className="font-semibold mb-1 text-slate-900 dark:text-white">Attached PDF File:</p>
                   <a
                     href={showReviewModal.pdfSubmissionUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-blue-600 hover:underline flex items-center gap-1 font-bold font-mono"
+                    className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-bold font-mono"
                   >
-                    <FileText className="w-4 h-4 text-rose-600" />
+                    <FileText className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                     <span>Open Student PDF Deliverable</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </div>
               )}
               {showReviewModal.submissionContent && (
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                  <p className="font-semibold mb-1">Student Notes / Explanation:</p>
-                  <p className="text-slate-700 whitespace-pre-wrap">{showReviewModal.submissionContent}</p>
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg">
+                  <p className="font-semibold mb-1 text-slate-900 dark:text-white">Student Notes / Explanation:</p>
+                  <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{showReviewModal.submissionContent}</p>
                 </div>
               )}
             </div>
 
-            <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+            <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={() => {
                   const s = showReviewModal;
@@ -3068,7 +3068,7 @@ public class OrderEventPublisher {
                     feedback: s.feedback || 'Work reviewed and approved.'
                   });
                 }}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors"
               >
                 Proceed to Grade & Mark Checked
               </button>
@@ -3081,12 +3081,12 @@ public class OrderEventPublisher {
       {showGradingModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Grade & Check Submission</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">Student: {showGradingModal.studentName}</p>
               </div>
-              <button onClick={() => setShowGradingModal(null)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setShowGradingModal(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -3094,7 +3094,7 @@ public class OrderEventPublisher {
             <form onSubmit={handleGradeSubmission} className="space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Score (0 - 100) *</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Score (0 - 100) *</label>
                   <input
                     type="number"
                     min="0"
@@ -3102,15 +3102,15 @@ public class OrderEventPublisher {
                     required
                     value={gradeForm.score}
                     onChange={(e) => setGradeForm({ ...gradeForm, score: Number(e.target.value) })}
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Grade Letter</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Grade Letter</label>
                   <select
                     value={gradeForm.grade}
                     onChange={(e) => setGradeForm({ ...gradeForm, grade: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
                     <option value="A+">A+ (Outstanding)</option>
                     <option value="A">A (Excellent)</option>
@@ -3122,26 +3122,26 @@ public class OrderEventPublisher {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Detailed Feedback</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Detailed Feedback</label>
                 <textarea
                   rows="3"
                   value={gradeForm.feedback}
                   onChange={(e) => setGradeForm({ ...gradeForm, feedback: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowGradingModal(null)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors"
                 >
                   Mark as CHECKED
                 </button>
@@ -3159,26 +3159,26 @@ public class OrderEventPublisher {
             <p className="text-xs text-slate-500 dark:text-slate-400">Assignment: {showDeadlineModal.title}</p>
             <form onSubmit={handleUpdateDeadline} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">New Due Date & Time</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">New Due Date & Time</label>
                 <input
                   type="datetime-local"
                   required
                   value={newDeadline}
                   onChange={(e) => setNewDeadline(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
               <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowDeadlineModal(null)}
-                  className="px-3 py-1.5 bg-slate-100 rounded text-xs font-semibold"
+                  className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-blue-600 text-white rounded text-xs font-bold"
+                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors"
                 >
                   Update Deadline
                 </button>
@@ -3192,28 +3192,28 @@ public class OrderEventPublisher {
       {showProjectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">Publish Project Topic</h3>
-              <button onClick={() => setShowProjectModal(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setShowProjectModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleCreateProject} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Project Title *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Project Title *</label>
                 <input
                   type="text"
                   required
                   value={projectForm.title}
                   onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
                   placeholder="e.g. Distributed Load Balancer with Rate Limiting"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Assigned Subject *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Assigned Subject *</label>
                 <select
                   value={projectForm.courseId}
                   onChange={(e) => {
@@ -3225,7 +3225,7 @@ public class OrderEventPublisher {
                       subjectName: sel?.title || projectForm.subjectName
                     });
                   }}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {courses.length === 0 ? (
                     <option value="" disabled>No assigned subjects available</option>
@@ -3239,7 +3239,7 @@ public class OrderEventPublisher {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Minimum Team Size *</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Minimum Team Size *</label>
                   <input
                     type="number"
                     min="1"
@@ -3247,12 +3247,12 @@ public class OrderEventPublisher {
                     required
                     value={projectForm.minTeamSize}
                     onChange={(e) => setProjectForm({ ...projectForm, minTeamSize: Number(e.target.value) })}
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
-                  <p className="text-[10px] text-slate-500 mt-0.5">Min required members per team</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Min required members per team</p>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Maximum Team Size *</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Maximum Team Size *</label>
                   <input
                     type="number"
                     min={projectForm.minTeamSize || 2}
@@ -3260,21 +3260,21 @@ public class OrderEventPublisher {
                     required
                     value={projectForm.maxTeamSize}
                     onChange={(e) => setProjectForm({ ...projectForm, maxTeamSize: Number(e.target.value) })}
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
-                  <p className="text-[10px] text-slate-500 mt-0.5">Max capacity limit for teams</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Max capacity limit for teams</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Project Description & Requirements *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Project Description & Requirements *</label>
                 <textarea
                   rows="4"
                   required
                   value={projectForm.description}
                   onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
                   placeholder="Specify required deliverables: ZIP code, PPT slides, PDF report, and GitHub repo..."
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -3282,13 +3282,13 @@ public class OrderEventPublisher {
                 <button
                   type="button"
                   onClick={() => setShowProjectModal(false)}
-                  className="px-4 py-2 bg-slate-100 rounded text-xs font-semibold"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors"
                 >
                   Publish to Project Hub
                 </button>
@@ -3301,24 +3301,24 @@ public class OrderEventPublisher {
       {/* MODAL 6: Schedule Proctored Exam with Deadlines & Automatic Checking */}
       {showExamModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white border border-slate-200 rounded-xl shadow-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto p-6 sm:p-7 space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3.5">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto p-6 sm:p-7 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-rose-600" />
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                     <span>Schedule Trainer-Assigned Assessment</span>
                   </h3>
-                  <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold border border-purple-200 flex items-center gap-1">
+                  <span className="px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 text-[10px] font-bold border border-purple-200 dark:border-purple-800 flex items-center gap-1">
                     <Building2 className="w-3 h-3" />
                     <span>{user?.institutionName || 'Institutional Assessment'}</span>
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Create a formal, locked examination for your institution&apos;s students. Configured assessments appear in students&apos; Protected Exam dashboard with proctoring lockdown and single-attempt enforcement.
                 </p>
               </div>
-              <button onClick={() => setShowExamModal(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setShowExamModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -3327,29 +3327,29 @@ public class OrderEventPublisher {
               {/* SECTION 1: ASSESSMENT BASICS & DEADLINES */}
               <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                     1. Assessment Details & Scheduled Deadlines (With Time)
                   </h4>
-                  <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-0.5 rounded-md border border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
                     Type: Trainer-Assigned Examination (Single Attempt)
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Assessment Title *</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Assessment Title *</label>
                     <input
                       type="text"
                       required
                       value={examForm.title}
                       onChange={(e) => setExamForm({ ...examForm, title: e.target.value })}
                       placeholder="e.g. Spring Boot Microservices & Cloud Persistence Midterm"
-                      className="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:outline-none"
+                      className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Assigned Subject *</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Assigned Subject *</label>
                     <select
                       value={selectedCourseId}
                       onChange={(e) => {
@@ -3357,13 +3357,13 @@ public class OrderEventPublisher {
                         setSelectedCourseId(cid);
                         setExamForm(prev => ({ ...prev, courseId: cid }));
                       }}
-                      className="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:outline-none"
+                      className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500 focus:outline-none"
                     >
                       {courses.length === 0 ? (
-                        <option value="" disabled>No subjects assigned to you — Contact Super Admin</option>
+                        <option value="" disabled className="dark:bg-slate-800">No subjects assigned to you — Contact Super Admin</option>
                       ) : (
                         courses.map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.id} value={c.id} className="dark:bg-slate-800">
                             {c.title} (ID #{c.id})
                           </option>
                         ))
@@ -3374,7 +3374,7 @@ public class OrderEventPublisher {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Start Date & Time *
                     </label>
                     <input
@@ -3382,12 +3382,12 @@ public class OrderEventPublisher {
                       required
                       value={examForm.scheduledStartTime}
                       onChange={(e) => setExamForm({ ...examForm, scheduledStartTime: e.target.value })}
-                      className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none"
+                      className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1 text-rose-700">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 text-rose-700 dark:text-rose-400">
                       End Deadline (Date & Time) *
                     </label>
                     <input
@@ -3395,31 +3395,36 @@ public class OrderEventPublisher {
                       required
                       value={examForm.scheduledEndTime}
                       onChange={(e) => setExamForm({ ...examForm, scheduledEndTime: e.target.value })}
-                      className="w-full px-3 py-2 text-xs bg-white border border-rose-300 text-rose-900 rounded-lg focus:outline-none font-medium"
+                      className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 text-rose-900 dark:text-rose-300 border border-rose-300 dark:border-rose-800 rounded-lg focus:outline-none font-medium"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Duration (Minutes)</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Duration (Minutes) *
+                    </label>
                     <input
                       type="number"
-                      min="10"
-                      max="240"
+                      min="5"
+                      max="300"
+                      required
                       value={examForm.durationMinutes}
                       onChange={(e) => setExamForm({ ...examForm, durationMinutes: Number(e.target.value) })}
-                      className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg"
+                      className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Passing Percentage</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Passing Score (Marks) *
+                    </label>
                     <input
                       type="number"
-                      min="30"
-                      max="100"
-                      value={examForm.passingPercentage}
-                      onChange={(e) => setExamForm({ ...examForm, passingPercentage: Number(e.target.value) })}
-                      className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg"
+                      min="1"
+                      required
+                      value={examForm.passingMarks}
+                      onChange={(e) => setExamForm({ ...examForm, passingMarks: Number(e.target.value) })}
+                      className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg"
                     />
                   </div>
                 </div>
@@ -3441,28 +3446,28 @@ public class OrderEventPublisher {
 
               {/* SECTION 2: CSV UPLOAD IN PRECISE ORDER */}
               <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
                   <div>
-                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                      <Upload className="w-4 h-4 text-indigo-600" />
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                      <Upload className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                       <span>Bulk Upload Questions via CSV File</span>
                     </h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Columns must strictly follow the required order: <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[10px]">question, optionA, optionB, optionC, optionD, correctOption, marks, explanation</code>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      Columns must strictly follow the required order: <code className="bg-slate-200 dark:bg-slate-700 dark:text-slate-200 px-1 py-0.5 rounded font-mono text-[10px]">question, optionA, optionB, optionC, optionD, correctOption, marks, explanation</code>
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={handleDownloadSampleCsv}
-                    className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 shadow-2xs"
+                    className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 shadow-2xs"
                   >
-                    <Download className="w-3.5 h-3.5 text-blue-600" />
+                    <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     <span>Download Sample CSV</span>
                   </button>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <label className="flex-1 cursor-pointer flex items-center justify-center gap-2 p-3 bg-white border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-lg text-xs font-medium text-slate-600 transition-colors">
+                  <label className="flex-1 cursor-pointer flex items-center justify-center gap-2 p-3 bg-white dark:bg-slate-850 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 transition-colors">
                     <Upload className="w-4 h-4 text-slate-400" />
                     <span>Choose CSV file to append questions</span>
                     <input
@@ -3477,27 +3482,27 @@ public class OrderEventPublisher {
 
               {/* SECTION 3: ASSESSMENT QUESTION BUILDER (MCQ + CODING QUESTIONS WITH TEST CASES) */}
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
                   <div>
-                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-indigo-600" />
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                       <span>2. Assessment Questions &amp; Problems</span>
                     </h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                       Configure only MCQs, only coding problems, or any mixed combination. Total score is computed automatically from assigned marks.
                     </p>
                   </div>
 
                   {/* Summary Badges */}
                   <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
-                    <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md border border-slate-200">
+                    <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md border border-slate-200 dark:border-slate-700">
                       Total: {examForm.questions?.length || 0} ({examForm.questions?.reduce((acc, q) => acc + (Number(q.marks) || 10), 0)} Marks)
                     </span>
-                    <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md border border-blue-200 flex items-center gap-1">
+                    <span className="px-2 py-1 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 rounded-md border border-blue-200 dark:border-blue-800 flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" />
                       <span>MCQs: {examForm.questions?.filter(q => q.questionType !== 'CODING').length || 0}</span>
                     </span>
-                    <span className="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200 flex items-center gap-1">
+                    <span className="px-2 py-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-md border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
                       <Code2 className="w-3 h-3" />
                       <span>Coding: {examForm.questions?.filter(q => q.questionType === 'CODING').length || 0}</span>
                     </span>
@@ -3509,7 +3514,7 @@ public class OrderEventPublisher {
                   <button
                     type="button"
                     onClick={handleAddManualQuestion}
-                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
+                    className="px-3 py-1.5 bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>+ Add MCQ Question</span>
@@ -3527,18 +3532,18 @@ public class OrderEventPublisher {
                   <button
                     type="button"
                     onClick={handleLoadSampleCodingProblems}
-                    className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+                    className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
                   >
-                    <Terminal className="w-3.5 h-3.5 text-emerald-600" />
+                    <Terminal className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     <span>Load Sample Coding Problems</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleLoadSampleMcqs}
-                    className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+                    className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     <span>Load Sample MCQs</span>
                   </button>
 
@@ -3569,28 +3574,28 @@ public class OrderEventPublisher {
 
                       if (isCoding) {
                         return (
-                          <div key={idx} className="border-2 border-emerald-200 rounded-xl p-4 bg-emerald-50/20 shadow-2xs space-y-3">
-                            <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <div key={idx} className="border-2 border-emerald-200 dark:border-emerald-800/80 rounded-xl p-4 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-2xs space-y-3">
+                            <div className="flex items-center justify-between border-b border-emerald-100 dark:border-emerald-900/60 pb-2">
                               <div className="flex items-center gap-2">
                                 <span className="px-2 py-0.5 rounded bg-emerald-700 text-white text-[10px] font-bold tracking-wider uppercase flex items-center gap-1">
                                   <Code2 className="w-3 h-3" />
                                   <span>CODING PROBLEM #{idx + 1}</span>
                                 </span>
-                                <span className="text-xs font-bold text-slate-900">
+                                <span className="text-xs font-bold text-slate-900 dark:text-white">
                                   {q.problemTitle || 'Untitled Coding Problem'}
                                 </span>
                               </div>
 
                               <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-1.5">
-                                  <label className="text-[11px] font-bold text-slate-600">Marks:</label>
+                                  <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Marks:</label>
                                   <input
                                     type="number"
                                     min="1"
                                     max="100"
                                     value={q.marks || 20}
                                     onChange={(e) => handleQuestionFieldChange(idx, 'marks', Number(e.target.value))}
-                                    className="w-16 px-2 py-1 text-xs font-bold bg-white border border-emerald-300 rounded text-slate-800 text-center"
+                                    className="w-16 px-2 py-1 text-xs font-bold bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded text-slate-800 dark:text-slate-200 text-center"
                                   />
                                 </div>
 
@@ -3606,7 +3611,7 @@ public class OrderEventPublisher {
                             </div>
 
                             <div>
-                              <label className="block text-xs font-semibold text-slate-700 mb-1">Problem Title *</label>
+                              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Problem Title *</label>
                               <input
                                 type="text"
                                 required
@@ -3616,38 +3621,38 @@ public class OrderEventPublisher {
                                   handleQuestionFieldChange(idx, 'questionText', e.target.value);
                                 }}
                                 placeholder="e.g. Two Sum Target, Palindrome Checker, Longest Substring..."
-                                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-900 font-medium"
+                                className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-900 dark:focus:ring-blue-500 font-medium placeholder-slate-400 dark:placeholder-slate-500"
                               />
                             </div>
 
                             <div>
-                              <label className="block text-xs font-semibold text-slate-700 mb-1">Problem Description *</label>
+                              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Problem Description *</label>
                               <textarea
                                 rows="3"
                                 required
                                 value={q.problemDescription || ''}
                                 onChange={(e) => handleQuestionFieldChange(idx, 'problemDescription', e.target.value)}
                                 placeholder="State the problem clearly, specifying edge cases, algorithmic requirements, and problem parameters..."
-                                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none leading-relaxed"
+                                className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none leading-relaxed placeholder-slate-400 dark:placeholder-slate-500"
                               />
                             </div>
 
                             {/* Structured Problem Constraints Manager */}
                             <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 space-y-3">
-                              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+                              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 dark:border-slate-700 pb-2">
                                 <div>
-                                  <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                                    <ListOrdered className="w-3.5 h-3.5 text-indigo-600" />
+                                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                                    <ListOrdered className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                                     <span>Problem Constraints &amp; Bounds</span>
                                   </label>
-                                  <p className="text-[10px] text-slate-500">
+                                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
                                     Define input size bounds, value ranges, and algorithmic limits. Each item appears as an individual bullet for candidates.
                                   </p>
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => handleAddConstraintItem(idx)}
-                                  className="px-2.5 py-1 bg-white hover:bg-slate-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
+                                  className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
                                 >
                                   <Plus className="w-3.5 h-3.5" />
                                   <span>Add Constraint</span>
@@ -3704,7 +3709,7 @@ public class OrderEventPublisher {
                                           value={cVal}
                                           onChange={(e) => handleUpdateConstraintItem(idx, cIdx, e.target.value)}
                                           placeholder="e.g. 1 <= N <= 10^5, -10^9 <= nums[i] <= 10^9"
-                                          className="flex-1 px-2.5 py-1 text-xs bg-white border border-slate-300 rounded-lg font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                          className="flex-1 px-2.5 py-1 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                           autoFocus={cVal === '' && cIdx === cItems.length - 1}
                                         />
                                         <button
@@ -3722,8 +3727,8 @@ public class OrderEventPublisher {
                               })()}
 
                               {/* Raw Multiline Textarea fallback */}
-                              <div className="pt-1 border-t border-slate-200/60">
-                                <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">
+                              <div className="pt-1 border-t border-slate-200/60 dark:border-slate-700">
+                                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-0.5">
                                   Raw Constraints Text (One constraint per line):
                                 </label>
                                 <textarea
@@ -3731,39 +3736,39 @@ public class OrderEventPublisher {
                                   value={q.constraints || ''}
                                   onChange={(e) => handleRawConstraintsChange(idx, e.target.value)}
                                   placeholder="e.g.&#10;2 <= N <= 10^4&#10;-10^9 <= nums[i] <= 10^9&#10;target fits in 32-bit integer"
-                                  className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg font-mono focus:outline-none"
+                                  className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg font-mono focus:outline-none"
                                 />
                               </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1">Input Format</label>
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Input Format</label>
                                 <textarea
                                   rows="2"
                                   value={q.inputFormat || ''}
                                   onChange={(e) => handleQuestionFieldChange(idx, 'inputFormat', e.target.value)}
                                   placeholder="e.g. Line 1: N (array length)\nLine 2: N space-separated integers"
-                                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none font-mono"
+                                  className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none font-mono"
                                 />
                               </div>
 
                               <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1">Output Format</label>
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Output Format</label>
                                 <textarea
                                   rows="2"
                                   value={q.outputFormat || ''}
                                   onChange={(e) => handleQuestionFieldChange(idx, 'outputFormat', e.target.value)}
                                   placeholder="e.g. Two space-separated integers: i j"
-                                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none font-mono"
+                                  className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none font-mono"
                                 />
                               </div>
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2 pt-1">
-                              <span className="text-[11px] font-semibold text-slate-600">Supported Compiler Languages:</span>
+                              <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Supported Compiler Languages:</span>
                               {['Python 3', 'Java', 'C++', 'C', 'C#', 'Kotlin'].map((lang, lIdx) => (
-                                <span key={lIdx} className="px-2 py-0.5 bg-slate-200/80 text-slate-800 rounded text-[10px] font-mono font-medium">
+                                <span key={lIdx} className="px-2 py-0.5 bg-slate-200/80 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded text-[10px] font-mono font-medium">
                                   {lang}
                                 </span>
                               ))}
@@ -3771,13 +3776,13 @@ public class OrderEventPublisher {
 
                             {/* Test Cases Sub-Section */}
                             <div className="bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 space-y-3">
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                                 <div>
-                                  <h5 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <Terminal className="w-3.5 h-3.5 text-emerald-600" />
+                                  <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                    <Terminal className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                                     <span>Configured Test Cases ({q.testCases?.length || 0})</span>
                                   </h5>
-                                  <p className="text-[10px] text-slate-500">
+                                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
                                     Sample test cases are visible to students in the online compiler. Hidden test cases are evaluated upon submission. Proportional marks are awarded based on passed test cases.
                                   </p>
                                 </div>
@@ -3802,17 +3807,17 @@ public class OrderEventPublisher {
                                     <div key={tcIdx} className="p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-md space-y-2">
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                          <span className="text-[11px] font-bold text-slate-700">
+                                          <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
                                             Test Case #{tcIdx + 1}
                                           </span>
-                                          <label className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 cursor-pointer bg-white px-2 py-0.5 rounded border border-slate-200">
+                                          <label className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 dark:text-slate-300 cursor-pointer bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                                             <input
                                               type="checkbox"
                                               checked={tc.sample === true}
                                               onChange={(e) => handleUpdateTestCase(idx, tcIdx, 'sample', e.target.checked)}
                                               className="rounded text-emerald-600"
                                             />
-                                            <span className={tc.sample ? 'text-emerald-700 font-bold' : 'text-slate-500'}>
+                                            <span className={tc.sample ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400'}>
                                               {tc.sample ? 'Sample Test (Public)' : 'Hidden Evaluation Test'}
                                             </span>
                                           </label>
@@ -3830,38 +3835,38 @@ public class OrderEventPublisher {
 
                                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         <div>
-                                          <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Input (stdin) *</label>
+                                          <label className="block text-[10px] font-semibold text-slate-600 dark:text-slate-400 mb-0.5">Input (stdin) *</label>
                                           <textarea
                                             rows="2"
                                             required
                                             value={tc.input || ''}
                                             onChange={(e) => handleUpdateTestCase(idx, tcIdx, 'input', e.target.value)}
                                             placeholder="Standard input provided to student code..."
-                                            className="w-full px-2 py-1 text-xs bg-white border border-slate-300 rounded font-mono focus:outline-none"
+                                            className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded font-mono focus:outline-none"
                                           />
                                         </div>
 
                                         <div>
-                                          <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Expected Output (stdout) *</label>
+                                          <label className="block text-[10px] font-semibold text-slate-600 dark:text-slate-400 mb-0.5">Expected Output (stdout) *</label>
                                           <textarea
                                             rows="2"
                                             required
                                             value={tc.expectedOutput || ''}
                                             onChange={(e) => handleUpdateTestCase(idx, tcIdx, 'expectedOutput', e.target.value)}
                                             placeholder="Expected standard output to match..."
-                                            className="w-full px-2 py-1 text-xs bg-white border border-slate-300 rounded font-mono focus:outline-none"
+                                            className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded font-mono focus:outline-none"
                                           />
                                         </div>
                                       </div>
 
                                       <div>
-                                        <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Explanation (Optional)</label>
+                                        <label className="block text-[10px] font-semibold text-slate-600 dark:text-slate-400 mb-0.5">Explanation (Optional)</label>
                                         <input
                                           type="text"
                                           value={tc.explanation || ''}
                                           onChange={(e) => handleUpdateTestCase(idx, tcIdx, 'explanation', e.target.value)}
                                           placeholder="Explanation for students if this is a sample case..."
-                                          className="w-full px-2 py-1 text-xs bg-white border border-slate-300 rounded text-slate-700"
+                                          className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded"
                                         />
                                       </div>
                                     </div>
@@ -3876,9 +3881,9 @@ public class OrderEventPublisher {
                       // Standard MCQ Question Card
                       return (
                         <div key={idx} className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-white dark:bg-slate-900 shadow-2xs space-y-3">
-                          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                            <span className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                              <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold font-mono">
+                          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                              <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[10px] font-bold font-mono">
                                 MCQ #{idx + 1}
                               </span>
                               Question #{idx + 1}
@@ -3886,7 +3891,7 @@ public class OrderEventPublisher {
                             <button
                               type="button"
                               onClick={() => handleRemoveQuestion(idx)}
-                              className="text-slate-400 hover:text-rose-600 transition-colors p-1"
+                              className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors p-1"
                               title="Remove Question"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -3894,78 +3899,78 @@ public class OrderEventPublisher {
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-slate-700 mb-1">Question Statement *</label>
+                            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Question Statement *</label>
                             <textarea
                               rows="2"
                               required
                               value={q.questionText}
                               onChange={(e) => handleQuestionFieldChange(idx, 'questionText', e.target.value)}
                               placeholder="Enter the examination question text..."
-                              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-1 focus:ring-slate-900 focus:outline-none"
+                              className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
                             />
                           </div>
 
                           {/* Options A, B, C, D */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Option A *</label>
+                              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Option A *</label>
                               <input
                                 type="text"
                                 required
                                 value={q.optionA}
                                 onChange={(e) => handleQuestionFieldChange(idx, 'optionA', e.target.value)}
                                 placeholder="Choice A text..."
-                                className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
                               />
                             </div>
 
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Option B *</label>
+                              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Option B *</label>
                               <input
                                 type="text"
                                 required
                                 value={q.optionB}
                                 onChange={(e) => handleQuestionFieldChange(idx, 'optionB', e.target.value)}
                                 placeholder="Choice B text..."
-                                className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
                               />
                             </div>
 
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Option C *</label>
+                              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Option C *</label>
                               <input
                                 type="text"
                                 required
                                 value={q.optionC}
                                 onChange={(e) => handleQuestionFieldChange(idx, 'optionC', e.target.value)}
                                 placeholder="Choice C text..."
-                                className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
                               />
                             </div>
 
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Option D *</label>
+                              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Option D *</label>
                               <input
                                 type="text"
                                 required
                                 value={q.optionD}
                                 onChange={(e) => handleQuestionFieldChange(idx, 'optionD', e.target.value)}
                                 placeholder="Choice D text..."
-                                className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
                               />
                             </div>
                           </div>
 
                           {/* Automatic Evaluation Selector & Marks */}
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-lg">
                             <div>
-                              <label className="block text-[11px] font-bold text-emerald-900 mb-1">
+                              <label className="block text-[11px] font-bold text-emerald-900 dark:text-emerald-300 mb-1">
                                 Correct Answer (Auto-Evaluated) *
                               </label>
                               <select
                                 value={q.correctOption}
                                 onChange={(e) => handleQuestionFieldChange(idx, 'correctOption', e.target.value)}
-                                className="w-full px-2.5 py-1.5 text-xs font-bold bg-white border border-emerald-300 rounded-md text-emerald-900 focus:outline-none"
+                                className="w-full px-2.5 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded-md text-emerald-900 dark:text-emerald-300 focus:outline-none"
                               >
                                 <option value="A">Option A (Marked as Correct)</option>
                                 <option value="B">Option B (Marked as Correct)</option>
@@ -3975,7 +3980,7 @@ public class OrderEventPublisher {
                             </div>
 
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                 Marks Awarded
                               </label>
                               <input
@@ -3984,12 +3989,12 @@ public class OrderEventPublisher {
                                 max="100"
                                 value={q.marks}
                                 onChange={(e) => handleQuestionFieldChange(idx, 'marks', Number(e.target.value))}
-                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-md"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-900 dark:text-white focus:outline-none"
                               />
                             </div>
 
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                 Explanation (Optional)
                               </label>
                               <input
@@ -3997,7 +4002,7 @@ public class OrderEventPublisher {
                                 value={q.explanation || ''}
                                 onChange={(e) => handleQuestionFieldChange(idx, 'explanation', e.target.value)}
                                 placeholder="Why this answer is correct..."
-                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-md"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                               />
                             </div>
                           </div>
@@ -4008,11 +4013,11 @@ public class OrderEventPublisher {
                 )}
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-200">
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowExamModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded text-xs font-semibold text-slate-700 transition-colors"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-xs font-semibold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors"
                 >
                   Cancel
                 </button>
@@ -4035,24 +4040,24 @@ public class OrderEventPublisher {
             <h3 className="text-base font-bold text-slate-900 dark:text-white">Upload / Update Session Recording</h3>
             <form onSubmit={handleAddRecording} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Video Stream URL *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Video Stream URL *</label>
                 <input
                   type="url"
                   required
                   value={recordingForm.recordingVideoUrl}
                   onChange={(e) => setRecordingForm({ ...recordingForm, recordingVideoUrl: e.target.value })}
                   placeholder="https://www.youtube.com/embed/..."
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Lecture Notes / Summary</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Lecture Notes / Summary</label>
                 <textarea
                   rows="3"
                   value={recordingForm.recordingNotes}
                   onChange={(e) => setRecordingForm({ ...recordingForm, recordingNotes: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -4060,13 +4065,13 @@ public class OrderEventPublisher {
                 <button
                   type="button"
                   onClick={() => setShowRecordingModal(false)}
-                  className="px-4 py-2 bg-slate-100 rounded text-xs font-semibold"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors"
                 >
                   Save Recording
                 </button>
@@ -4076,55 +4081,55 @@ public class OrderEventPublisher {
         </div>
       )}
 
-            {/* MODAL: Create New Module */}
+      {/* MODAL: Create New Module */}
       {showCreateModuleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Create New Course Module</h3>
-                <p className="text-xs text-blue-600 font-semibold mt-0.5">Subject: {selectedCourse?.title}</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-0.5">Subject: {selectedCourse?.title}</p>
               </div>
-              <button onClick={() => setShowCreateModuleModal(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setShowCreateModuleModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleCreateModule} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Module Title *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Module Title *</label>
                 <input
                   type="text"
                   required
                   value={moduleForm.title}
                   onChange={(e) => setModuleForm({ ...moduleForm, title: e.target.value })}
                   placeholder="e.g. Module 5: Event-Driven Microservices & Kafka"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Module Description</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Module Description</label>
                 <textarea
                   rows="3"
                   value={moduleForm.description}
                   onChange={(e) => setModuleForm({ ...moduleForm, description: e.target.value })}
                   placeholder="Summary of concepts covered in this module..."
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowCreateModuleModal(false)}
-                  className="px-3.5 py-1.5 bg-slate-100 rounded text-xs font-semibold"
+                  className="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold"
+                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors"
                 >
                   Create Module
                 </button>
@@ -4138,21 +4143,21 @@ public class OrderEventPublisher {
       {showMaterialModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Publish Modular Study Material</h3>
-                <p className="text-xs text-blue-600 font-semibold mt-0.5">Subject: {selectedCourse?.title} • Faculty: {selectedCourse?.trainerName}</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-0.5">Subject: {selectedCourse?.title} • Faculty: {selectedCourse?.trainerName}</p>
               </div>
-              <button onClick={() => setShowMaterialModal(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setShowMaterialModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* QUICK PRE-FILL EXAMPLE STUDY MATERIAL FOR TESTING */}
-            <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/80 rounded-lg">
               <div>
-                <p className="text-xs font-bold text-blue-900">Need an example study material to test uploading?</p>
-                <p className="text-[11px] text-blue-700">Click to automatically populate all fields with a comprehensive enterprise architecture article & MCQs.</p>
+                <p className="text-xs font-bold text-blue-900 dark:text-blue-200">Need an example study material to test uploading?</p>
+                <p className="text-[11px] text-blue-700 dark:text-blue-300">Click to automatically populate all fields with a comprehensive enterprise architecture article & MCQs.</p>
               </div>
               <button
                 type="button"
@@ -4169,11 +4174,11 @@ public class OrderEventPublisher {
               <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    <label className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       Library Visibility & Student Access Scope *
                     </label>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                       Configure whether this study material is published to all portal students globally, restricted to your institution, or both.
                     </p>
                   </div>
@@ -4184,7 +4189,7 @@ public class OrderEventPublisher {
                       className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-colors flex items-center gap-1 ${
                         materialForm.isGlobal && materialForm.isInstitution
                           ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                          : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     >
                       <Layers className="w-3 h-3" />
@@ -4197,8 +4202,8 @@ public class OrderEventPublisher {
                   {/* Global Library Checkbox */}
                   <label className={`flex items-start gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${
                     materialForm.isGlobal
-                      ? 'bg-blue-50/80 border-blue-300 ring-1 ring-blue-300'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
+                      ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800 ring-1 ring-blue-300 dark:ring-blue-800'
+                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}>
                     <input
                       type="checkbox"
@@ -4216,10 +4221,10 @@ public class OrderEventPublisher {
                     />
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <Globe className="w-3.5 h-3.5 text-blue-600" />
-                        <span className="text-xs font-bold text-slate-900">Global Library</span>
+                        <Globe className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">Global Library</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                         Accessible to students from all enrolled institutions across the portal.
                       </p>
                     </div>
@@ -4228,8 +4233,8 @@ public class OrderEventPublisher {
                   {/* Institution Private Library Checkbox */}
                   <label className={`flex items-start gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${
                     materialForm.isInstitution
-                      ? 'bg-purple-50/80 border-purple-300 ring-1 ring-purple-300'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
+                      ? 'bg-purple-50/80 dark:bg-purple-950/40 border-purple-300 dark:border-purple-800 ring-1 ring-purple-300 dark:ring-purple-800'
+                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}>
                     <input
                       type="checkbox"
@@ -4247,12 +4252,12 @@ public class OrderEventPublisher {
                     />
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-purple-600" />
-                        <span className="text-xs font-bold text-slate-900">
+                        <Building2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">
                           {user?.institutionName || selectedCourse?.institutionName || 'My Institution'} Library
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                         Accessible strictly and exclusively to students registered under your institution.
                       </p>
                     </div>
@@ -4262,12 +4267,12 @@ public class OrderEventPublisher {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Select Module *</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Select Module *</label>
                   <select
                     required
                     value={materialForm.moduleId}
                     onChange={(e) => setMaterialForm({ ...materialForm, moduleId: Number(e.target.value) })}
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
                     {courseDetail?.modules?.map((mItem) => (
                       <option key={mItem.module.id} value={mItem.module.id}>
@@ -4277,41 +4282,41 @@ public class OrderEventPublisher {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Article / Topic Title *</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Article / Topic Title *</label>
                   <input
                     type="text"
                     required
                     value={materialForm.title}
                     onChange={(e) => setMaterialForm({ ...materialForm, title: e.target.value })}
                     placeholder="e.g. Memory Model & Concurrency"
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Structured Rich Content (Markdown & Code) *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Structured Rich Content (Markdown & Code) *</label>
                 <textarea
                   rows="6"
                   required
                   value={materialForm.richContent}
                   onChange={(e) => setMaterialForm({ ...materialForm, richContent: e.target.value })}
                   placeholder="Write the full structured article with headings (###), explanations, and code blocks (```java ... ```)"
-                  className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-xs font-mono bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Embedded Video URL (Optional)</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Embedded Video URL (Optional)</label>
                   <input
                     type="url"
                     value={materialForm.videoEmbedUrl}
                     onChange={(e) => setMaterialForm({ ...materialForm, videoEmbedUrl: e.target.value })}
                     placeholder="https://www.youtube.com/embed/..."
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
-                  <p className="text-[11px] text-slate-500 mt-1">Optional YouTube/Vimeo lecture embed link</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Optional YouTube/Vimeo lecture embed link</p>
                 </div>
                 <div>
                   <FileUploadInput
@@ -4326,7 +4331,7 @@ public class OrderEventPublisher {
               </div>
 
               {/* MODULE ASSESSMENT QUESTIONS (MCQs) SECTION */}
-              <div className="pt-2 border-t border-slate-200">
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
                 <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -4343,17 +4348,17 @@ public class OrderEventPublisher {
                         className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
                       />
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-900">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">
                           Attach Self-Assessment / Module Test (Multiple practice attempts allowed)
                         </span>
-                        <span className="text-[11px] text-slate-500 font-normal">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
                           Students can attempt this test multiple times for practice and self-evaluation directly from their study material dashboard.
                         </span>
                       </div>
                     </label>
 
                     {materialForm.includeModuleTest && (
-                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                         {materialQuestions.length} Question{materialQuestions.length === 1 ? '' : 's'} • Unlimited Practice Attempts
                       </span>
                     )}
@@ -4364,24 +4369,24 @@ public class OrderEventPublisher {
                       {/* Test Title & Duration */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
                         <div className="md:col-span-2">
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Module Test Title</label>
+                          <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Module Test Title</label>
                           <input
                             type="text"
                             value={materialForm.testTitle || (materialForm.title ? `${materialForm.title} - Module Test` : '')}
                             onChange={(e) => setMaterialForm({ ...materialForm, testTitle: e.target.value })}
                             placeholder="e.g. Module 1 Assessment"
-                            className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                            className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-900 dark:text-white focus:outline-none"
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Duration (Mins)</label>
+                          <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Duration (Mins)</label>
                           <input
                             type="number"
                             min="5"
                             max="180"
                             value={materialForm.durationMinutes || 20}
                             onChange={(e) => setMaterialForm({ ...materialForm, durationMinutes: Number(e.target.value) })}
-                            className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                            className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-900 dark:text-white focus:outline-none"
                           />
                         </div>
                       </div>
@@ -4392,13 +4397,13 @@ public class OrderEventPublisher {
                           <button
                             type="button"
                             onClick={handlePrefillMaterialQuestions}
-                            className="px-2.5 py-1 text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-md flex items-center gap-1.5 transition-colors"
+                            className="px-2.5 py-1 text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800 rounded-md flex items-center gap-1.5 transition-colors"
                           >
                             <Sparkles className="w-3.5 h-3.5" />
                             <span>Load 3 Example Questions</span>
                           </button>
 
-                          <label className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-md flex items-center gap-1.5 cursor-pointer transition-colors">
+                          <label className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 rounded-md flex items-center gap-1.5 cursor-pointer transition-colors">
                             <Upload className="w-3.5 h-3.5" />
                             <span>Upload CSV</span>
                             <input
@@ -4412,7 +4417,7 @@ public class OrderEventPublisher {
                           <button
                             type="button"
                             onClick={handleDownloadSampleCsv}
-                            className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-md flex items-center gap-1 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-md flex items-center gap-1 transition-colors"
                             title="Download CSV format template"
                           >
                             <Download className="w-3.5 h-3.5" />
@@ -4435,7 +4440,7 @@ public class OrderEventPublisher {
                         <div className="p-6 text-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900">
                           <HelpCircle className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                           <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">No Questions Added Yet</p>
-                          <p className="text-[11px] text-slate-500 mt-0.5">Click "Load 3 Example Questions" or "+ Add Question" to attach an assessment to this module.</p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Click "Load 3 Example Questions" or "+ Add Question" to attach an assessment to this module.</p>
                         </div>
                       ) : (
                         <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
@@ -4446,19 +4451,19 @@ public class OrderEventPublisher {
                                   Question #{qIdx + 1}
                                 </span>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-[11px] text-slate-500 font-medium">Points:</span>
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Points:</span>
                                   <input
                                     type="number"
                                     min="1"
                                     max="100"
                                     value={q.marks || 10}
                                     onChange={(e) => handleUpdateMaterialQuestion(qIdx, 'marks', Number(e.target.value))}
-                                    className="w-14 px-1.5 py-0.5 text-xs border border-slate-300 rounded text-center"
+                                    className="w-14 px-1.5 py-0.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-center text-slate-900 dark:text-white"
                                   />
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveMaterialQuestion(qIdx)}
-                                    className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors"
+                                    className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition-colors"
                                     title="Remove Question"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -4472,71 +4477,71 @@ public class OrderEventPublisher {
                                 value={q.questionText}
                                 onChange={(e) => handleUpdateMaterialQuestion(qIdx, 'questionText', e.target.value)}
                                 placeholder="Type the question text here..."
-                                className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md font-medium"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md font-medium text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                               />
 
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <div className="flex items-center gap-1.5 mb-1">
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 rounded text-slate-700">A</span>
+                                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">A</span>
                                     <input
                                       type="text"
                                       required
                                       value={q.optionA}
                                       onChange={(e) => handleUpdateMaterialQuestion(qIdx, 'optionA', e.target.value)}
                                       placeholder="Option A"
-                                      className="w-full px-2 py-1 text-xs border border-slate-300 rounded"
+                                      className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                                     />
                                   </div>
                                 </div>
                                 <div>
                                   <div className="flex items-center gap-1.5 mb-1">
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 rounded text-slate-700">B</span>
+                                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">B</span>
                                     <input
                                       type="text"
                                       required
                                       value={q.optionB}
                                       onChange={(e) => handleUpdateMaterialQuestion(qIdx, 'optionB', e.target.value)}
                                       placeholder="Option B"
-                                      className="w-full px-2 py-1 text-xs border border-slate-300 rounded"
+                                      className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                                     />
                                   </div>
                                 </div>
                                 <div>
                                   <div className="flex items-center gap-1.5 mb-1">
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 rounded text-slate-700">C</span>
+                                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">C</span>
                                     <input
                                       type="text"
                                       required
                                       value={q.optionC}
                                       onChange={(e) => handleUpdateMaterialQuestion(qIdx, 'optionC', e.target.value)}
                                       placeholder="Option C"
-                                      className="w-full px-2 py-1 text-xs border border-slate-300 rounded"
+                                      className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                                     />
                                   </div>
                                 </div>
                                 <div>
                                   <div className="flex items-center gap-1.5 mb-1">
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 rounded text-slate-700">D</span>
+                                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">D</span>
                                     <input
                                       type="text"
                                       required
                                       value={q.optionD}
                                       onChange={(e) => handleUpdateMaterialQuestion(qIdx, 'optionD', e.target.value)}
                                       placeholder="Option D"
-                                      className="w-full px-2 py-1 text-xs border border-slate-300 rounded"
+                                      className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                                     />
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-1 border-t border-slate-100">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
                                 <div>
-                                  <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Correct Option</label>
+                                  <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Correct Option</label>
                                   <select
                                     value={q.correctOption}
                                     onChange={(e) => handleUpdateMaterialQuestion(qIdx, 'correctOption', e.target.value)}
-                                    className="w-full px-2 py-1 text-xs border border-blue-400 bg-blue-50 font-bold text-blue-900 rounded"
+                                    className="w-full px-2 py-1 text-xs border border-blue-400 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/60 font-bold text-blue-900 dark:text-blue-200 rounded focus:outline-none"
                                   >
                                     <option value="A">Option A</option>
                                     <option value="B">Option B</option>
@@ -4545,13 +4550,13 @@ public class OrderEventPublisher {
                                   </select>
                                 </div>
                                 <div className="md:col-span-2">
-                                  <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Explanation (Displayed after test completion)</label>
+                                  <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Explanation (Displayed after test completion)</label>
                                   <input
                                     type="text"
                                     value={q.explanation || ''}
                                     onChange={(e) => handleUpdateMaterialQuestion(qIdx, 'explanation', e.target.value)}
                                     placeholder="Why is this answer correct?"
-                                    className="w-full px-2 py-1 text-xs border border-slate-300 rounded"
+                                    className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                                   />
                                 </div>
                               </div>
@@ -4568,13 +4573,13 @@ public class OrderEventPublisher {
                 <button
                   type="button"
                   onClick={() => setShowMaterialModal(false)}
-                  className="px-4 py-2 bg-slate-100 rounded text-xs font-semibold"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#0F172A] text-white rounded text-xs font-bold"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors"
                 >
                   Publish Study Material
                 </button>
