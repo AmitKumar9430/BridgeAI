@@ -57,3 +57,13 @@ input:focus, select:focus, textarea:focus {
     display: none !important;
   }
 }
+
+/* Suppress Netlify CDN injected badge frame to keep proctored exam canvas distraction-free */
+#nl-badge-frame,
+iframe[id*="nl-badge"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+

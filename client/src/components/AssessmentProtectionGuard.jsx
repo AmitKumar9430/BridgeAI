@@ -51,7 +51,16 @@ export const AssessmentProtectionGuard = ({ onProtectionStatusChange }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const isPassed = scanReport && scanReport.passed;
+  const isPassed = Boolean(scanReport && scanReport.passed);
+  const extensionProbingPassed = !scanReport?.issues?.some(
+    (i) => i.category === 'EXTENSION_PROBE' || i.category === 'GLOBAL_MARKER'
+  );
+  const apiIntegrityPassed = !scanReport?.issues?.some(
+    (i) => i.category === 'API_HOOKING'
+  );
+  const domIsolationPassed = !scanReport?.issues?.some(
+    (i) => i.category === 'DOM_INJECTION'
+  );
 
   return (
     <div className="space-y-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-all">
@@ -116,10 +125,19 @@ export const AssessmentProtectionGuard = ({ onProtectionStatusChange }) => {
 
       {/* Security Checklist */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-        <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center gap-2.5">
+        {/* 1. Extension Probing */}
+        <div
+          className={`p-3 rounded-xl border flex items-center gap-2.5 transition-colors ${
+            scanning
+              ? 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40'
+              : extensionProbingPassed
+              ? 'border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-950/20'
+              : 'border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/30'
+          }`}
+        >
           {scanning ? (
             <RefreshCw className="w-4 h-4 text-blue-500 animate-spin shrink-0" />
-          ) : isPassed ? (
+          ) : extensionProbingPassed ? (
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           ) : (
             <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
@@ -127,15 +145,24 @@ export const AssessmentProtectionGuard = ({ onProtectionStatusChange }) => {
           <div>
             <div className="font-semibold text-slate-900 dark:text-white">Extension Probing</div>
             <div className="text-[11px] text-slate-500">
-              {scanning ? 'Analyzing...' : isPassed ? 'No extensions found' : 'Active extension detected'}
+              {scanning ? 'Analyzing...' : extensionProbingPassed ? 'No extensions found' : 'Active extension detected'}
             </div>
           </div>
         </div>
 
-        <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center gap-2.5">
+        {/* 2. API Integrity */}
+        <div
+          className={`p-3 rounded-xl border flex items-center gap-2.5 transition-colors ${
+            scanning
+              ? 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40'
+              : apiIntegrityPassed
+              ? 'border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-950/20'
+              : 'border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/30'
+          }`}
+        >
           {scanning ? (
             <RefreshCw className="w-4 h-4 text-blue-500 animate-spin shrink-0" />
-          ) : isPassed ? (
+          ) : apiIntegrityPassed ? (
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           ) : (
             <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
@@ -143,15 +170,24 @@ export const AssessmentProtectionGuard = ({ onProtectionStatusChange }) => {
           <div>
             <div className="font-semibold text-slate-900 dark:text-white">API Integrity</div>
             <div className="text-[11px] text-slate-500">
-              {scanning ? 'Verifying...' : isPassed ? 'Native code pure' : 'Hooking detected'}
+              {scanning ? 'Verifying...' : apiIntegrityPassed ? 'Native code pure' : 'Hooking detected'}
             </div>
           </div>
         </div>
 
-        <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center gap-2.5">
+        {/* 3. DOM Isolation */}
+        <div
+          className={`p-3 rounded-xl border flex items-center gap-2.5 transition-colors ${
+            scanning
+              ? 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40'
+              : domIsolationPassed
+              ? 'border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-950/20'
+              : 'border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/30'
+          }`}
+        >
           {scanning ? (
             <RefreshCw className="w-4 h-4 text-blue-500 animate-spin shrink-0" />
-          ) : isPassed ? (
+          ) : domIsolationPassed ? (
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           ) : (
             <Lock className="w-4 h-4 text-rose-500 shrink-0" />
@@ -159,7 +195,7 @@ export const AssessmentProtectionGuard = ({ onProtectionStatusChange }) => {
           <div>
             <div className="font-semibold text-slate-900 dark:text-white">DOM Isolation</div>
             <div className="text-[11px] text-slate-500">
-              {scanning ? 'Probing...' : isPassed ? 'Clean environment' : 'Foreign nodes found'}
+              {scanning ? 'Probing...' : domIsolationPassed ? 'Clean environment' : 'Foreign nodes found'}
             </div>
           </div>
         </div>

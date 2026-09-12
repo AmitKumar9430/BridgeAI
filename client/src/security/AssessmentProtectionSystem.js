@@ -51,9 +51,6 @@ const KNOWN_GLOBAL_MARKERS = [
   '__SIDER__',
   '__HARPA__',
   '__EXT_INSTALLED__',
-  'ethereum',
-  'solana',
-  'bitkeep',
   'czShortcutListen'
 ];
 
@@ -217,6 +214,63 @@ export function checkApiIntegrity() {
 }
 
 /**
+ * Whitelist of known benign hosting platform, CDN, framework, and UI portal elements.
+ * Prevents false positives from Netlify badges (<iframe id="nl-badge-frame">),
+ * Vercel analytics/speed-insights, Cloudflare challenges, React modals, etc.
+ */
+const BENIGN_DOM_IDS = new Set([
+  'root',
+  'nl-badge-frame',
+  'netlify-badge',
+  'netlify-identity-widget',
+  'webpack-dev-server-client-overlay',
+  'vite-plugin-checker-error-overlay',
+  'modal-root',
+  'portal-root',
+  'headlessui-portal-root',
+  'toast-root',
+  'react-portal',
+  'credential_picker_container'
+]);
+
+function isBenignElement(el) {
+  if (!el || !el.tagName) return true;
+  const tag = el.tagName.toLowerCase();
+  if (tag === 'script' || tag === 'noscript' || tag === 'style' || tag === 'link') return true;
+
+  const id = (el.id || '').toLowerCase();
+  if (BENIGN_DOM_IDS.has(id)) return true;
+
+  // Netlify / Vercel / Cloudflare hosting widgets & framework portals
+  if (
+    id.startsWith('nl-') ||
+    id.includes('netlify') ||
+    id.includes('vercel') ||
+    id.includes('cloudflare') ||
+    id.startsWith('headlessui-') ||
+    id.startsWith('react-aria-') ||
+    id.includes('portal')
+  ) {
+    return true;
+  }
+
+  const className = typeof el.className === 'string' ? el.className.toLowerCase() : '';
+  if (
+    className.includes('netlify') ||
+    className.includes('portal') ||
+    className.includes('toast') ||
+    className.includes('tooltip')
+  ) {
+    return true;
+  }
+
+  // Google Sign-In or Google Translate benign elements
+  if (id.startsWith('goog-') || className.includes('goog-')) return true;
+
+  return false;
+}
+
+/**
  * 2. Checks for Injected DOM Elements, Ports, Foreign Nodes, and Extension Attributes.
  */
 export function checkDomInjections() {
@@ -236,6 +290,7 @@ export function checkDomInjections() {
       const child = document.documentElement.children[i];
       const tag = child.tagName.toLowerCase();
       if (tag !== 'head' && tag !== 'body') {
+        if (isBenignElement(child)) continue;
         detectedItems.push(`Injected element on <html> root: <${tag}${child.id ? ` id="${child.id}"` : ''}>`);
       }
     }
@@ -243,11 +298,13 @@ export function checkDomInjections() {
 
   // 2C. Foreign siblings of #root in document.body
   // In this React application, <body> should only contain #root and bundle <script> tags.
+  // Whitelist benign hosting elements like Netlify badge (<iframe id="nl-badge-frame">)
   if (document.body && document.body.children) {
     for (let i = 0; i < document.body.children.length; i++) {
       const child = document.body.children[i];
       const tag = child.tagName.toLowerCase();
-      if (child.id !== 'root' && tag !== 'script' && tag !== 'noscript') {
+      if (child.id !== 'root') {
+        if (isBenignElement(child)) continue;
         // Foreign element injected by extension (e.g., Grammarly, DSA Tracker, ChatGPT sidebar)
         detectedItems.push(`Foreign body element: <${tag}${child.id ? ` id="${child.id}"` : ''}${child.className && typeof child.className === 'string' ? ` class="${child.className.substring(0, 30)}"` : ''}>`);
       }
@@ -396,8 +453,7 @@ export async function probeKnownExtensions() {
                 if (
                   msg.includes('access to the specified extension id is denied') ||
                   msg.includes('permission denied') ||
-                  msg.includes('not permitted') ||
-                  (!msg.includes('receiving end does not exist') && !msg.includes('invalid extension id'))
+                  msg.includes('not permitted')
                 ) {
                   resolve({ installed: true, reason: lastErr.message });
                   return;
@@ -571,6 +627,8 @@ export function startRuntimeProtectionObserver(onViolation) {
         for (const node of mut.addedNodes) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const el = node;
+            if (isBenignElement(el)) continue;
+
             const tagName = el.tagName.toLowerCase();
             const id = el.id ? el.id.toLowerCase() : '';
             const className = el.className && typeof el.className === 'string' ? el.className.toLowerCase() : '';
@@ -583,7 +641,9 @@ export function startRuntimeProtectionObserver(onViolation) {
               id.includes('sider') ||
               id.includes('chatgpt') ||
               id.includes('dsa-tracker') ||
-              id.includes('sidebar') ||
+              id.includes('ai-sidebar') ||
+              id.includes('chatgpt-sidebar') ||
+              id.includes('copilot-sidebar') ||
               className.includes('extension') ||
               (el.getAttribute('src') &&
                 (el.getAttribute('src').startsWith('chrome-extension://') ||
