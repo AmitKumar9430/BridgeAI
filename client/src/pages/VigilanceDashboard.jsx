@@ -1786,9 +1786,19 @@ export const VigilanceDashboard = () => {
                         <span>Live Candidate Screen Feed</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] bg-blue-950 text-blue-300 border border-blue-800 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>
-                          Screen Sharing Active
+                        <span className={`px-2 py-0.5 rounded text-[10px] border flex items-center gap-1 ${
+                          liveFrames[selectedStudent.attemptId]?.screenFrame || selectedStudent.screenFrame
+                            ? 'bg-blue-950 text-blue-300 border-blue-800'
+                            : 'bg-amber-950 text-amber-300 border-amber-800'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            liveFrames[selectedStudent.attemptId]?.screenFrame || selectedStudent.screenFrame
+                              ? 'bg-blue-400 animate-ping'
+                              : 'bg-amber-400'
+                          }`}></span>
+                          {liveFrames[selectedStudent.attemptId]?.screenFrame || selectedStudent.screenFrame
+                            ? 'Screen Sharing Active'
+                            : 'Connecting Screen Feed...'}
                         </span>
                         <button
                           type="button"

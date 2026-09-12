@@ -477,30 +477,77 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   };
 
   // Helper to capture real candidate screen frame or dynamic live workspace snapshot
-  const getScreenFrame = () => {
+  // Helper to capture real candidate screen frame or dynamic live workspace snapshot
+  const getScreenFrame = async () => {
+    const activeScreen = screenStream || screenStreamRef.current;
+    const track = activeScreen?.getVideoTracks?.()?.find((t) => t.readyState === 'live');
+
+    // Strategy 1: Direct MediaStreamTrack ImageCapture API (hardware accelerated, bypasses DOM/Autoplay throttle)
+    if (track && typeof ImageCapture !== 'undefined') {
+      try {
+        const imageCapture = new ImageCapture(track);
+        const bitmap = await imageCapture.grabFrame();
+        if (bitmap && bitmap.width > 0 && bitmap.height > 0) {
+          const canvas = document.createElement('canvas');
+          canvas.width = 640;
+          canvas.height = 360;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(bitmap, 0, 0, 640, 360);
+          if (typeof bitmap.close === 'function') bitmap.close();
+
+          // Verify frame is not pitch black
+          const p1 = ctx.getImageData(160, 90, 1, 1).data;
+          const p2 = ctx.getImageData(320, 180, 1, 1).data;
+          const p3 = ctx.getImageData(480, 270, 1, 1).data;
+          const isBlack = (p1[0] === 0 && p1[1] === 0 && p1[2] === 0) &&
+                          (p2[0] === 0 && p2[1] === 0 && p2[2] === 0) &&
+                          (p3[0] === 0 && p3[1] === 0 && p3[2] === 0);
+          if (!isBlack) {
+            return canvas.toDataURL('image/jpeg', 0.6);
+          }
+        }
+      } catch (icErr) {
+        // Fallback to video element
+      }
+    }
+
+    // Strategy 2: Off-screen active <video> element
     const vid = screenVideoRef.current;
-    if (vid) {
-      const activeScreen = screenStream || screenStreamRef.current;
-      if (!vid.srcObject && activeScreen) {
-        vid.srcObject = activeScreen;
-      }
-      if (vid.srcObject && vid.paused) {
-        vid.play().catch(() => {});
-      }
-      if (vid.readyState >= 2 && vid.videoWidth > 0) {
-        try {
+    if (vid && activeScreen) {
+      try {
+        if (!vid.srcObject || vid.srcObject !== activeScreen) {
+          vid.srcObject = activeScreen;
+          vid.muted = true;
+          vid.defaultMuted = true;
+          vid.playsInline = true;
+        }
+        if (vid.paused) {
+          vid.play().catch(() => {});
+        }
+        if (vid.readyState >= 2 && vid.videoWidth > 0) {
           const canvas = document.createElement('canvas');
           canvas.width = 640;
           canvas.height = 360;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(vid, 0, 0, 640, 360);
-          return canvas.toDataURL('image/jpeg', 0.6);
-        } catch (e) {
-          // fallback to workspace snapshot
+
+          // Verify not completely black
+          const p1 = ctx.getImageData(160, 90, 1, 1).data;
+          const p2 = ctx.getImageData(320, 180, 1, 1).data;
+          const p3 = ctx.getImageData(480, 270, 1, 1).data;
+          const isBlack = (p1[0] === 0 && p1[1] === 0 && p1[2] === 0) &&
+                          (p2[0] === 0 && p2[1] === 0 && p2[2] === 0) &&
+                          (p3[0] === 0 && p3[1] === 0 && p3[2] === 0);
+          if (!isBlack) {
+            return canvas.toDataURL('image/jpeg', 0.6);
+          }
         }
+      } catch (vErr) {
+        // Fallback to dynamic workspace canvas
       }
     }
 
+    // Strategy 3: Dynamic Live Candidate Examination Workspace Telemetry Canvas
     try {
       const canvas = document.createElement('canvas');
       canvas.width = 640;
@@ -515,92 +562,125 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       const currentCoding = codingAnswersRef.current || codingAnswers || {};
       const rawTime = timeLeftRef.current ?? timeLeft;
       const currTime = Math.max(0, typeof rawTime === 'number' && !isNaN(rawTime) ? rawTime : 1800);
+      const cName = user?.fullName || 'Active Candidate';
 
-      // 1. Base dark background
-      ctx.fillStyle = '#090d16';
+      // 1. High-contrast Slate background
+      ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 0, 640, 360);
 
       // 2. Top Header Bar
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(0, 0, 640, 38);
-      ctx.fillStyle = '#6366f1';
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0, 0, 640, 38);
+
+      // Status indicator circle
+      ctx.fillStyle = '#2563eb';
       ctx.beginPath();
-      ctx.arc(22, 19, 7, 0, Math.PI * 2);
+      ctx.arc(20, 19, 6, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 12px sans-serif';
       const title = currentExam.examTitle || currentExam.title || 'BridgeAI Live Examination Workspace';
-      ctx.fillText(String(title).slice(0, 42), 38, 23);
+      ctx.fillText(String(title).slice(0, 36), 34, 23);
 
       ctx.fillStyle = '#10b981';
       ctx.font = 'bold 10px monospace';
-      ctx.fillText('LIVE WORKSPACE SCREEN', 475, 23);
+      ctx.fillText('LIVE WORKSPACE SCREEN', 470, 23);
 
-      // 3. Left Panel: Question details
-      ctx.fillStyle = '#111827';
-      ctx.fillRect(12, 48, 290, 266);
+      // 3. Left Panel: Active Question
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(12, 48, 296, 266);
+      ctx.strokeStyle = '#334155';
+      ctx.strokeRect(12, 48, 296, 266);
+
       ctx.fillStyle = '#38bdf8';
       ctx.font = 'bold 11px sans-serif';
       ctx.fillText(`Question ${currQIndex + 1} of ${questionsList.length || 1}`, 24, 70);
 
-      ctx.fillStyle = '#cbd5e1';
-      ctx.font = '10px sans-serif';
+      ctx.fillStyle = '#f1f5f9';
+      ctx.font = '11px sans-serif';
       const q = questionsList[currQIndex] || {};
-      const qText = String(q.questionText || q.problemTitle || q.title || 'Candidate is answering examination questions in proctored session.');
+      const qText = String(q.questionText || q.problemTitle || q.title || 'Candidate is answering assessment questions in safe lockdown browser.');
       const words = qText.split(' ');
       let line = '';
       let y = 92;
       for (let w of words) {
-        if ((line + w).length > 36) {
+        if ((line + w).length > 34) {
           ctx.fillText(line, 24, y);
           line = w + ' ';
-          y += 16;
-          if (y > 180) break;
+          y += 18;
+          if (y > 175) break;
         } else {
           line += w + ' ';
         }
       }
-      if (line && y <= 180) ctx.fillText(line, 24, y);
+      if (line && y <= 175) ctx.fillText(line, 24, y);
 
       if (q.questionType === 'CODING') {
         ctx.fillStyle = '#f59e0b';
         ctx.font = 'bold 10px monospace';
         ctx.fillText('Type: Algorithmic Coding Problem', 24, 205);
       } else {
-        ctx.fillStyle = '#a5b4fc';
+        ctx.fillStyle = '#93c5fd';
         ctx.font = '10px sans-serif';
         const selOpt = q.id ? currentAnswers[q.id] : null;
-        ctx.fillText(`Selected Option: ${selOpt ? 'Option ' + selOpt : 'Not yet answered'}`, 24, 205);
+        ctx.fillText(`Selected Answer: ${selOpt ? 'Option ' + selOpt : 'Not yet chosen'}`, 24, 205);
+
+        // Render option badges
+        ['A', 'B', 'C', 'D'].forEach((opt, idx) => {
+          const isSelected = selOpt === opt;
+          ctx.fillStyle = isSelected ? '#059669' : '#334155';
+          ctx.fillRect(24 + idx * 64, 222, 54, 22);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 10px sans-serif';
+          ctx.fillText(`Opt ${opt}${isSelected ? ' ✓' : ''}`, 32 + idx * 64, 237);
+        });
       }
 
-      // 4. Right Panel: Code Editor / Solution Workspace
+      // 4. Right Panel: Active Solution / Code Editor
       ctx.fillStyle = '#020617';
-      ctx.fillRect(312, 48, 316, 266);
+      ctx.fillRect(320, 48, 308, 266);
+      ctx.strokeStyle = '#334155';
+      ctx.strokeRect(320, 48, 308, 266);
+
+      // Editor tab header
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(320, 48, 308, 26);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px monospace';
+      ctx.fillText('solution.py', 332, 65);
 
       ctx.fillStyle = '#38bdf8';
       ctx.font = '10px monospace';
-      const cName = user?.fullName || 'Active Candidate';
-      ctx.fillText(`// Candidate: ${cName.slice(0, 22)} (ID: #${user?.id || 1})`, 324, 68);
+      ctx.fillText(`// Candidate: ${cName.slice(0, 22)}`, 332, 92);
       ctx.fillStyle = '#a78bfa';
-      ctx.fillText(`// Exam Attempt #${currentExam.attemptId || examData?.attemptId || ''}`, 324, 84);
+      ctx.fillText(`// Exam Attempt #${currentExam.attemptId || examData?.attemptId || ''}`, 332, 108);
       ctx.fillStyle = '#34d399';
-      ctx.fillText(`// Time Left: ${Math.floor(currTime / 60)}m ${currTime % 60}s`, 324, 100);
+      ctx.fillText(`// Time Remaining: ${Math.floor(currTime / 60)}m ${currTime % 60}s`, 332, 124);
 
       ctx.fillStyle = '#e2e8f0';
       const codingObj = (q.id && currentCoding[q.id]) || {};
-      const codeSnippet = codingObj.code || '# Active student solution workspace\ndef solution():\n    pass';
-      const codeLines = String(codeSnippet).split('\n').slice(0, 9);
+      const codeSnippet = codingObj.code || `# Candidate active code workspace\ndef solve():\n    # Problem in progress\n    pass`;
+      const codeLines = String(codeSnippet).split('\n').slice(0, 7);
       codeLines.forEach((l, idx) => {
-        ctx.fillText(l.slice(0, 42), 324, 126 + idx * 15);
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(`${idx + 1}`, 328, 146 + idx * 16);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillText(l.slice(0, 36), 346, 146 + idx * 16);
       });
 
       // 5. Bottom status bar
-      ctx.fillStyle = '#0f172a';
+      ctx.fillStyle = '#1e293b';
       ctx.fillRect(0, 322, 640, 38);
-      ctx.fillStyle = '#64748b';
-      ctx.font = '9px monospace';
-      ctx.fillText(`Safe Browser: ACTIVE | Time: ${new Date().toLocaleTimeString()} | Attempt #${currentExam.attemptId || examData?.attemptId || ''}`, 14, 344);
+      ctx.strokeStyle = '#334155';
+      ctx.strokeRect(0, 322, 640, 38);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px monospace';
+      ctx.fillText(`Safe Browser: ACTIVE | Fullscreen: LOCKED | Time: ${new Date().toLocaleTimeString()} | Attempt #${currentExam.attemptId || examData?.attemptId || ''}`, 14, 345);
 
       return canvas.toDataURL('image/jpeg', 0.6);
     } catch (e) {
@@ -622,10 +702,10 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       // ignore
     }
 
-    const sendStreamFrame = () => {
+    const sendStreamFrame = async () => {
       try {
         const camFrame = getCameraFrame();
-        const scrFrame = getScreenFrame();
+        const scrFrame = await getScreenFrame();
 
         if (!camFrame && !scrFrame) return;
 
@@ -718,23 +798,34 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         try {
           currentScreen = await navigator.mediaDevices.getDisplayMedia({
             video: {
-              displaySurface: 'monitor',
               cursor: 'always'
             },
             audio: false
           });
+        } catch (scrErr) {
+          try {
+            currentScreen = await navigator.mediaDevices.getDisplayMedia({ video: true });
+          } catch (scrErr2) {
+            console.warn('Candidate screen share dismissed or cancelled:', scrErr2);
+          }
+        }
+        if (currentScreen) {
           setScreenStream(currentScreen);
           screenStreamRef.current = currentScreen;
           if (screenVideoRef.current) {
+            screenVideoRef.current.muted = true;
+            screenVideoRef.current.defaultMuted = true;
+            screenVideoRef.current.playsInline = true;
             screenVideoRef.current.srcObject = currentScreen;
             screenVideoRef.current.play().catch(() => {});
           }
-          currentScreen.getVideoTracks()[0].onended = () => {
-            setScreenStream(null);
-            screenStreamRef.current = null;
-          };
-        } catch (scrErr) {
-          console.warn('Candidate screen share dismissed or cancelled:', scrErr);
+          const track = currentScreen.getVideoTracks()[0];
+          if (track) {
+            track.onended = () => {
+              setScreenStream(null);
+              screenStreamRef.current = null;
+            };
+          }
         }
       }
 
@@ -3968,10 +4059,10 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         </div>
       )}
 
-      {/* Dedicated off-screen video elements for background frame streaming (kept in active DOM viewport so browser does not throttle decoding) */}
-      <div style={{ position: 'fixed', bottom: 0, right: 0, width: 320, height: 180, opacity: 0.01, pointerEvents: 'none', zIndex: -10 }} aria-hidden="true">
-        <video ref={streamCamVideoRef} autoPlay playsInline muted width="320" height="180" />
-        <video ref={screenVideoRef} autoPlay playsInline muted width="320" height="180" />
+      {/* Dedicated off-screen video elements for background frame streaming (kept in active DOM viewport with opacity so Chromium compositor decodes textures) */}
+      <div style={{ position: 'fixed', bottom: 4, right: 4, width: 4, height: 4, opacity: 0.99, overflow: 'hidden', pointerEvents: 'none', zIndex: 99999 }} aria-hidden="true">
+        <video ref={streamCamVideoRef} autoPlay playsInline muted style={{ width: 4, height: 4, objectFit: 'cover' }} />
+        <video ref={screenVideoRef} autoPlay playsInline muted style={{ width: 4, height: 4, objectFit: 'cover' }} />
       </div>
     </div>
   );
