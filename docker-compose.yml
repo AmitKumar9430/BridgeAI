@@ -1,0 +1,67 @@
+services:
+  # Spring Boot Backend Instance 1
+  backend-1:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: bridgeai-backend-1
+    environment:
+      - SERVER_PORT=8080
+      - HOSTNAME=backend-node-1
+      - DB_URL=${DB_URL:-jdbc:mysql://localhost:3306/bridgeai}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root}
+    networks:
+      - portal-net
+    restart: unless-stopped
+
+  # Spring Boot Backend Instance 2 (Horizontal Scaling)
+  backend-2:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: bridgeai-backend-2
+    environment:
+      - SERVER_PORT=8080
+      - HOSTNAME=backend-node-2
+      - DB_URL=${DB_URL:-jdbc:mysql://localhost:3306/bridgeai}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root}
+    networks:
+      - portal-net
+    restart: unless-stopped
+
+  # Nginx Load Balancer with least_conn routing
+  load-balancer:
+    image: nginx:alpine
+    container_name: bridgeai-load-balancer
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend-1
+      - backend-2
+      - client
+    networks:
+      - portal-net
+    restart: unless-stopped
+
+  # React Frontend Single Page Application
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: bridgeai-client
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend-1
+      - backend-2
+    networks:
+      - portal-net
+    restart: unless-stopped
+
+networks:
+  portal-net:
+    driver: bridge

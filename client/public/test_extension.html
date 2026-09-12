@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head><title>Extension Probe Test</title></head>
+<body>
+<div id="results">Running probe...</div>
+<script>
+async function runProbe() {
+  const res = document.getElementById('results');
+  const log = (msg) => {
+    console.log(msg);
+    res.innerHTML += '<div>' + msg + '</div>';
+  };
+
+  const testId = async (id, name) => {
+    return new Promise((resolve) => {
+      if (!window.chrome || !window.chrome.runtime || !window.chrome.runtime.sendMessage) {
+        log(name + ' (' + id + '): No chrome.runtime.sendMessage');
+        return resolve();
+      }
+      try {
+        window.chrome.runtime.sendMessage(id, { type: 'ping' }, (response) => {
+          const err = window.chrome.runtime.lastError;
+          log(name + ' (' + id + '): Response=' + JSON.stringify(response) + ' | LastError=' + (err ? err.message : 'none'));
+          resolve();
+        });
+      } catch (e) {
+        log(name + ' (' + id + '): Exception=' + e.message);
+        resolve();
+      }
+    });
+  };
+
+  await testId('ehllkhjndgnlokhomdlhgbineffifcbj', 'Always Active Window');
+  await testId('fpjppnhnpnknbenelmbnidjbolhandnf', 'Enable Copy Paste');
+  await testId('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'Non-existent Dummy ID');
+}
+runProbe();
+</script>
+</body>
+</html>

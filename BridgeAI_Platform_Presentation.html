@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BridgeAI Enterprise Platform - Executive Presentation</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-pulse-ring {
+      animation: pulseRing 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.9); }
+  </style>
+</head>
+<body class="bg-[#090D16] text-slate-100 font-sans min-h-screen flex flex-col justify-between select-none antialiased overflow-x-hidden">
+
+  <!-- TOP APP BAR -->
+  <header class="h-16 border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md px-6 sm:px-10 flex items-center justify-between shrink-0 z-40 sticky top-0">
+    <div class="flex items-center gap-3.5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-extrabold text-white shadow-lg shadow-blue-500/25">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-black tracking-wider uppercase bg-gradient-to-r from-blue-400 via-indigo-300 to-white bg-clip-text text-transparent">BridgeAI</span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">Enterprise Platform</span>
+        </div>
+        <p class="text-[11px] text-slate-400 font-medium">Executive Architecture & Capabilities Deck</p>
+      </div>
+    </div>
+
+    <!-- Center Slide Counter & Progress Bar -->
+    <div class="hidden md:flex items-center gap-3">
+      <span class="text-xs font-mono text-slate-400 font-semibold" id="slide-counter">Slide 1 of 11</span>
+      <div class="w-48 h-2 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700/50">
+        <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full transition-all duration-300 w-[9.09%]"></div>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="flex items-center gap-2.5">
+      <!-- Table of contents toggle -->
+      <button onclick="toggleToc()" class="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors">
+        <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+        </svg>
+        <span class="hidden sm:inline">Index</span>
+      </button>
+
+      <!-- Auto play -->
+      <button id="btn-autoplay" onclick="toggleAutoPlay()" class="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors">
+        <svg id="play-icon" class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+        </svg>
+        <span id="play-text" class="hidden sm:inline">Auto Play</span>
+      </button>
+
+      <!-- Download HTML Presentation -->
+      <button onclick="downloadSelf()" class="px-3.5 py-1.5 rounded-xl border border-blue-500/40 bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center gap-1.5 transition-all shadow-sm shadow-blue-500/20" title="Download Complete Presentation File">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
+        <span>Download File</span>
+      </button>
+
+      <!-- Fullscreen -->
+      <button onclick="toggleFullscreen()" class="p-2 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors" title="Toggle Fullscreen">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- TABLE OF CONTENTS DRAWER (MODAL) -->
+  <div id="toc-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider">Slide Table of Contents</h3>
+        </div>
+        <button onclick="toggleToc()" class="p-1 text-slate-400 hover:text-white rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 gap-1.5 max-h-[60vh] overflow-y-auto pr-1" id="toc-list">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN PRESENTATION CANVAS -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-8 flex items-center justify-center relative">
+
+    <!-- SLIDE 1: TITLE & EXECUTIVE SUMMARY -->
+    <section class="slide slide-active w-full" data-slide="0">
+      <div class="bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-blue-950/30 border border-slate-800/80 rounded-3xl p-8 sm:p-14 shadow-2xl space-y-8 animate-fade-in-up">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-widest">
+            <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+            Unified Academic Operating System
+          </span>
+          <span class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-700">
+            Spring Boot 3 • Java 21 • React 18
+          </span>
+        </div>
+
+        <div class="space-y-4">
+          <h2 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+            Next-Gen Academic Governance & Examination Platform
+          </h2>
+          <p class="text-base sm:text-xl text-slate-300 max-w-3xl font-normal leading-relaxed">
+            BridgeAI unifies university administration, faculty instruction, proctored examinations, capstone projects, and student learning into a cohesive multi-tiered digital campus.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-800/80">
+          <div class="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50">
+            <div class="text-2xl sm:text-3xl font-black text-blue-400 font-mono">4</div>
+            <div class="text-xs font-bold text-white mt-1">Tiered Consoles</div>
+            <div class="text-[11px] text-slate-400">Boss, Super, Trainer, Student</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50">
+            <div class="text-2xl sm:text-3xl font-black text-emerald-400 font-mono">AI</div>
+            <div class="text-xs font-bold text-white mt-1">Proctored Exams</div>
+            <div class="text-[11px] text-slate-400">Gaze, Face, Fullscreen Locks</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50">
+            <div class="text-2xl sm:text-3xl font-black text-purple-400 font-mono">Live</div>
+            <div class="text-xs font-bold text-white mt-1">Video Streaming</div>
+            <div class="text-[11px] text-slate-400">Google Meet, Zoom & Teams</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50">
+            <div class="text-2xl sm:text-3xl font-black text-amber-400 font-mono">SHA-256</div>
+            <div class="text-xs font-bold text-white mt-1">Certificates</div>
+            <div class="text-[11px] text-slate-400">Cryptographically Verified</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: THE ACADEMIC CHALLENGE & BRIDGEAI SOLUTION -->
+    <section class="slide hidden w-full" data-slide="1">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-6">
+        <div>
+          <span class="text-xs font-bold text-blue-400 uppercase tracking-widest">Industry Landscape</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-1">
+            Bridging the Fragmentation in Higher Education
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">Transforming disjointed academic workflows into an integrated, auditable cloud ecosystem.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          <!-- Traditional Problems -->
+          <div class="p-6 rounded-2xl bg-rose-950/20 border border-rose-900/40 space-y-4">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+              </div>
+              <h3 class="text-base font-bold text-rose-300">Legacy Systems Disconnect</h3>
+            </div>
+            <ul class="text-xs text-slate-300 space-y-2.5">
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold">•</span>
+                <span><strong>Isolated Portals:</strong> Separate vendors for exams, video lectures, student assignments, and campus management.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold">•</span>
+                <span><strong>Vulnerable Assessments:</strong> High cheating risk in remote assessments without real-time AI face, gaze, and tab monitoring.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold">•</span>
+                <span><strong>Non-Standard Grading:</strong> Manual spreadsheet exports prone to tampering and lack of audit trails.</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- BridgeAI Unified Solution -->
+          <div class="p-6 rounded-2xl bg-emerald-950/20 border border-emerald-900/40 space-y-4">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              <h3 class="text-base font-bold text-emerald-300">The BridgeAI Operating System</h3>
+            </div>
+            <ul class="text-xs text-slate-300 space-y-2.5">
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">•</span>
+                <span><strong>End-to-End Governance:</strong> Boss Admin, Super Admin, Trainer, and Student consoles operating on unified data models.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">•</span>
+                <span><strong>AI Proctored Code IDE:</strong> In-browser compiler with test-case validation, gaze detection, and violation tracking.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">•</span>
+                <span><strong>Cryptographic Integrity:</strong> SHA-256 verified certificates and Excel/Sheets compatible export with UTF-8 BOM encoding.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: 4-TIER ARCHITECTURAL PYRAMID -->
+    <section class="slide hidden w-full" data-slide="2">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-6">
+        <div>
+          <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Multi-Tenant Architecture</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-1">
+            4-Tier Institutional Governance Tree
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">Strict organizational hierarchy with role-scoped authority, permissions, and audit visibility.</p>
+        </div>
+
+        <div class="space-y-3 pt-2">
+          <!-- Tier 1: Boss Admin -->
+          <div class="p-4 rounded-2xl bg-purple-950/30 border border-purple-800/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded-xl bg-purple-600 text-white font-bold flex items-center justify-center text-xs">T1</span>
+              <div>
+                <h4 class="text-sm font-bold text-white">Boss Admin Master Console</h4>
+                <p class="text-xs text-purple-200/80">Universal system administrator governing all onboarded universities and institutions.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-semibold px-2.5 py-1 bg-purple-900/60 text-purple-300 rounded-lg border border-purple-700">Institution Onboarding</span>
+              <span class="text-[11px] font-semibold px-2.5 py-1 bg-purple-900/60 text-purple-300 rounded-lg border border-purple-700">Security Audit Logs</span>
+            </div>
+          </div>
+
+          <!-- Tier 2: Super Admin -->
+          <div class="p-4 rounded-2xl bg-amber-950/30 border border-amber-800/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded-xl bg-amber-600 text-white font-bold flex items-center justify-center text-xs">T2</span>
+              <div>
+                <h4 class="text-sm font-bold text-white">Institute Super Admin Console</h4>
+                <p class="text-xs text-amber-200/80">Designated institutional authority over faculty trainers, students, and curriculum matrix.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-semibold px-2.5 py-1 bg-amber-900/60 text-amber-300 rounded-lg border border-amber-700">Faculty Specialist Matrix</span>
+              <span class="text-[11px] font-semibold px-2.5 py-1 bg-amber-900/60 text-amber-300 rounded-lg border border-amber-700">Student Roster OTP</span>
+            </div>
+          </div>
+
+          <!-- Tier 3: Trainer -->
+          <div class="p-4 rounded-2xl bg-blue-950/30 border border-blue-800/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded-xl bg-blue-600 text-white font-bold flex items-center justify-center text-xs">T3</span>
+              <div>
+                <h4 class="text-sm font-bold text-white">Faculty Trainer Academic Console</h4>
+                <p class="text-xs text-blue-200/80">Subject instructor managing assignments, capstone projects, exams, and lecture streams.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-semibold px-2.5 py-1 bg-blue-900/60 text-blue-300 rounded-lg border border-blue-700">Assignment Review Pipeline</span>
+              <span class="text-[11px] font-semibold px-2.5 py-1 bg-blue-900/60 text-blue-300 rounded-lg border border-blue-700">Excel Data Downloads</span>
+            </div>
+          </div>
+
+          <!-- Tier 4: Student -->
+          <div class="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-800/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center text-xs">T4</span>
+              <div>
+                <h4 class="text-sm font-bold text-white">Student Academic & Assessment Portal</h4>
+                <p class="text-xs text-emerald-200/80">Enrolled student accessing sequential materials, proctored testing, and certifications.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-semibold px-2.5 py-1 bg-emerald-900/60 text-emerald-300 rounded-lg border border-emerald-700">AI Coding Workspace</span>
+              <span class="text-[11px] font-semibold px-2.5 py-1 bg-emerald-900/60 text-emerald-300 rounded-lg border border-emerald-700">Verified Credentials</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: BOSS ADMIN & SUPER ADMIN CAPABILITIES -->
+    <section class="slide hidden w-full" data-slide="3">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-6">
+        <div>
+          <span class="text-xs font-bold text-purple-400 uppercase tracking-widest">Enterprise Administration</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-1">
+            Institutional Onboarding & Matrix Mapping
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">Complete institutional lifecycle from registration to faculty-course allocation.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+          <div class="p-6 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-3">
+            <div class="flex items-center gap-2 text-purple-400 font-bold text-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+              <span>Institution Lifecycle & Hierarchy</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Boss Admin onboards universities with full geographical details (Campus address, City, State, Pin Code, Accreditation NIRF/NAAC).
+            </p>
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5 text-xs">
+              <div class="flex items-center justify-between text-slate-400">
+                <span>Interactive Accordion Hierarchy:</span>
+                <span class="text-purple-400 font-bold">1-Click Drilldown</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-400">
+                <span>Universal Profile Inspector:</span>
+                <span class="text-blue-400 font-bold">Contact & Role Badges</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-400">
+                <span>Enterprise CRUD:</span>
+                <span class="text-emerald-400 font-bold">Full Edit & Delete Operations</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-3">
+            <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+              <span>Faculty Specialists Matrix</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Super Admin provisions faculty specialists and maps multi-trainer curriculums across departments with real-time assignment matrices.
+            </p>
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5 text-xs">
+              <div class="flex items-center justify-between text-slate-400">
+                <span>Specialization Assignment:</span>
+                <span class="text-amber-400 font-bold">Multi-Trainer Allocation</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-400">
+                <span>Student Onboarding:</span>
+                <span class="text-emerald-400 font-bold">OTP Authentication & Password Reset</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-400">
+                <span>Subject Mapping:</span>
+                <span class="text-indigo-400 font-bold">Cross-Faculty Coordination</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: FACULTY TRAINER ACADEMIC SUITE -->
+    <section class="slide hidden w-full" data-slide="4">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-6">
+        <div>
+          <span class="text-xs font-bold text-blue-400 uppercase tracking-widest">Faculty Instruction</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-1">
+            Trainer Academic Console & Grading Engine
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">Complete curriculum delivery, student evaluation, and one-click data export.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <!-- 3-Stage Pipeline -->
+          <div class="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-3">
+            <div class="text-blue-400 font-bold text-xs uppercase tracking-wider">Coursework Evaluation</div>
+            <h4 class="text-sm font-bold text-white">3-Stage Assignment Review</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Submitted &rarr; Under Review &rarr; Checked workflow. Faculty grade student PDFs or text answers, award letter grades, and supply written feedback.
+            </p>
+            <span class="inline-block text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono">PUT /api/assignments/{id}</span>
+          </div>
+
+          <!-- Project Hub -->
+          <div class="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-3">
+            <div class="text-purple-400 font-bold text-xs uppercase tracking-wider">Capstone Deliverables</div>
+            <h4 class="text-sm font-bold text-white">Project Hub & Evaluation</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Manage capstone topics with minimum/maximum team sizes. Inspect team GitHub repositories, live demo URLs, and presentation slides.
+            </p>
+            <span class="inline-block text-[10px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">POST /api/projects/submit</span>
+          </div>
+
+          <!-- Student Data Download -->
+          <div class="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-3">
+            <div class="text-emerald-400 font-bold text-xs uppercase tracking-wider">Analytics & Records</div>
+            <h4 class="text-sm font-bold text-white">Student Data CSV Exports</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              1-Click master academic export with UTF-8 BOM encoding for seamless opening in Microsoft Excel and Google Sheets with zero character corruption.
+            </p>
+            <span class="inline-block text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">UTF-8 BOM CSV Reports</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: AI-PROCTORED CODING ENVIRONMENT -->
+    <section class="slide hidden w-full" data-slide="5">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-6">
+        <div>
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Assessment Integrity</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-1">
+            AI-Proctored Examination Suite
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">LeetCode-style coding editor with real-time browser lockdowns and gaze deviation tracking.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          <!-- Proctoring Engine -->
+          <div class="p-6 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-4">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+              </div>
+              <h4 class="text-sm font-bold text-white">Real-Time Webcam & Browser Lockdown</h4>
+            </div>
+            <ul class="text-xs text-slate-300 space-y-2">
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold">•</span>
+                <span><strong>Gaze & Face Monitoring:</strong> WebGL/Canvas AI detects head turns, looking away, or multiple people in view.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold">•</span>
+                <span><strong>Fullscreen & Tab Lockdown:</strong> 3-strike violation policy for window switching, devtools inspection, or focus loss.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold">•</span>
+                <span><strong>Faculty Re-Attempt Approval:</strong> Trainers inspect violation audit timestamps before granting re-takes.</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Code Editor -->
+          <div class="p-6 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-4">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+              </div>
+              <h4 class="text-sm font-bold text-white">LeetCode-Style Split IDE</h4>
+            </div>
+            <ul class="text-xs text-slate-300 space-y-2">
+              <li class="flex items-start gap-2">
+                <span class="text-blue-400 font-bold">•</span>
+                <span><strong>Multi-Language Execution:</strong> Python, Java, C++, JavaScript with live syntax suggestions and keyword auto-completion.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-400 font-bold">•</span>
+                <span><strong>Automated Test Cases:</strong> Public sample tests and hidden evaluation test cases with memory & execution benchmarks.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-400 font-bold">•</span>
+                <span><strong>Clipboard Security:</strong> Internal editor copy allowed; external paste strictly intercepted to prevent code leaks.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: LIVE VIDEO STREAMING ARCHITECTURE -->
+    <section class="slide hidden w-full" data-slide="6">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-6">
+        <div>
+          <span class="text-xs font-bold text-teal-400 uppercase tracking-widest">Interactive Classrooms</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-1">
+            Universal Live Session Scheduling Engine
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">Google Meet, Zoom & Teams scheduling with role-cascading attendance and creator security.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <!-- Platform Support -->
+          <div class="p-5 rounded-2xl bg-teal-950/20 border border-teal-800/40 space-y-3">
+            <h4 class="text-sm font-bold text-white flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-teal-400"></span>
+              Universal Platforms
+            </h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Supports Google Meet, Zoom Video, Microsoft Teams, Cisco Webex, and custom stream links with passcode storage and 1-click clipboard copying.
+            </p>
+          </div>
+
+          <!-- Hierarchy Routing -->
+          <div class="p-5 rounded-2xl bg-amber-950/20 border border-amber-800/40 space-y-3">
+            <h4 class="text-sm font-bold text-white flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              Cascading Attendance
+            </h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Boss Admin broadcasts to all 3 lower tiers; Super Admin schedules for campus faculty and students; Trainers schedule for their subject cohort.
+            </p>
+          </div>
+
+          <!-- Creator Security -->
+          <div class="p-5 rounded-2xl bg-rose-950/20 border border-rose-800/40 space-y-3">
+            <h4 class="text-sm font-bold text-white flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+              Creator-Only Controls
+            </h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Only the verified creator can edit, delete, toggle live status, or attach recordings. Other participants only receive "Join Meeting" action.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <span class="text-slate-400">Server Security Endpoint:</span>
+          <code class="text-blue-300 font-mono">verifySessionCreator(sessionId, auth) &rarr; 403 Forbidden on Unauthorized Access</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: CRYPTOGRAPHIC VERIFICATION & SHA-256 CREDENTIALS -->
+    <section class="slide hidden w-full" data-slide="7">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-6">
+        <div>
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-widest">Tamper-Proof Credentials</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-1">
+            SHA-256 Verifiable Digital Certificates
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">Cryptographically verifiable certificates with public validation endpoints and instant lookup.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          <div class="p-6 rounded-2xl bg-slate-800/60 border border-slate-700 space-y-3">
+            <h4 class="text-sm font-bold text-white">Cryptographic Certificate Architecture</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Upon passing proctored assessments, students earn digital credentials encoded with a unique SHA-256 cryptographic hash calculated from student ID, assessment ID, score, and completion timestamp.
+            </p>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1 text-xs font-mono">
+              <span class="text-slate-400 text-[10px] uppercase">Generated Signature Example:</span>
+              <p class="text-amber-400 text-[11px] truncate">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</p>
+            </div>
+          </div>
+
+          <div class="p-6 rounded-2xl bg-slate-800/60 border border-slate-700 space-y-3">
+            <h4 class="text-sm font-bold text-white">Public Verification Portal</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Employers, university recruiters, and accrediting bodies can verify candidate achievement instantly without requiring portal credentials.
+            </p>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1 text-xs font-mono">
+              <span class="text-slate-400 text-[10px] uppercase">Public REST Endpoint:</span>
+              <p class="text-emerald-400 text-[11px] truncate">GET /api/certificates/verify/{verificationHash}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: INTERACTIVE LIVE CONSOLE EXPLORER -->
+    <section class="slide hidden w-full" data-slide="8">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <span class="text-xs font-bold text-blue-400 uppercase tracking-widest">Interactive Simulator</span>
+            <h2 class="text-xl sm:text-2xl font-black text-white mt-0.5">Explore the 4 Consoles in Real-Time</h2>
+          </div>
+
+          <!-- Console Switcher -->
+          <div class="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+            <button onclick="switchPreviewConsole('boss')" id="tab-boss" class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-purple-600 text-white">Boss Admin</button>
+            <button onclick="switchPreviewConsole('super')" id="tab-super" class="px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">Super Admin</button>
+            <button onclick="switchPreviewConsole('trainer')" id="tab-trainer" class="px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">Trainer</button>
+            <button onclick="switchPreviewConsole('student')" id="tab-student" class="px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">Student</button>
+          </div>
+        </div>
+
+        <!-- Simulated Screen Mockup -->
+        <div id="console-preview-body" class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: DESIGN RIGOR & ACCESSIBILITY STANDARDS -->
+    <section class="slide hidden w-full" data-slide="9">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-6">
+        <div>
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Enterprise Design Standards</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-1">
+            Zero-Emoji Compliance & High-Contrast Theming
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">Strict enterprise UX guidelines ensure clean corporate aesthetics across light and dark modes.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+          <!-- Zero Emoji Policy -->
+          <div class="p-6 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-3">
+            <div class="text-3xl font-black text-emerald-400 font-mono">0 Emojis</div>
+            <h4 class="text-sm font-bold text-white">Strict Enterprise Policy</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              100% SVG Lucide icon enforcement across buttons, notifications, badges, and alerts. Zero Unicode emojis allowed in code, comments, or UI.
+            </p>
+          </div>
+
+          <!-- Contrast Compliance -->
+          <div class="p-6 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-3">
+            <div class="text-3xl font-black text-blue-400 font-mono">WCAG AAA</div>
+            <h4 class="text-sm font-bold text-white">Dual Theme Contrast</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Deep navy and slate backgrounds in dark mode; crisp white surfaces and rich slate borders in light mode with no muddy or low-contrast elements.
+            </p>
+          </div>
+
+          <!-- Responsive Sidebar -->
+          <div class="p-6 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-3">
+            <div class="text-3xl font-black text-purple-400 font-mono">Dynamic UX</div>
+            <h4 class="text-sm font-bold text-white">Sidebar & Tab Strips</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Users can seamlessly toggle between a sticky expandable left sidebar and a compact top horizontal navigation bar with localStorage persistence.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: TECHNICAL STACK & PRODUCTION READINESS -->
+    <section class="slide hidden w-full" data-slide="10">
+      <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-6">
+        <div>
+          <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Engineering Excellence</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-1">
+            Technical Stack & Deployment Readiness
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">Robust architectures built for high concurrency, zero downtime, and strict security.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+          <div class="p-5 rounded-2xl bg-slate-800/70 border border-slate-700/80 space-y-2">
+            <div class="text-xs font-bold text-blue-400 uppercase">Backend Core</div>
+            <h4 class="text-sm font-bold text-white">Spring Boot 3 + Java 21</h4>
+            <p class="text-xs text-slate-400">Spring Data JPA, Hibernate, JWT Stateless Auth, and Spring Security method pre-authorizations.</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-slate-800/70 border border-slate-700/80 space-y-2">
+            <div class="text-xs font-bold text-teal-400 uppercase">Frontend Client</div>
+            <h4 class="text-sm font-bold text-white">React 18 + Vite 5</h4>
+            <p class="text-xs text-slate-400">Blazing fast Vite builds (sub-10s), Tailwind CSS, Lucide icons, and responsive layouts.</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-slate-800/70 border border-slate-700/80 space-y-2">
+            <div class="text-xs font-bold text-purple-400 uppercase">AI & Execution</div>
+            <h4 class="text-sm font-bold text-white">Proctoring & Judge Engine</h4>
+            <p class="text-xs text-slate-400">Client-side WebGL face detection and secure multi-language code evaluation runner.</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-slate-800/70 border border-slate-700/80 space-y-2">
+            <div class="text-xs font-bold text-emerald-400 uppercase">Verification</div>
+            <h4 class="text-sm font-bold text-white">Zero Error Compiles</h4>
+            <p class="text-xs text-slate-400">100% production build success, 0 emojis across 122 files, and full role-partitioned test coverage.</p>
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-blue-900/40 via-indigo-900/40 to-purple-900/40 border border-indigo-700/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h4 class="text-sm font-bold text-white">BridgeAI Enterprise Platform is Production Ready</h4>
+            <p class="text-xs text-slate-300">Empowering higher education institutions with secure, scalable, and auditable learning governance.</p>
+          </div>
+          <button onclick="goToSlide(0)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shrink-0">
+            Restart Presentation
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM PRESENTATION CONTROLS BAR -->
+  <footer class="h-16 border-t border-slate-800 bg-slate-900/90 backdrop-blur-md px-6 sm:px-10 flex items-center justify-between shrink-0 z-40 sticky bottom-0">
+    <div class="flex items-center gap-2">
+      <button onclick="prevSlide()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-700/60">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        <span>Previous</span>
+      </button>
+
+      <button onclick="nextSlide()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-600/20 flex items-center gap-1.5">
+        <span>Next Slide</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+      </button>
+    </div>
+
+    <!-- Slide Indicator Dots -->
+    <div class="hidden lg:flex items-center gap-1.5" id="dots-container">
+      <!-- Generated by JS -->
+    </div>
+
+    <div class="text-[11px] text-slate-500 font-mono hidden sm:block">
+      Navigate: &larr; / &rarr; • Space: Auto-Play • Esc: Index
+    </div>
+  </footer>
+
+  <script>
+    const totalSlides = 11;
+    let currentSlide = 0;
+    let autoPlayInterval = null;
+
+    const slideTitles = [
+      "1. Title & Executive Summary",
+      "2. Academic Challenge & Solution",
+      "3. 4-Tier Governance Tree",
+      "4. Boss Admin & Super Admin Matrix",
+      "5. Faculty Trainer Academic Suite",
+      "6. AI-Proctored Examination IDE",
+      "7. Universal Live Streaming Engine",
+      "8. Cryptographic Verification & SHA-256",
+      "9. Interactive Console Simulator",
+      "10. Enterprise Design & Contrast Standards",
+      "11. Engineering Stack & Readiness"
+    ];
+
+    function init() {
+      // Build TOC
+      const tocList = document.getElementById('toc-list');
+      tocList.innerHTML = slideTitles.map((title, idx) => `
+        <button onclick="goToSlide(${idx}); toggleToc();" class="p-2.5 rounded-xl hover:bg-slate-800 text-left text-xs font-semibold text-slate-300 hover:text-white transition-colors flex items-center justify-between">
+          <span>${title}</span>
+          <span class="text-[10px] text-slate-500 font-mono">0${idx + 1}</span>
+        </button>
+      `).join('');
+
+      // Build Dots
+      const dotsContainer = document.getElementById('dots-container');
+      dotsContainer.innerHTML = Array.from({ length: totalSlides }).map((_, idx) => `
+        <button onclick="goToSlide(${idx})" class="w-2.5 h-2.5 rounded-full bg-slate-700 dot-indicator transition-all" title="${slideTitles[idx]}"></button>
+      `).join('');
+
+      updateSlide();
+      switchPreviewConsole('boss');
+    }
+
+    function updateSlide() {
+      const slides = document.querySelectorAll('.slide');
+      slides.forEach((s, idx) => {
+        if (idx === currentSlide) {
+          s.classList.remove('hidden');
+          s.classList.add('animate-fade-in-up');
+        } else {
+          s.classList.add('hidden');
+          s.classList.remove('animate-fade-in-up');
+        }
+      });
+
+      document.getElementById('slide-counter').textContent = `Slide ${currentSlide + 1} of ${totalSlides}`;
+      document.getElementById('progress-bar').style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+
+      const dots = document.querySelectorAll('.dot-indicator');
+      dots.forEach((dot, idx) => {
+        if (idx === currentSlide) {
+          dot.classList.remove('bg-slate-700');
+          dot.classList.add('bg-blue-500', 'w-6');
+        } else {
+          dot.classList.remove('bg-blue-500', 'w-6');
+          dot.classList.add('bg-slate-700');
+        }
+      });
+    }
+
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % totalSlides;
+      updateSlide();
+    }
+
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+      updateSlide();
+    }
+
+    function goToSlide(idx) {
+      currentSlide = idx;
+      updateSlide();
+    }
+
+    function toggleAutoPlay() {
+      if (autoPlayInterval) {
+        clearInterval(autoPlayInterval);
+        autoPlayInterval = null;
+        document.getElementById('play-text').textContent = 'Auto Play';
+        document.getElementById('play-icon').classList.remove('text-rose-400');
+        document.getElementById('play-icon').classList.add('text-emerald-400');
+      } else {
+        autoPlayInterval = setInterval(nextSlide, 6000);
+        document.getElementById('play-text').textContent = 'Pause';
+        document.getElementById('play-icon').classList.remove('text-emerald-400');
+        document.getElementById('play-icon').classList.add('text-rose-400');
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    function toggleToc() {
+      const modal = document.getElementById('toc-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    // Keyboard bindings
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+      if (e.key === ' ') {
+        e.preventDefault();
+        toggleAutoPlay();
+      }
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('toc-modal');
+        if (!modal.classList.contains('hidden')) {
+          modal.classList.add('hidden');
+        }
+      }
+    });
+
+    // Console Simulator on Slide 9
+    function switchPreviewConsole(consoleKey) {
+      ['boss', 'super', 'trainer', 'student'].forEach(k => {
+        const btn = document.getElementById(`tab-${k}`);
+        if (k === consoleKey) {
+          btn.className = "px-3 py-1 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white";
+        } else {
+          btn.className = "px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
+        }
+      });
+
+      const body = document.getElementById('console-preview-body');
+      if (!body) return;
+
+      if (consoleKey === 'boss') {
+        body.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <span class="text-xs font-bold text-purple-400 uppercase tracking-widest">Master Governance</span>
+              <h4 class="text-base font-bold text-white">Boss Admin Master Console</h4>
+            </div>
+            <span class="text-xs px-2.5 py-1 bg-purple-500/20 text-purple-300 font-bold rounded-lg border border-purple-500/30">Enterprise Scope</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Institutions & Hierarchy</span>
+              <p class="text-white font-bold text-sm">12 Enrolled Universities</p>
+              <span class="text-emerald-400 text-[10px]">NAAC A++ & NIRF Top 10</span>
+            </div>
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Super Admins</span>
+              <p class="text-white font-bold text-sm">28 Campus Administrators</p>
+              <span class="text-purple-400 text-[10px]">Active Multi-Campus Auth</span>
+            </div>
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Live Sessions Broadcast</span>
+              <p class="text-white font-bold text-sm">Global Townhall Ready</p>
+              <span class="text-blue-400 text-[10px]">Broadcasting to All Tiers</span>
+            </div>
+          </div>
+        `;
+      } else if (consoleKey === 'super') {
+        body.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <span class="text-xs font-bold text-amber-400 uppercase tracking-widest">Campus Authority</span>
+              <h4 class="text-base font-bold text-white">Super Admin Institutional Console</h4>
+            </div>
+            <span class="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-300 font-bold rounded-lg border border-amber-500/30">Campus Scope</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Faculty Specialists</span>
+              <p class="text-white font-bold text-sm">45 Appointed Trainers</p>
+              <span class="text-amber-400 text-[10px]">Multi-Faculty Curriculum Matrix</span>
+            </div>
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Student Roster</span>
+              <p class="text-white font-bold text-sm">1,250 Enrolled Students</p>
+              <span class="text-emerald-400 text-[10px]">Automated 6-Digit OTP Provision</span>
+            </div>
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Campus Live Sessions</span>
+              <p class="text-white font-bold text-sm">Dean's Briefing Scheduled</p>
+              <span class="text-indigo-400 text-[10px]">Trainers & Students Invited</span>
+            </div>
+          </div>
+        `;
+      } else if (consoleKey === 'trainer') {
+        body.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <span class="text-xs font-bold text-blue-400 uppercase tracking-widest">Faculty Instruction</span>
+              <h4 class="text-base font-bold text-white">Faculty Trainer Academic Console</h4>
+            </div>
+            <span class="text-xs px-2.5 py-1 bg-blue-500/20 text-blue-300 font-bold rounded-lg border border-blue-500/30">Faculty Scope</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Assignment Pipeline</span>
+              <p class="text-white font-bold text-sm">84 Submissions Pending</p>
+              <span class="text-blue-400 text-[10px]">Submitted &rarr; Review &rarr; Checked</span>
+            </div>
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Student Data Export</span>
+              <p class="text-white font-bold text-sm">Excel CSV Downloads</p>
+              <span class="text-emerald-400 text-[10px]">Marks, Projects, Assessments</span>
+            </div>
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Doubt Clearance Classes</span>
+              <p class="text-white font-bold text-sm">Google Meet Connected</p>
+              <span class="text-purple-400 text-[10px]">Creator-Only Edit/Delete Guard</span>
+            </div>
+          </div>
+        `;
+      } else if (consoleKey === 'student') {
+        body.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Candidate Learning</span>
+              <h4 class="text-base font-bold text-white">Student Academic & Assessment Portal</h4>
+            </div>
+            <span class="text-xs px-2.5 py-1 bg-emerald-500/20 text-emerald-300 font-bold rounded-lg border border-emerald-500/30">Student Scope</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">AI Proctored Assessments</span>
+              <p class="text-white font-bold text-sm">DSA Coding Exam Ready</p>
+              <span class="text-rose-400 text-[10px]">Full Webcam & Gaze Monitor</span>
+            </div>
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Interactive Live Classes</span>
+              <p class="text-white font-bold text-sm">1-Click Join Meeting</p>
+              <span class="text-blue-400 text-[10px]">Google Meet & Zoom Integrated</span>
+            </div>
+            <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 text-[11px]">Earned Credentials</span>
+              <p class="text-white font-bold text-sm">SHA-256 Verified</p>
+              <span class="text-amber-400 text-[10px]">Instant Public Validation</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function downloadSelf() {
+      const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "BridgeAI_Platform_Presentation.html";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Start on load
+    init();
+  </script>
+</body>
+</html>
