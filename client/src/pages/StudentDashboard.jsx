@@ -9,7 +9,7 @@ import {
   Archive, Presentation, Clock, Lock, RefreshCw, ChevronRight,
   Users, UserPlus, Check, X, Shield, Edit3, Monitor, ShieldAlert, Target,
   Globe, Building2, Layers, PanelLeftOpen, PanelLeftClose,
-  Printer, Download, Search, Copy, Sparkles, GraduationCap, Bell
+  Printer, Download, Search, Copy, Sparkles, GraduationCap, Bell, Camera, Ban
 } from 'lucide-react';
 import { DashboardSidebar } from '../components/common/DashboardSidebar';
 import { LiveSessionsTab } from '../components/common/LiveSessionsTab';
@@ -27,6 +27,8 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
   const [myProjects, setMyProjects] = useState([]);
   const [availableTopics, setAvailableTopics] = useState([]);
   const [courseTrainersMap, setCourseTrainersMap] = useState({});
+  const [vigilanceHistory, setVigilanceHistory] = useState([]);
+  const [selectedEvidenceModal, setSelectedEvidenceModal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('bridgeai_student_sidebar_open');
@@ -268,7 +270,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
   const fetchStudentData = async () => {
     try {
       setLoading(true);
-      const [coursesRes, sessRes, examStatusRes, certRes, assignRes, myProjRes, topicsRes, invitesRes] = await Promise.allSettled([
+      const [coursesRes, sessRes, examStatusRes, certRes, assignRes, myProjRes, topicsRes, invitesRes, vigilanceRes] = await Promise.allSettled([
         api.get('/courses'),
         api.get('/sessions'),
         api.get('/exams/student-status'),
@@ -276,7 +278,8 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
         api.get('/assignments/student'),
         api.get('/projects/my-projects'),
         api.get('/projects/topics'),
-        api.get('/projects/invites/received')
+        api.get('/projects/invites/received'),
+        api.get('/vigilance/student-history')
       ]);
 
       if (coursesRes.status === 'fulfilled') {
@@ -302,6 +305,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
       if (assignRes.status === 'fulfilled') setAssignmentsWithSub(assignRes.value.data || []);
       if (myProjRes.status === 'fulfilled') setMyProjects(myProjRes.value.data || []);
       if (invitesRes.status === 'fulfilled') setReceivedInvites(invitesRes.value.data || []);
+      if (vigilanceRes.status === 'fulfilled') setVigilanceHistory(vigilanceRes.value.data || []);
 
       if (topicsRes.status === 'fulfilled') {
         const topics = topicsRes.value.data || [];
@@ -525,7 +529,15 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
     { id: 'live-sessions', label: 'Live Sessions (Meet/Zoom)', icon: Video },
     { id: 'recordings', label: 'Recorded Lectures', icon: Video, count: sessions.filter(s => s.recordingVideoUrl).length },
     { id: 'materials', label: 'Study Materials', icon: BookOpen, count: `${courses.length} Subjects`, badge: 'Modular', badgeColor: 'emerald' },
-    { id: 'certificates', label: 'Earned Certificates', icon: Award, count: certificates.length, badge: certificates.length > 0 ? `${certificates.length} Verified` : null, badgeColor: 'amber' }
+    { id: 'certificates', label: 'Earned Certificates', icon: Award, count: certificates.length, badge: certificates.length > 0 ? `${certificates.length} Verified` : null, badgeColor: 'amber' },
+    {
+      id: 'vigilance-history',
+      label: 'Vigilance & Termination History',
+      icon: ShieldAlert,
+      count: vigilanceHistory.length > 0 ? `${vigilanceHistory.length} Logged` : 'Clean Record',
+      badge: vigilanceHistory.some(v => v.status === 'TERMINATED_BY_VIOLATION' || v.actionType === 'TERMINATE_EXAM') ? 'Incident' : null,
+      badgeColor: 'rose'
+    }
   ];
 
   return (
@@ -927,6 +939,24 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 {certificates.length > 0 && (
                   <span className="text-[10px] px-1.5 py-0.2 bg-amber-100 text-amber-800 font-bold rounded border border-amber-200">
                     Verified
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab('vigilance-history')}
+                className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
+                  activeTab === 'vigilance-history'
+                    ? 'bg-white text-rose-700 border-rose-600 border-x border-t border-slate-200 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
+                }`}
+                title="View integrity audit records, termination reasons, and photo evidence"
+              >
+                <ShieldAlert className="w-4 h-4 text-rose-600" />
+                <span>Vigilance & Termination History</span>
+                {vigilanceHistory.length > 0 && (
+                  <span className="text-[10px] px-1.5 py-0.2 bg-rose-100 text-rose-800 font-bold rounded border border-rose-200">
+                    {vigilanceHistory.length}
                   </span>
                 )}
               </button>
@@ -1587,17 +1617,24 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
             return (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {trainerAssignedExams.map((ex, idx) => {
-                  const displayStatus = ex.displayStatus || 'AVAILABLE';
-                  const isDone = displayStatus === 'DONE' || displayStatus === 'SUBMITTED';
-                  const isMissed = displayStatus === 'MISSED';
-                  const canStart = (!isDone && !isMissed) || ex.canReattempt;
-                  const isRecentlyTriggered = displayStatus === 'IN_PROGRESS' || (ex.canReattempt && isDone) || (idx === 0 && canStart);
+                  const termRecord = vigilanceHistory.find(v =>
+                    (v.examId === ex.examId || (v.attemptId && v.attemptId === ex.attemptId)) &&
+                    (v.status === 'TERMINATED_BY_VIOLATION' || v.actionType === 'TERMINATE_EXAM')
+                  );
+                  const isTerminated = (ex.displayStatus === 'TERMINATED' || ex.attemptStatus === 'TERMINATED_BY_VIOLATION' || !!termRecord);
+                  const displayStatus = isTerminated ? 'TERMINATED' : (ex.displayStatus || 'AVAILABLE');
+                  const isDone = (displayStatus === 'DONE' || displayStatus === 'SUBMITTED') && !isTerminated;
+                  const isMissed = displayStatus === 'MISSED' && !isTerminated;
+                  const canStart = (!isDone && !isMissed && !isTerminated) || ex.canReattempt;
+                  const isRecentlyTriggered = !isTerminated && (displayStatus === 'IN_PROGRESS' || (ex.canReattempt && isDone) || (idx === 0 && canStart));
 
                   return (
                     <div
                       key={ex.examId}
                       className={`border rounded-xl p-5 space-y-3 transition-colors ${
-                        displayStatus === 'IN_PROGRESS'
+                        isTerminated
+                          ? 'border-rose-300 dark:border-rose-900/80 bg-rose-50/30 dark:bg-rose-950/20 shadow-xs'
+                          : displayStatus === 'IN_PROGRESS'
                           ? 'border-blue-400 dark:border-blue-600 bg-blue-50/40 dark:bg-blue-950/30 shadow-sm ring-1 ring-blue-300 dark:ring-blue-700'
                           : isRecentlyTriggered
                           ? 'border-amber-300 dark:border-amber-700/80 bg-amber-50/30 dark:bg-amber-950/20 shadow-xs'
@@ -1624,7 +1661,9 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                           <h4 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">{ex.title}</h4>
                         </div>
                         <span className={`px-2.5 py-1 rounded text-xs font-bold border shrink-0 ${
-                          isDone
+                          isTerminated
+                            ? 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800'
+                            : isDone
                             ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
                             : isMissed
                             ? 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800'
@@ -1636,19 +1675,47 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
                       <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{ex.description}</p>
 
+                      {isTerminated && (
+                        <div className="p-3 bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl text-xs space-y-1">
+                          <div className="flex items-center justify-between text-rose-900 dark:text-rose-300 font-bold">
+                            <span className="flex items-center gap-1.5">
+                              <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
+                              <span>Enforcement: Session Terminated</span>
+                            </span>
+                            {termRecord?.officerStaffId && (
+                              <span className="text-[10px] bg-rose-200 dark:bg-rose-900/80 text-rose-800 dark:text-rose-300 px-1.5 py-0.5 rounded font-mono">
+                                {termRecord.officerStaffId}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-rose-800 dark:text-rose-200 text-[11px] leading-relaxed">
+                            <strong>Reason:</strong> {termRecord?.reason || 'Integrity violation limit breached during proctoring.'}
+                          </p>
+                          {termRecord?.evidenceSnapshot && (
+                            <div className="pt-1 flex items-center gap-1.5 text-[10px] text-rose-700 dark:text-rose-400 font-semibold">
+                              <Eye className="w-3 h-3 text-rose-600" />
+                              <span>Photo evidence attached to official case record.</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div>
-                          {isDone && (
+                          {isTerminated ? (
+                            <span className="font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1">
+                              <ShieldAlert className="w-3.5 h-3.5" />
+                              <span>Audit Record Archived • Single Session Locked</span>
+                            </span>
+                          ) : isDone ? (
                             <span className="font-bold text-slate-900 dark:text-white">
                               Score: {ex.score} / {ex.totalMarks} ({ex.percentage}%) • {ex.passed ? 'PASSED' : 'FAILED'}
                             </span>
-                          )}
-                          {isMissed && (
+                          ) : isMissed ? (
                             <span className="font-bold text-rose-700 dark:text-rose-400">
                               Deadline Expired: 0 Marks Awarded
                             </span>
-                          )}
-                          {!isDone && !isMissed && (
+                          ) : (
                             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                               Faculty: {ex.trainerName || 'Assigned Instructor'} • Passing: {ex.passingPercentage || 60}%
                             </span>
@@ -1656,7 +1723,22 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                         </div>
 
                         <div>
-                          {isMobileOrTablet ? (
+                          {isTerminated ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (termRecord && termRecord.evidenceSnapshot) {
+                                  setSelectedEvidenceModal(termRecord);
+                                } else {
+                                  setActiveTab('vigilance-history');
+                                }
+                              }}
+                              className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <ShieldAlert className="w-4 h-4" />
+                              <span>View Reason & Evidence</span>
+                            </button>
+                          ) : isMobileOrTablet ? (
                             <button
                               disabled
                               className="px-3.5 py-2 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed flex items-center gap-1.5 border border-slate-300 dark:border-slate-700"
@@ -2104,6 +2186,290 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
               </div>
             );
           })()}
+        </div>
+      )}
+
+      {/* TAB 8: VIGILANCE & TERMINATION HISTORY (IMMUTABLE INTEGRITY AUDIT TRAIL) */}
+      {activeTab === 'vigilance-history' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Header Card */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs transition-colors">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <ShieldAlert className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                    <span>Vigilance & Examination Termination History</span>
+                  </h3>
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 text-[10px] font-bold border border-slate-200 dark:border-slate-700 flex items-center gap-1">
+                    <Building2 className="w-3 h-3 text-slate-500" />
+                    <span>{user?.institutionName || 'Institutional Examination Authority'}</span>
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                  Official immutable audit records of proctoring enforcement actions, academic integrity observations, violation warnings, and examination termination events with attached photographic evidence.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={fetchStudentData}
+                  className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer shadow-2xs"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Sync Records</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Metrics Overview Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-4">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Integrity Standing</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {vigilanceHistory.some(v => v.status === 'TERMINATED_BY_VIOLATION' || v.actionType === 'TERMINATE_EXAM') ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                      <span className="text-sm font-bold text-rose-700 dark:text-rose-400">Infraction Logged</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Good Standing</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Terminated Sessions</span>
+                <span className="text-lg font-black text-rose-600 dark:text-rose-400 block mt-0.5">
+                  {vigilanceHistory.filter(v => v.status === 'TERMINATED_BY_VIOLATION' || v.actionType === 'TERMINATE_EXAM').length}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Formal Warnings</span>
+                <span className="text-lg font-black text-amber-600 dark:text-amber-400 block mt-0.5">
+                  {vigilanceHistory.filter(v => v.actionType === 'ISSUE_WARNING' || v.actionType === 'WARNING').length}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Evidence Files Attached</span>
+                <span className="text-lg font-black text-blue-600 dark:text-blue-400 block mt-0.5">
+                  {vigilanceHistory.filter(v => v.evidenceSnapshot).length}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Incidents List / Clean Record State */}
+          {vigilanceHistory.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 border-2 border-dashed border-emerald-200 dark:border-emerald-900/60 rounded-2xl p-10 text-center space-y-3 shadow-xs">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-base font-bold text-slate-900 dark:text-white">Clean Proctoring Record</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                  No vigilance interventions, warning strikes, or exam termination records have been registered for your account. All proctored examinations have been completed under academic honor principles.
+                </p>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Verified Clean Candidate Standing</span>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {vigilanceHistory.map((incident, idx) => {
+                const isTermination = incident.status === 'TERMINATED_BY_VIOLATION' || incident.actionType === 'TERMINATE_EXAM';
+                const dateStr = incident.terminatedAt || incident.timestamp || incident.completedAt;
+                const formattedDate = dateStr ? new Date(dateStr).toLocaleString() : 'Recent Session';
+
+                return (
+                  <div
+                    key={incident.attemptId || incident.id || idx}
+                    className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-xs space-y-4 transition-all ${
+                      isTermination
+                        ? 'border-rose-300 dark:border-rose-900/80 ring-1 ring-rose-200 dark:ring-rose-900/40'
+                        : 'border-amber-300 dark:border-amber-900/80 ring-1 ring-amber-200 dark:ring-amber-900/40'
+                    }`}
+                  >
+                    {/* Incident Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3.5">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border flex items-center gap-1 ${
+                            isTermination
+                              ? 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/80 dark:text-rose-300 dark:border-rose-800'
+                              : 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-800'
+                          }`}>
+                            <ShieldAlert className="w-3 h-3" />
+                            <span>{isTermination ? 'Examination Session Terminated' : 'Official Warning Issued'}</span>
+                          </span>
+
+                          <span className="text-xs font-mono font-semibold text-slate-500">
+                            Attempt #{incident.attemptId || 'N/A'}
+                          </span>
+
+                          {incident.evidenceId && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                              Ref: {incident.evidenceId}
+                            </span>
+                          )}
+                        </div>
+
+                        <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                          {incident.examTitle || 'Proctored Examination'}
+                        </h4>
+                      </div>
+
+                      <div className="text-left sm:text-right text-xs text-slate-500">
+                        <div className="flex items-center sm:justify-end gap-1.5 font-medium">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{formattedDate}</span>
+                        </div>
+                        <span className="text-[11px] text-slate-400 block mt-0.5">
+                          Enforcement Level: <strong>{incident.severity || 'CRITICAL'}</strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Main Incident Details & Attached Photo Evidence */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                      {/* Left: Reason, Officer & Remarks (7 Cols) */}
+                      <div className="lg:col-span-7 space-y-3.5">
+                        {/* Stated Reason */}
+                        <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs space-y-1">
+                          <span className="text-[10px] uppercase font-bold text-rose-800 dark:text-rose-400 tracking-wider block">
+                            Official Stated Reason for Termination / Action
+                          </span>
+                          <p className="font-bold text-rose-950 dark:text-rose-200 text-sm leading-relaxed">
+                            {incident.reason || 'Terminated due to multiple security violations logged during assessment.'}
+                          </p>
+                        </div>
+
+                        {/* Officer & Observations */}
+                        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+                          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
+                            <span className="text-slate-500">Enforcing Authority:</span>
+                            <span className="font-bold text-slate-800 dark:text-slate-200">
+                              {incident.officerName || 'Institutional Sentinel'} ({incident.officerStaffId || 'VO-SEC'})
+                            </span>
+                          </div>
+
+                          {incident.officerNotes && (
+                            <div>
+                              <span className="text-[11px] text-slate-500 block mb-0.5 font-medium">Officer Remarks & Notes:</span>
+                              <p className="text-slate-700 dark:text-slate-300 italic leading-relaxed">
+                                &quot;{incident.officerNotes}&quot;
+                              </p>
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between pt-1 text-[11px]">
+                            <span className="text-slate-500">Security Violation Count:</span>
+                            <span className="font-bold text-rose-600 dark:text-rose-400">
+                              {incident.violationCount || 0} strike(s) recorded
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-slate-500">Re-attempt Status:</span>
+                            <span className={`font-bold ${incident.canReattempt ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-400'}`}>
+                              {incident.canReattempt ? 'Re-attempt Approved by Faculty' : 'Locked (Institutional Authorization Required)'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Timeline of interventions during attempt if any */}
+                        {incident.interventions && incident.interventions.length > 1 && (
+                          <div className="space-y-1.5 pt-1">
+                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">
+                              Prior Interventions During This Session ({incident.interventions.length}):
+                            </span>
+                            <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                              {incident.interventions.map((inv, i) => (
+                                <div key={i} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-[11px] flex items-center justify-between">
+                                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                    {inv.actionType}: {inv.reason || inv.chatMessage}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400">
+                                    {inv.timestamp ? new Date(inv.timestamp).toLocaleTimeString() : ''}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right: Attached Photographic Evidence (5 Cols) */}
+                      <div className="lg:col-span-5 flex flex-col">
+                        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 h-full flex flex-col justify-between space-y-3">
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                <Camera className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                                <span>Attached Photographic Evidence</span>
+                              </span>
+                              {incident.evidenceSnapshot && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                                  Photo on File
+                                </span>
+                              )}
+                            </div>
+
+                            {incident.evidenceSnapshot ? (
+                              <div
+                                className="relative group rounded-xl overflow-hidden border border-slate-300 dark:border-slate-700 bg-black cursor-pointer shadow-xs"
+                                onClick={() => setSelectedEvidenceModal(incident)}
+                              >
+                                <img
+                                  src={incident.evidenceSnapshot}
+                                  alt="Attached Evidence Snapshot"
+                                  className="w-full h-44 object-cover transition-transform group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white text-xs font-bold">
+                                  <Eye className="w-4 h-4 text-white" />
+                                  <span>Zoom / Inspect Evidence</span>
+                                </div>
+                                <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/70 text-white text-[10px] font-mono">
+                                  Archived Forensic Snapshot
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="h-44 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center p-4 text-center text-slate-400 space-y-1.5 bg-white dark:bg-slate-900">
+                                <Camera className="w-6 h-6 text-slate-300" />
+                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">No Photographic Snapshot Attached</span>
+                                <p className="text-[10px] text-slate-400 max-w-xs">
+                                  This incident was recorded as a direct telemetry strike without an attached camera or screen snapshot.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          {incident.evidenceSnapshot && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedEvidenceModal(incident)}
+                              className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-rose-400" />
+                              <span>Inspect Full Resolution Evidence</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
         </div>
@@ -2717,6 +3083,137 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* MODAL 7: Photographic Evidence Inspector Modal */}
+      {selectedEvidenceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+          <div className="bg-slate-900 border-2 border-rose-600/80 rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[92vh] text-white">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-950 text-rose-500 border border-rose-800 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800">
+                      Official Forensic Evidence
+                    </span>
+                    {selectedEvidenceModal.evidenceId && (
+                      <span className="text-xs font-mono text-slate-400">
+                        {selectedEvidenceModal.evidenceId}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-base font-bold text-white mt-0.5">
+                    {selectedEvidenceModal.examTitle || 'Proctored Assessment Session'}
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedEvidenceModal(null)}
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                title="Close Modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body - Image & Details */}
+            <div className="p-5 overflow-y-auto space-y-4">
+              {/* Evidence Photo Frame */}
+              {selectedEvidenceModal.evidenceSnapshot ? (
+                <div className="relative rounded-2xl overflow-hidden border-2 border-slate-700 bg-black shadow-inner flex items-center justify-center">
+                  <img
+                    src={selectedEvidenceModal.evidenceSnapshot}
+                    alt="Photographic Evidence"
+                    className="w-full max-h-[50vh] object-contain"
+                  />
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded bg-black/80 backdrop-blur-xs text-[11px] font-mono text-rose-300 border border-rose-800 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                    <span>TAMPER-EVIDENT ARCHIVE</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 text-center text-slate-400 border-2 border-dashed border-slate-700 rounded-2xl">
+                  <Camera className="w-10 h-10 mx-auto text-slate-500 mb-2" />
+                  <p className="text-sm font-semibold">No photographic snapshot file was attached with this record.</p>
+                </div>
+              )}
+
+              {/* Case Details Card */}
+              <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-800">
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold block">
+                      Enforcing Authority
+                    </span>
+                    <span className="font-semibold text-white mt-0.5 block">
+                      {selectedEvidenceModal.officerName || 'Institutional Sentinel'} ({selectedEvidenceModal.officerStaffId || 'VO-SEC'})
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold block">
+                      Incident Timestamp
+                    </span>
+                    <span className="font-mono text-slate-300 mt-0.5 block">
+                      {selectedEvidenceModal.terminatedAt || selectedEvidenceModal.timestamp ? new Date(selectedEvidenceModal.terminatedAt || selectedEvidenceModal.timestamp).toLocaleString() : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-[10px] text-rose-400 uppercase tracking-wider font-bold block">
+                    Official Stated Reason
+                  </span>
+                  <p className="font-bold text-white text-sm mt-0.5 leading-relaxed">
+                    {selectedEvidenceModal.reason || 'Terminated due to multiple security violations logged during assessment.'}
+                  </p>
+                </div>
+
+                {selectedEvidenceModal.officerNotes && (
+                  <div className="pt-2 border-t border-slate-800">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold block">
+                      Officer Detailed Observations
+                    </span>
+                    <p className="text-slate-300 italic mt-0.5 leading-relaxed">
+                      &quot;{selectedEvidenceModal.officerNotes}&quot;
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <span className="text-[11px] text-slate-500 font-mono">
+                Cryptographic integrity hash verified by Institutional Vigilance Bureau
+              </span>
+
+              <div className="flex items-center gap-2">
+                {selectedEvidenceModal.evidenceSnapshot && (
+                  <a
+                    href={selectedEvidenceModal.evidenceSnapshot}
+                    download={`evidence_record_${selectedEvidenceModal.attemptId || 'case'}.jpg`}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-700 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Evidence Image</span>
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedEvidenceModal(null)}
+                  className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Close Viewer
+                </button>
               </div>
             </div>
           </div>

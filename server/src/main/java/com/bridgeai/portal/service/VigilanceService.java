@@ -160,6 +160,9 @@ public class VigilanceService {
                 attempt.setStatus("TERMINATED_BY_VIOLATION");
                 attempt.setCompletedAt(LocalDateTime.now());
                 attempt.setCanReattempt(false);
+                if (req.getEvidenceSnapshot() != null && !req.getEvidenceSnapshot().isEmpty()) {
+                    attempt.setRecordingSnapshotUrl(req.getEvidenceSnapshot());
+                }
                 examAttemptRepository.save(attempt);
                 log.warn("Vigilance Officer {} terminated exam attempt id {}", officerStaffId, attempt.getId());
             });
@@ -233,11 +236,15 @@ public class VigilanceService {
                 item.put("officerStaffId", vr.getOfficerStaffId());
                 item.put("reason", vr.getReason());
                 item.put("officerNotes", vr.getOfficerNotes());
+                item.put("evidenceSnapshot", vr.getEvidenceSnapshot() != null ? vr.getEvidenceSnapshot() : att.getRecordingSnapshotUrl());
+                item.put("evidenceId", vr.getEvidenceId());
             } else {
                 item.put("officerName", "Automated Sentinel");
                 item.put("officerStaffId", "SYS-SENTINEL");
                 item.put("reason", "Exceeded maximum allowed security violation strikes.");
                 item.put("officerNotes", "Auto-terminated by institutional anti-cheat proctoring engine.");
+                item.put("evidenceSnapshot", att.getRecordingSnapshotUrl());
+                item.put("evidenceId", "SYS-AUTO-" + att.getId());
             }
             result.add(item);
         }
@@ -664,6 +671,7 @@ public class VigilanceService {
         VigilanceRecord unacknowledgedWarning = null;
         List<Map<String, Object>> chatMessages = new ArrayList<>();
 
+        VigilanceRecord terminationRecord = null;
         for (VigilanceRecord vr : records) {
             if (("ISSUE_WARNING".equalsIgnoreCase(vr.getActionType()) || "WARNING".equalsIgnoreCase(vr.getActionType()))
                     && !vr.isAcknowledged() && unacknowledgedWarning == null) {
@@ -673,6 +681,9 @@ public class VigilanceService {
                 isTerminated = true;
                 if (terminationReason == null) {
                     terminationReason = vr.getReason();
+                }
+                if (terminationRecord == null) {
+                    terminationRecord = vr;
                 }
             }
             if ("CHAT_MESSAGE".equalsIgnoreCase(vr.getActionType())) {
@@ -691,10 +702,168 @@ public class VigilanceService {
 
         result.put("isTerminated", isTerminated);
         result.put("terminationReason", terminationReason != null ? terminationReason : "Terminated due to multiple security violations.");
+        result.put("terminationRecord", terminationRecord);
+        if (terminationRecord != null) {
+            result.put("evidenceSnapshot", terminationRecord.getEvidenceSnapshot());
+            result.put("officerNotes", terminationRecord.getOfficerNotes());
+            result.put("officerName", terminationRecord.getOfficerName());
+            result.put("officerStaffId", terminationRecord.getOfficerStaffId());
+        } else if (attOpt.isPresent() && attOpt.get().getRecordingSnapshotUrl() != null) {
+            result.put("evidenceSnapshot", attOpt.get().getRecordingSnapshotUrl());
+        }
         result.put("activeWarning", unacknowledgedWarning);
         result.put("chatMessages", chatMessages);
 
         return result;
+    }
+
+    public List<Map<String, Object>> getStudentVigilanceHistory(String studentEmail, Long studentId) {
+        Long resolvedStudentId = studentId;
+        if (resolvedStudentId == null && studentEmail != null && !studentEmail.isBlank()) {
+            Optional<User> u = userRepository.findByEmail(studentEmail);
+            if (u.isPresent()) {
+                resolvedStudentId = u.get().getId();
+            }
+        }
+
+        List<Map<String, Object>> history = new ArrayList<>();
+        Set<Long> processedAttemptIds = new HashSet<>();
+
+        List<ExamAttempt> attempts = resolvedStudentId != null
+                ? examAttemptRepository.findByStudentId(resolvedStudentId)
+                : List.of();
+
+        Map<Long, String> examTitleMap = new HashMap<>();
+        for (Exam e : examRepository.findAll()) {
+            examTitleMap.put(e.getId(), e.getTitle());
+        }
+
+        for (ExamAttempt att : attempts) {
+            boolean isTerminated = "TERMINATED_BY_VIOLATION".equalsIgnoreCase(att.getStatus());
+            List<VigilanceRecord> vRecords = vigilanceRecordRepository.findByAttemptIdOrderByTimestampDesc(att.getId());
+
+            if (isTerminated || !vRecords.isEmpty()) {
+                processedAttemptIds.add(att.getId());
+
+                VigilanceRecord termRecord = vRecords.stream()
+                        .filter(vr -> "TERMINATE_EXAM".equalsIgnoreCase(vr.getActionType()))
+                        .findFirst()
+                        .orElse(null);
+
+                Map<String, Object> item = new HashMap<>();
+                item.put("attemptId", att.getId());
+                item.put("examId", att.getExamId());
+                item.put("examTitle", examTitleMap.getOrDefault(att.getExamId(), "Proctored Examination"));
+                item.put("studentId", att.getStudentId());
+                item.put("studentName", att.getStudentName());
+                item.put("startedAt", att.getStartedAt());
+                item.put("completedAt", att.getCompletedAt());
+                item.put("terminatedAt", att.getCompletedAt());
+                item.put("status", att.getStatus());
+                item.put("violationCount", att.getViolationCount());
+                item.put("score", att.getScore());
+                item.put("canReattempt", att.isCanReattempt());
+
+                if (termRecord != null) {
+                    item.put("actionType", termRecord.getActionType());
+                    item.put("severity", termRecord.getSeverity());
+                    item.put("reason", termRecord.getReason());
+                    item.put("officerNotes", termRecord.getOfficerNotes());
+                    item.put("officerName", termRecord.getOfficerName());
+                    item.put("officerStaffId", termRecord.getOfficerStaffId());
+                    item.put("evidenceSnapshot", termRecord.getEvidenceSnapshot() != null ? termRecord.getEvidenceSnapshot() : att.getRecordingSnapshotUrl());
+                    item.put("evidenceId", termRecord.getEvidenceId());
+                    item.put("timestamp", termRecord.getTimestamp());
+                } else if (isTerminated) {
+                    item.put("actionType", "TERMINATE_EXAM");
+                    item.put("severity", "CRITICAL");
+                    item.put("reason", "Exceeded maximum allowed security violation strikes.");
+                    item.put("officerNotes", "Auto-terminated by institutional anti-cheat proctoring engine.");
+                    item.put("officerName", "Automated Sentinel");
+                    item.put("officerStaffId", "SYS-SENTINEL");
+                    item.put("evidenceSnapshot", att.getRecordingSnapshotUrl());
+                    item.put("evidenceId", "SYS-AUTO-" + att.getId());
+                    item.put("timestamp", att.getCompletedAt() != null ? att.getCompletedAt() : att.getStartedAt());
+                } else {
+                    VigilanceRecord latest = vRecords.get(0);
+                    item.put("actionType", latest.getActionType());
+                    item.put("severity", latest.getSeverity());
+                    item.put("reason", latest.getReason());
+                    item.put("officerNotes", latest.getOfficerNotes());
+                    item.put("officerName", latest.getOfficerName());
+                    item.put("officerStaffId", latest.getOfficerStaffId());
+                    item.put("evidenceSnapshot", latest.getEvidenceSnapshot());
+                    item.put("evidenceId", latest.getEvidenceId());
+                    item.put("timestamp", latest.getTimestamp());
+                }
+
+                List<Map<String, Object>> interventions = new ArrayList<>();
+                for (VigilanceRecord vr : vRecords) {
+                    Map<String, Object> vrMap = new HashMap<>();
+                    vrMap.put("id", vr.getId());
+                    vrMap.put("actionType", vr.getActionType());
+                    vrMap.put("severity", vr.getSeverity());
+                    vrMap.put("reason", vr.getReason());
+                    vrMap.put("officerNotes", vr.getOfficerNotes());
+                    vrMap.put("officerName", vr.getOfficerName());
+                    vrMap.put("officerStaffId", vr.getOfficerStaffId());
+                    vrMap.put("evidenceSnapshot", vr.getEvidenceSnapshot());
+                    vrMap.put("timestamp", vr.getTimestamp());
+                    vrMap.put("chatMessage", vr.getChatMessage());
+                    interventions.add(vrMap);
+                }
+                item.put("interventions", interventions);
+                history.add(item);
+            }
+        }
+
+        List<VigilanceRecord> directRecords = new ArrayList<>();
+        if (resolvedStudentId != null) {
+            directRecords.addAll(vigilanceRecordRepository.findByStudentIdOrderByTimestampDesc(resolvedStudentId));
+        }
+        if (studentEmail != null && !studentEmail.isBlank()) {
+            directRecords.addAll(vigilanceRecordRepository.findByStudentEmailOrderByTimestampDesc(studentEmail));
+        }
+
+        for (VigilanceRecord vr : directRecords) {
+            if (vr.getAttemptId() != null && processedAttemptIds.contains(vr.getAttemptId())) {
+                continue;
+            }
+            Map<String, Object> item = new HashMap<>();
+            item.put("attemptId", vr.getAttemptId());
+            item.put("examId", vr.getExamId());
+            item.put("examTitle", vr.getExamTitle() != null ? vr.getExamTitle() : "Proctored Examination");
+            item.put("studentId", vr.getStudentId());
+            item.put("studentName", vr.getStudentName());
+            item.put("status", "TERMINATE_EXAM".equalsIgnoreCase(vr.getActionType()) ? "TERMINATED_BY_VIOLATION" : "FLAGGED");
+            item.put("actionType", vr.getActionType());
+            item.put("severity", vr.getSeverity());
+            item.put("reason", vr.getReason());
+            item.put("officerNotes", vr.getOfficerNotes());
+            item.put("officerName", vr.getOfficerName());
+            item.put("officerStaffId", vr.getOfficerStaffId());
+            item.put("evidenceSnapshot", vr.getEvidenceSnapshot());
+            item.put("evidenceId", vr.getEvidenceId());
+            item.put("timestamp", vr.getTimestamp());
+            item.put("terminatedAt", vr.getTimestamp());
+            item.put("violationCount", 1);
+            item.put("canReattempt", false);
+            history.add(item);
+            if (vr.getAttemptId() != null) {
+                processedAttemptIds.add(vr.getAttemptId());
+            }
+        }
+
+        history.sort((a, b) -> {
+            Object tA = a.get("timestamp") != null ? a.get("timestamp") : a.get("terminatedAt");
+            Object tB = b.get("timestamp") != null ? b.get("timestamp") : b.get("terminatedAt");
+            if (tA == null && tB == null) return 0;
+            if (tA == null) return 1;
+            if (tB == null) return -1;
+            return tB.toString().compareTo(tA.toString());
+        });
+
+        return history;
     }
 
     @Transactional

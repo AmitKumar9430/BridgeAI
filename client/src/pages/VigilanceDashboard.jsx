@@ -108,6 +108,8 @@ export const VigilanceDashboard = () => {
   const [terminationReasonCode, setTerminationReasonCode] = useState('MULTIPLE_PERSONS');
   const [terminationExplanation, setTerminationExplanation] = useState('');
   const [attachEvidenceSnapshot, setAttachEvidenceSnapshot] = useState(true);
+  const [terminationPhotoSource, setTerminationPhotoSource] = useState('camera'); // 'camera', 'screen', 'upload'
+  const [terminationUploadedPhoto, setTerminationUploadedPhoto] = useState(null);
   const [confirmSingleStudentOnly, setConfirmSingleStudentOnly] = useState(false);
   const [terminateSubmitting, setTerminateSubmitting] = useState(false);
   const [terminateSuccessMsg, setTerminateSuccessMsg] = useState(null);
@@ -516,6 +518,48 @@ export const VigilanceDashboard = () => {
     setTerminateSubmitting(true);
     setTerminateErrorMsg(null);
     try {
+      let snapshotToAttach = null;
+      if (attachEvidenceSnapshot) {
+        if (terminationPhotoSource === 'upload' && terminationUploadedPhoto) {
+          snapshotToAttach = terminationUploadedPhoto;
+        } else if (terminationPhotoSource === 'screen') {
+          snapshotToAttach = liveFrames[selectedStudent.attemptId]?.screenFrame || selectedStudent.screenFrame;
+        } else if (terminationPhotoSource === 'camera') {
+          snapshotToAttach = liveFrames[selectedStudent.attemptId]?.cameraFrame || selectedStudent.cameraFrame;
+        }
+        if (!snapshotToAttach) {
+          snapshotToAttach = liveFrames[selectedStudent.attemptId]?.screenFrame ||
+                             liveFrames[selectedStudent.attemptId]?.cameraFrame ||
+                             selectedStudent.screenFrame ||
+                             selectedStudent.cameraFrame;
+        }
+        if (!snapshotToAttach) {
+          // Generate a high-clarity forensic evidence banner stamp
+          const canvas = document.createElement('canvas');
+          canvas.width = 640;
+          canvas.height = 360;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(0, 0, 640, 360);
+          ctx.fillStyle = '#be123c';
+          ctx.fillRect(16, 16, 608, 328);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 16px monospace';
+          ctx.fillText('SECURITY TERMINATION AUDIT RECORD', 32, 60);
+          ctx.fillStyle = '#fecdd3';
+          ctx.font = '12px monospace';
+          ctx.fillText(`Candidate: ${selectedStudent.studentName} (#${selectedStudent.studentId})`, 32, 100);
+          ctx.fillText(`Exam: ${selectedStudent.examTitle}`, 32, 130);
+          ctx.fillText(`Institution: ${selectedStudent.institutionName || 'Institutional Board'}`, 32, 160);
+          ctx.fillText(`Enforcing Officer: ${user?.fullName || 'Vigilance Officer'} (${user?.staffId || 'VO-001'})`, 32, 190);
+          ctx.fillText(`Timestamp: ${new Date().toLocaleString()}`, 32, 220);
+          ctx.fillStyle = '#ffe4e6';
+          ctx.font = '11px sans-serif';
+          ctx.fillText(`Reason: ${combinedReason.slice(0, 85)}`, 32, 270);
+          snapshotToAttach = canvas.toDataURL('image/jpeg', 0.85);
+        }
+      }
+
       await api.post('/vigilance/action', {
         studentId: selectedStudent.studentId,
         studentName: selectedStudent.studentName,
@@ -525,15 +569,18 @@ export const VigilanceDashboard = () => {
         actionType: 'TERMINATE_EXAM',
         severity: 'CRITICAL',
         reason: combinedReason,
-        officerNotes: `Exam terminated on ${new Date().toLocaleString()} by Vigilance Officer ${user?.fullName || 'Rahul Sharma'} (${user?.staffId || 'VO-001'}). Single student session locked.`
+        evidenceSnapshot: snapshotToAttach,
+        evidenceId: 'EVD-TERM-' + selectedStudent.attemptId + '-' + Date.now(),
+        officerNotes: `Exam terminated on ${new Date().toLocaleString()} by Vigilance Officer ${user?.fullName || 'Rahul Sharma'} (${user?.staffId || 'VO-001'}). ${terminationExplanation.trim() ? 'Officer Notes: ' + terminationExplanation.trim() : ''}`
       });
 
-      setTerminateSuccessMsg(`Candidate #${selectedStudent.studentId} (${selectedStudent.studentName}) exam attempt #${selectedStudent.attemptId} terminated successfully.`);
+      setTerminateSuccessMsg(`Candidate #${selectedStudent.studentId} (${selectedStudent.studentName}) exam attempt #${selectedStudent.attemptId} terminated successfully. Evidence permanently recorded.`);
       setTimeout(() => {
         setSelectedStudent(null);
         setActiveSubModal(null);
         setTerminateSuccessMsg(null);
         setTerminationExplanation('');
+        setTerminationUploadedPhoto(null);
         setConfirmSingleStudentOnly(false);
       }, 2000);
       fetchSurveillanceFeed(true);
@@ -2230,7 +2277,7 @@ export const VigilanceDashboard = () => {
                       />
                     </div>
 
-                    <div className="space-y-2 pt-1 text-xs">
+                    <div className="space-y-3 pt-1 text-xs">
                       <label className="flex items-center gap-2 cursor-pointer text-slate-300">
                         <input
                           type="checkbox"
@@ -2238,8 +2285,116 @@ export const VigilanceDashboard = () => {
                           onChange={(e) => setAttachEvidenceSnapshot(e.target.checked)}
                           className="rounded border-slate-700 text-rose-600 focus:ring-rose-500"
                         />
-                        <span>Attach captured camera and screen evidence snapshot to official record</span>
+                        <span className="font-semibold">Attach photographic evidence snapshot to official record</span>
                       </label>
+
+                      {attachEvidenceSnapshot && (
+                        <div className="p-3 bg-slate-900/90 border border-slate-700 rounded-xl space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-slate-300">Evidence Photo Source:</span>
+                            <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
+                              <span>Visible to Student in History Tab</span>
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setTerminationPhotoSource('camera')}
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                                terminationPhotoSource === 'camera'
+                                  ? 'bg-rose-950 text-rose-300 border-rose-500 ring-1 ring-rose-500'
+                                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                              }`}
+                            >
+                              <Video className="w-3.5 h-3.5" />
+                              <span>Live Camera</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setTerminationPhotoSource('screen')}
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                                terminationPhotoSource === 'screen'
+                                  ? 'bg-rose-950 text-rose-300 border-rose-500 ring-1 ring-rose-500'
+                                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                              }`}
+                            >
+                              <Monitor className="w-3.5 h-3.5" />
+                              <span>Live Screen</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setTerminationPhotoSource('upload')}
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                                terminationPhotoSource === 'upload'
+                                  ? 'bg-rose-950 text-rose-300 border-rose-500 ring-1 ring-rose-500'
+                                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                              }`}
+                            >
+                              <Camera className="w-3.5 h-3.5" />
+                              <span>Upload Photo</span>
+                            </button>
+                          </div>
+
+                          {/* Source-specific controls and preview */}
+                          {terminationPhotoSource === 'upload' && (
+                            <div className="space-y-2 pt-1">
+                              <label className="block text-[11px] text-slate-400 font-medium">
+                                Choose image file from computer (JPG, PNG, WebP):
+                              </label>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => {
+                                      setTerminationUploadedPhoto(ev.target.result);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                                className="block w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-rose-900 file:text-rose-200 hover:file:bg-rose-800 cursor-pointer"
+                              />
+                            </div>
+                          )}
+
+                          {/* Preview Thumbnail */}
+                          {(() => {
+                            let previewSrc = null;
+                            if (terminationPhotoSource === 'upload') previewSrc = terminationUploadedPhoto;
+                            else if (terminationPhotoSource === 'screen') previewSrc = liveFrames[selectedStudent.attemptId]?.screenFrame || selectedStudent.screenFrame;
+                            else if (terminationPhotoSource === 'camera') previewSrc = liveFrames[selectedStudent.attemptId]?.cameraFrame || selectedStudent.cameraFrame;
+
+                            if (previewSrc) {
+                              return (
+                                <div className="mt-2 border border-slate-700 rounded-lg overflow-hidden bg-black p-1 flex items-center gap-3">
+                                  <img
+                                    src={previewSrc}
+                                    alt="Evidence Snapshot Preview"
+                                    className="w-24 h-16 object-cover rounded border border-slate-800"
+                                  />
+                                  <div className="text-[10px] text-slate-400 leading-tight space-y-1">
+                                    <span className="font-bold text-rose-400 block uppercase">
+                                      Evidence Preview Verified
+                                    </span>
+                                    <span>Source: {terminationPhotoSource.toUpperCase()}</span>
+                                    <p className="text-slate-500">Will be permanently stamped and delivered to student dashboard.</p>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return (
+                              <p className="text-[10px] text-slate-500 italic mt-1">
+                                Note: If no frame is active, an official forensic audit stamp banner will be automatically synthesized with case metadata.
+                              </p>
+                            );
+                          })()}
+                        </div>
+                      )}
 
                       <label className="flex items-center gap-2 cursor-pointer text-rose-300 font-bold">
                         <input

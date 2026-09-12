@@ -186,4 +186,13 @@ public class VigilanceController {
         }
         return ResponseEntity.ok(frame);
     }
+
+    @GetMapping("/vigilance/student-history")
+    @PreAuthorize("hasAnyAuthority('ROLE_STUDENT', 'ROLE_VIGILANCE_OFFICER', 'ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
+    public ResponseEntity<List<Map<String, Object>>> getStudentVigilanceHistory(
+            @RequestParam(required = false) Long studentId,
+            Authentication auth) {
+        String studentEmail = auth != null ? auth.getName() : null;
+        return ResponseEntity.ok(vigilanceService.getStudentVigilanceHistory(studentEmail, studentId));
+    }
 }

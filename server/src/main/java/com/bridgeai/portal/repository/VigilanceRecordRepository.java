@@ -11,6 +11,7 @@ public interface VigilanceRecordRepository extends JpaRepository<VigilanceRecord
     List<VigilanceRecord> findAllByOrderByTimestampDesc();
     List<VigilanceRecord> findByOfficerIdOrderByTimestampDesc(Long officerId);
     List<VigilanceRecord> findByStudentIdOrderByTimestampDesc(Long studentId);
+    List<VigilanceRecord> findByStudentEmailOrderByTimestampDesc(String studentEmail);
     List<VigilanceRecord> findByActionTypeOrderByTimestampDesc(String actionType);
     List<VigilanceRecord> findByActionTypeInOrderByTimestampDesc(List<String> actionTypes);
     List<VigilanceRecord> findByAttemptId(Long attemptId);

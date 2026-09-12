@@ -216,6 +216,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
 
   const [terminatedByOfficer, setTerminatedByOfficer] = useState(false);
   const [terminationReasonText, setTerminationReasonText] = useState('');
+  const [terminationEvidenceSnapshot, setTerminationEvidenceSnapshot] = useState(null);
+  const [terminationOfficerNotes, setTerminationOfficerNotes] = useState(null);
+  const [terminationOfficerName, setTerminationOfficerName] = useState(null);
   const [acknowledgingWarning, setAcknowledgingWarning] = useState(false);
   const [antiCheatArmed, setAntiCheatArmed] = useState(false);
 
@@ -931,6 +934,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         if (res.data.isTerminated) {
           setTerminatedByOfficer(true);
           setTerminationReasonText(res.data.terminationReason || 'Terminated by Vigilance Officer for integrity violations.');
+          if (res.data.evidenceSnapshot) setTerminationEvidenceSnapshot(res.data.evidenceSnapshot);
+          if (res.data.officerNotes) setTerminationOfficerNotes(res.data.officerNotes);
+          if (res.data.officerName) setTerminationOfficerName(res.data.officerName + (res.data.officerStaffId ? ` (${res.data.officerStaffId})` : ''));
           return;
         }
 
@@ -3901,11 +3907,42 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               </h2>
             </div>
 
-            <div className="p-4 bg-rose-950/40 rounded-2xl border border-rose-800 text-left space-y-1.5 text-xs text-rose-200">
-              <div className="font-bold text-rose-300">Official Termination Reason:</div>
-              <p className="leading-relaxed">
+            <div className="p-4 bg-rose-950/40 rounded-2xl border border-rose-800 text-left space-y-2 text-xs text-rose-200">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-rose-300">Official Termination Reason:</span>
+                {terminationOfficerName && (
+                  <span className="text-[10px] text-rose-400 font-mono">By: {terminationOfficerName}</span>
+                )}
+              </div>
+              <p className="leading-relaxed font-semibold text-rose-100">
                 {terminationReasonText || 'Exceeded permitted integrity violation threshold.'}
               </p>
+
+              {terminationOfficerNotes && (
+                <div className="pt-1.5 border-t border-rose-900/60 text-[11px] text-rose-300">
+                  <span className="font-medium text-rose-400">Officer Observations: </span>
+                  <span className="italic">&quot;{terminationOfficerNotes}&quot;</span>
+                </div>
+              )}
+
+              {terminationEvidenceSnapshot && (
+                <div className="pt-2 border-t border-rose-900/60 space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 block">
+                    Attached Photographic Evidence:
+                  </span>
+                  <div className="rounded-xl overflow-hidden border border-rose-800 bg-black max-h-36 flex items-center justify-center">
+                    <img
+                      src={terminationEvidenceSnapshot}
+                      alt="Termination Evidence"
+                      className="w-full max-h-36 object-contain"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-1 text-[10px] text-rose-400 font-medium">
+                Note: This evidence photo and case history are permanently saved to your Student Dashboard under the &quot;Vigilance & Termination History&quot; tab.
+              </div>
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
