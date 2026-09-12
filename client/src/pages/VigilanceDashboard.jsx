@@ -209,6 +209,13 @@ export const VigilanceDashboard = () => {
               timestamp: res.data.timestamp
             }
           }));
+          setSelectedStudent(prev => prev ? {
+            ...prev,
+            cameraFrame: res.data.cameraFrame,
+            screenFrame: res.data.screenFrame,
+            cameraConnected: res.data.cameraConnected,
+            screenConnected: res.data.screenConnected
+          } : prev);
         }
       } catch (err) {
         // ignore

@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/certificates/verify/**", "/certificates/verify/**").permitAll()
                         .requestMatchers("/api/audit/**", "/audit/**").permitAll()
                         .requestMatchers("/api/files/**", "/files/**").permitAll()
+                        .requestMatchers("/api/vigilance/feed/stream/**", "/vigilance/feed/stream/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

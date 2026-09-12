@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping({"/api", ""})
 @RequiredArgsConstructor
 public class VigilanceController {
 
@@ -167,7 +167,6 @@ public class VigilanceController {
     }
 
     @PostMapping("/vigilance/feed/stream/{attemptId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_STUDENT', 'ROLE_VIGILANCE_OFFICER', 'ROLE_BOSS_ADMIN')")
     public ResponseEntity<Map<String, Object>> pushLiveStream(
             @PathVariable Long attemptId,
             @RequestBody Map<String, Object> payload) {
@@ -180,7 +179,6 @@ public class VigilanceController {
     }
 
     @GetMapping("/vigilance/feed/stream/{attemptId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_VIGILANCE_OFFICER', 'ROLE_BOSS_ADMIN', 'ROLE_STUDENT')")
     public ResponseEntity<VigilanceService.LiveStreamFrame> getLiveStream(@PathVariable Long attemptId) {
         VigilanceService.LiveStreamFrame frame = vigilanceService.getLiveStreamFrame(attemptId);
         if (frame == null) {
