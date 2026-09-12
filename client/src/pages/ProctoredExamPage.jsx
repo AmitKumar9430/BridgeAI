@@ -244,6 +244,10 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   const screenVideoRef = useRef(null);
   const streamCamVideoRef = useRef(null);
   const [screenStream, setScreenStream] = useState(null);
+  const screenStreamRef = useRef(null);
+  useEffect(() => {
+    screenStreamRef.current = screenStream;
+  }, [screenStream]);
   const gutterRef = useRef(null);
   const editorTextareaRef = useRef(null);
 
@@ -320,11 +324,14 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
           audio: false
         });
         setScreenStream(stream);
+        screenStreamRef.current = stream;
         if (screenVideoRef.current) {
           screenVideoRef.current.srcObject = stream;
+          screenVideoRef.current.play().catch(() => {});
         }
         stream.getVideoTracks()[0].onended = () => {
           setScreenStream(null);
+          screenStreamRef.current = null;
         };
         return stream;
       }
@@ -353,10 +360,12 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         streamCamVideoRef.current.srcObject = cameraStream;
       }
     }
-    if (screenStream) {
-      if (screenVideoRef.current && !screenVideoRef.current.srcObject) {
-        screenVideoRef.current.srcObject = screenStream;
+    const activeScreen = screenStream || screenStreamRef.current;
+    if (activeScreen && screenVideoRef.current) {
+      if (screenVideoRef.current.srcObject !== activeScreen) {
+        screenVideoRef.current.srcObject = activeScreen;
       }
+      screenVideoRef.current.play().catch(() => {});
     }
   }, [cameraStream, screenStream, examStarted, showSurveillanceModal, currentQuestionIndex]);
 
@@ -470,16 +479,25 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   // Helper to capture real candidate screen frame or dynamic live workspace snapshot
   const getScreenFrame = () => {
     const vid = screenVideoRef.current;
-    if (vid && vid.readyState >= 2 && vid.videoWidth > 0) {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = 640;
-        canvas.height = 360;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(vid, 0, 0, 640, 360);
-        return canvas.toDataURL('image/jpeg', 0.5);
-      } catch (e) {
-        // fallback to workspace snapshot
+    if (vid) {
+      const activeScreen = screenStream || screenStreamRef.current;
+      if (!vid.srcObject && activeScreen) {
+        vid.srcObject = activeScreen;
+      }
+      if (vid.srcObject && vid.paused) {
+        vid.play().catch(() => {});
+      }
+      if (vid.readyState >= 2 && vid.videoWidth > 0) {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 640;
+          canvas.height = 360;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(vid, 0, 0, 640, 360);
+          return canvas.toDataURL('image/jpeg', 0.6);
+        } catch (e) {
+          // fallback to workspace snapshot
+        }
       }
     }
 
@@ -489,15 +507,20 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       canvas.height = 360;
       const ctx = canvas.getContext('2d');
 
-      const currQIndex = currentQuestionIndexRef.current ?? currentQuestionIndex;
-      const currentAnswers = answersRef.current || answers;
-      const currentCoding = codingAnswersRef.current || codingAnswers;
-      const currTime = timeLeftRef.current ?? timeLeft;
-      const currentExam = examDataRef.current || examData;
+      const currentExam = examDataRef.current || examData || {};
+      const questionsList = Array.isArray(currentExam.questions) ? currentExam.questions : [];
+      const rawQIdx = currentQuestionIndexRef.current ?? currentQuestionIndex;
+      const currQIndex = Math.max(0, Math.min(typeof rawQIdx === 'number' ? rawQIdx : 0, Math.max(0, questionsList.length - 1)));
+      const currentAnswers = answersRef.current || answers || {};
+      const currentCoding = codingAnswersRef.current || codingAnswers || {};
+      const rawTime = timeLeftRef.current ?? timeLeft;
+      const currTime = Math.max(0, typeof rawTime === 'number' && !isNaN(rawTime) ? rawTime : 1800);
 
+      // 1. Base dark background
       ctx.fillStyle = '#090d16';
       ctx.fillRect(0, 0, 640, 360);
 
+      // 2. Top Header Bar
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(0, 0, 640, 38);
       ctx.fillStyle = '#6366f1';
@@ -507,23 +530,24 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 12px sans-serif';
-      const title = currentExam?.examTitle || 'Live Proctored Examination Workspace';
-      ctx.fillText(title.slice(0, 40), 38, 23);
+      const title = currentExam.examTitle || currentExam.title || 'BridgeAI Live Examination Workspace';
+      ctx.fillText(String(title).slice(0, 42), 38, 23);
 
       ctx.fillStyle = '#10b981';
       ctx.font = 'bold 10px monospace';
-      ctx.fillText('LIVE WORKSPACE SCREEN', 480, 23);
+      ctx.fillText('LIVE WORKSPACE SCREEN', 475, 23);
 
+      // 3. Left Panel: Question details
       ctx.fillStyle = '#111827';
       ctx.fillRect(12, 48, 290, 266);
       ctx.fillStyle = '#38bdf8';
       ctx.font = 'bold 11px sans-serif';
-      ctx.fillText(`Question ${currQIndex + 1} of ${currentExam?.questions?.length || 1}`, 24, 70);
+      ctx.fillText(`Question ${currQIndex + 1} of ${questionsList.length || 1}`, 24, 70);
 
       ctx.fillStyle = '#cbd5e1';
       ctx.font = '10px sans-serif';
-      const q = currentExam?.questions?.[currQIndex];
-      const qText = q?.questionText || q?.problemTitle || 'Candidate is answering question...';
+      const q = questionsList[currQIndex] || {};
+      const qText = String(q.questionText || q.problemTitle || q.title || 'Candidate is answering examination questions in proctored session.');
       const words = qText.split(' ');
       let line = '';
       let y = 92;
@@ -539,43 +563,48 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       }
       if (line && y <= 180) ctx.fillText(line, 24, y);
 
-      if (q?.questionType === 'CODING') {
+      if (q.questionType === 'CODING') {
         ctx.fillStyle = '#f59e0b';
         ctx.font = 'bold 10px monospace';
         ctx.fillText('Type: Algorithmic Coding Problem', 24, 205);
       } else {
         ctx.fillStyle = '#a5b4fc';
         ctx.font = '10px sans-serif';
-        const selOpt = currentAnswers[q?.id];
+        const selOpt = q.id ? currentAnswers[q.id] : null;
         ctx.fillText(`Selected Option: ${selOpt ? 'Option ' + selOpt : 'Not yet answered'}`, 24, 205);
       }
 
+      // 4. Right Panel: Code Editor / Solution Workspace
       ctx.fillStyle = '#020617';
       ctx.fillRect(312, 48, 316, 266);
 
       ctx.fillStyle = '#38bdf8';
       ctx.font = '10px monospace';
-      ctx.fillText(`// Candidate: ${user?.fullName || 'Student'} (ID: #${user?.id || 1})`, 324, 68);
+      const cName = user?.fullName || 'Active Candidate';
+      ctx.fillText(`// Candidate: ${cName.slice(0, 22)} (ID: #${user?.id || 1})`, 324, 68);
       ctx.fillStyle = '#a78bfa';
-      ctx.fillText(`// Exam Attempt #${currentExam?.attemptId || ''}`, 324, 84);
+      ctx.fillText(`// Exam Attempt #${currentExam.attemptId || examData?.attemptId || ''}`, 324, 84);
       ctx.fillStyle = '#34d399';
       ctx.fillText(`// Time Left: ${Math.floor(currTime / 60)}m ${currTime % 60}s`, 324, 100);
 
       ctx.fillStyle = '#e2e8f0';
-      const codeSnippet = currentCoding[q?.id]?.code || '# Active student solution workspace\ndef solution():\n    pass';
-      const codeLines = codeSnippet.split('\n').slice(0, 9);
+      const codingObj = (q.id && currentCoding[q.id]) || {};
+      const codeSnippet = codingObj.code || '# Active student solution workspace\ndef solution():\n    pass';
+      const codeLines = String(codeSnippet).split('\n').slice(0, 9);
       codeLines.forEach((l, idx) => {
-        ctx.fillText(l.slice(0, 40), 324, 126 + idx * 15);
+        ctx.fillText(l.slice(0, 42), 324, 126 + idx * 15);
       });
 
+      // 5. Bottom status bar
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 322, 640, 38);
       ctx.fillStyle = '#64748b';
       ctx.font = '9px monospace';
-      ctx.fillText(`Safe Browser: ACTIVE | Time: ${new Date().toLocaleTimeString()} | Attempt #${currentExam?.attemptId || ''}`, 14, 344);
+      ctx.fillText(`Safe Browser: ACTIVE | Time: ${new Date().toLocaleTimeString()} | Attempt #${currentExam.attemptId || examData?.attemptId || ''}`, 14, 344);
 
-      return canvas.toDataURL('image/jpeg', 0.5);
+      return canvas.toDataURL('image/jpeg', 0.6);
     } catch (e) {
+      console.warn('Fallback screen canvas generation error:', e);
       return null;
     }
   };
@@ -684,7 +713,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     try {
       // 1. Mandatory Entire Screen Permission requested BEFORE starting exam
       // (This guarantees browser permissions modal finishes before anti-cheat is armed, avoiding false strikes)
-      let currentScreen = screenStream;
+      let currentScreen = screenStreamRef.current || screenStream;
       if (!currentScreen && navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
         try {
           currentScreen = await navigator.mediaDevices.getDisplayMedia({
@@ -695,11 +724,14 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
             audio: false
           });
           setScreenStream(currentScreen);
+          screenStreamRef.current = currentScreen;
           if (screenVideoRef.current) {
             screenVideoRef.current.srcObject = currentScreen;
+            screenVideoRef.current.play().catch(() => {});
           }
           currentScreen.getVideoTracks()[0].onended = () => {
             setScreenStream(null);
+            screenStreamRef.current = null;
           };
         } catch (scrErr) {
           console.warn('Candidate screen share dismissed or cancelled:', scrErr);
@@ -3902,10 +3934,10 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         </div>
       )}
 
-      {/* Dedicated off-screen video elements for background frame streaming (kept active with dimensions) */}
-      <div style={{ position: 'fixed', top: -10000, left: -10000, width: 640, height: 360, opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
-        <video ref={streamCamVideoRef} autoPlay playsInline muted width="480" height="270" />
-        <video ref={screenVideoRef} autoPlay playsInline muted width="640" height="360" />
+      {/* Dedicated off-screen video elements for background frame streaming (kept in active DOM viewport so browser does not throttle decoding) */}
+      <div style={{ position: 'fixed', bottom: 0, right: 0, width: 320, height: 180, opacity: 0.01, pointerEvents: 'none', zIndex: -10 }} aria-hidden="true">
+        <video ref={streamCamVideoRef} autoPlay playsInline muted width="320" height="180" />
+        <video ref={screenVideoRef} autoPlay playsInline muted width="320" height="180" />
       </div>
     </div>
   );

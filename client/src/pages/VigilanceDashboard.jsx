@@ -78,6 +78,8 @@ export const VigilanceDashboard = () => {
   const [activeSubModal, setActiveSubModal] = useState(null); // null | 'chat' | 'warning' | 'evidence' | 'timeline' | 'terminate'
   const [fullScreenStream, setFullScreenStream] = useState(null); // null | 'camera' | 'screen'
   const [liveFrames, setLiveFrames] = useState({}); // attemptId -> { cameraFrame, screenFrame, timestamp, ... }
+  const [globalSurveillanceFeedMode, setGlobalSurveillanceFeedMode] = useState('camera'); // 'camera' | 'screen'
+  const [cardStreamModes, setCardStreamModes] = useState({}); // attemptId -> 'camera' | 'screen'
 
   // Audio Control in monitoring view
   const [isAudioMuted, setIsAudioMuted] = useState(false);
@@ -842,6 +844,44 @@ export const VigilanceDashboard = () => {
                     </button>
                   ))}
                 </div>
+
+                {/* Global Surveillance Stream Mode Switcher (Webcam vs Candidate Screen) */}
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/90 p-1 rounded-xl border border-slate-200 dark:border-slate-700 ml-auto">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 px-2 flex items-center gap-1">
+                    <Radio className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+                    <span>View:</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGlobalSurveillanceFeedMode('camera');
+                      setCardStreamModes({});
+                    }}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                      globalSurveillanceFeedMode === 'camera'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    <span>All Cameras</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGlobalSurveillanceFeedMode('screen');
+                      setCardStreamModes({});
+                    }}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                      globalSurveillanceFeedMode === 'screen'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Monitor className="w-3.5 h-3.5" />
+                    <span>All Screens</span>
+                  </button>
+                </div>
               </div>
 
               {/* Dedicated Institution & Exam Filtering Row */}
@@ -1071,55 +1111,134 @@ export const VigilanceDashboard = () => {
                                                     </span>
                                                   </div>
 
-                                                  <div className="flex items-center justify-between text-[10px] text-slate-300">
-                                                    <span className="font-mono bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-slate-800">
-                                                      Att #{st.attemptId}
-                                                    </span>
-                                                    <span className="font-mono bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-slate-800 text-amber-300">
-                                                      {st.violationCount || 0}/3 strikes
-                                                    </span>
-                                                  </div>
-                                                </div>
-
-                                                {/* Candidate Stream Video Visual (Real Webcam Frame or Animated Indicator) */}
-                                                {liveFrames[st.attemptId]?.cameraFrame || st.cameraFrame ? (
-                                                  <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
-                                                    <img
-                                                      src={liveFrames[st.attemptId]?.cameraFrame || st.cameraFrame}
-                                                      alt={`Live stream of ${st.studentName}`}
-                                                      className="w-full h-full object-cover"
-                                                    />
-                                                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-40"></div>
-                                                  </div>
-                                                ) : (
-                                                  <div className="relative w-full h-full flex flex-col items-center justify-center bg-radial from-slate-900 via-slate-950 to-black overflow-hidden">
-                                                    {/* Subtle Scanline Overlay */}
-                                                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-60"></div>
-                                                    
-                                                    {/* Candidate Avatar Silhouette with Live Pulse Ring */}
-                                                    <div className="relative flex items-center justify-center">
-                                                      <span className={`absolute w-16 h-16 rounded-full opacity-30 animate-ping ${isCritical ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : isDisconnected ? 'bg-slate-600' : 'bg-emerald-500'}`}></span>
-                                                      <div className={`w-14 h-14 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors z-0 ${
-                                                        isCritical ? 'bg-rose-950/80 border-rose-500 text-rose-300' :
-                                                        isWarning ? 'bg-amber-950/80 border-amber-500 text-amber-300' :
-                                                        isDisconnected ? 'bg-slate-900 border-slate-700 text-slate-500' :
-                                                        'bg-slate-900/90 border-indigo-500 text-indigo-300'
-                                                      }`}>
-                                                        {isDisconnected ? (
-                                                          <CameraOff className="w-6 h-6 text-slate-500 animate-pulse" />
-                                                        ) : (
-                                                          <UserCheck className="w-7 h-7" />
-                                                        )}
+                                                   <div className="flex items-center justify-between text-[10px] text-slate-300">
+                                                      <div className="flex items-center gap-1.5 pointer-events-auto">
+                                                        <span className="font-mono bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-slate-800">
+                                                          Att #{st.attemptId}
+                                                        </span>
+                                                        {/* Interactive Stream Switcher: Cam vs Screen */}
+                                                        <div className="flex items-center bg-black/80 backdrop-blur-xs p-0.5 rounded border border-slate-700">
+                                                          <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                              e.stopPropagation();
+                                                              setCardStreamModes(prev => ({ ...prev, [st.attemptId]: 'camera' }));
+                                                            }}
+                                                            title="View Candidate Camera Feed"
+                                                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all cursor-pointer flex items-center gap-0.5 ${
+                                                              (cardStreamModes[st.attemptId] || globalSurveillanceFeedMode) === 'camera'
+                                                                ? 'bg-indigo-600 text-white'
+                                                                : 'text-slate-400 hover:text-white'
+                                                            }`}
+                                                          >
+                                                            <Video className="w-2.5 h-2.5" />
+                                                            <span>Cam</span>
+                                                          </button>
+                                                          <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                              e.stopPropagation();
+                                                              setCardStreamModes(prev => ({ ...prev, [st.attemptId]: 'screen' }));
+                                                            }}
+                                                            title="View Candidate Screen Feed"
+                                                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all cursor-pointer flex items-center gap-0.5 ${
+                                                              (cardStreamModes[st.attemptId] || globalSurveillanceFeedMode) === 'screen'
+                                                                ? 'bg-blue-600 text-white'
+                                                                : 'text-slate-400 hover:text-white'
+                                                            }`}
+                                                          >
+                                                            <Monitor className="w-2.5 h-2.5" />
+                                                            <span>Scr</span>
+                                                          </button>
+                                                        </div>
                                                       </div>
-                                                    </div>
-
-                                                    <div className="text-[10px] font-mono text-slate-400 mt-2 z-0 flex items-center gap-1.5 bg-black/50 px-2 py-0.5 rounded-full border border-slate-800/80">
-                                                      <span className={`w-1.5 h-1.5 rounded-full ${isDisconnected ? 'bg-slate-500' : 'bg-emerald-400 animate-pulse'}`}></span>
-                                                      <span>{isDisconnected ? 'Stream Offline' : 'Webcam Connecting...'}</span>
+                                                      <span className="font-mono bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-slate-800 text-amber-300">
+                                                        {st.violationCount || 0}/3 strikes
+                                                      </span>
                                                     </div>
                                                   </div>
-                                                 )}
-                                               </div>
+
+                                                  {/* Candidate Stream Video Visual: Camera or Live Screen */}
+                                                  {(() => {
+                                                    const cardMode = cardStreamModes[st.attemptId] || globalSurveillanceFeedMode;
+                                                    const camFrame = liveFrames[st.attemptId]?.cameraFrame || st.cameraFrame;
+                                                    const scrFrame = liveFrames[st.attemptId]?.screenFrame || st.screenFrame;
+
+                                                    if (cardMode === 'screen') {
+                                                      if (scrFrame) {
+                                                        return (
+                                                          <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+                                                            <img
+                                                              src={scrFrame}
+                                                              alt={`Live screen of ${st.studentName}`}
+                                                              className="w-full h-full object-contain bg-black"
+                                                            />
+                                                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-20"></div>
+                                                            <div className="absolute top-2 right-2 bg-blue-950/90 text-blue-300 border border-blue-700 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold flex items-center gap-1 z-10">
+                                                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>
+                                                              <span>SCREEN LIVE</span>
+                                                            </div>
+                                                          </div>
+                                                        );
+                                                      }
+                                                      return (
+                                                        <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-950 p-4 text-center overflow-hidden">
+                                                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-40"></div>
+                                                          <div className="relative flex items-center justify-center">
+                                                            <span className="absolute w-12 h-12 rounded-full bg-blue-500 opacity-25 animate-ping"></span>
+                                                            <div className="w-11 h-11 rounded-xl bg-blue-950/90 border border-blue-500/60 flex items-center justify-center text-blue-400 shadow-md">
+                                                              <Monitor className="w-5 h-5" />
+                                                            </div>
+                                                          </div>
+                                                          <span className="text-[10px] font-mono text-slate-300 font-bold mt-2 z-0">
+                                                            Screen Stream Connecting...
+                                                          </span>
+                                                          <span className="text-[9px] font-mono text-slate-500 z-0">
+                                                            Exam #{st.examId} · Att #{st.attemptId}
+                                                          </span>
+                                                        </div>
+                                                      );
+                                                    }
+
+                                                    if (camFrame) {
+                                                      return (
+                                                        <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+                                                          <img
+                                                            src={camFrame}
+                                                            alt={`Live stream of ${st.studentName}`}
+                                                            className="w-full h-full object-cover"
+                                                          />
+                                                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-40"></div>
+                                                        </div>
+                                                      );
+                                                    }
+
+                                                    return (
+                                                      <div className="relative w-full h-full flex flex-col items-center justify-center bg-radial from-slate-900 via-slate-950 to-black overflow-hidden">
+                                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-60"></div>
+                                                        <div className="relative flex items-center justify-center">
+                                                          <span className={`absolute w-16 h-16 rounded-full opacity-30 animate-ping ${isCritical ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : isDisconnected ? 'bg-slate-600' : 'bg-emerald-500'}`}></span>
+                                                          <div className={`w-14 h-14 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors z-0 ${
+                                                            isCritical ? 'bg-rose-950/80 border-rose-500 text-rose-300' :
+                                                            isWarning ? 'bg-amber-950/80 border-amber-500 text-amber-300' :
+                                                            isDisconnected ? 'bg-slate-900 border-slate-700 text-slate-500' :
+                                                            'bg-slate-900/90 border-indigo-500 text-indigo-300'
+                                                          }`}>
+                                                            {isDisconnected ? (
+                                                              <CameraOff className="w-6 h-6 text-slate-500 animate-pulse" />
+                                                            ) : (
+                                                              <UserCheck className="w-7 h-7" />
+                                                            )}
+                                                          </div>
+                                                        </div>
+                                                        <div className="text-[10px] font-mono text-slate-400 mt-2 z-0 flex items-center gap-1.5 bg-black/50 px-2 py-0.5 rounded-full border border-slate-800/80">
+                                                          <span className={`w-1.5 h-1.5 rounded-full ${isDisconnected ? 'bg-slate-500' : 'bg-emerald-400 animate-pulse'}`}></span>
+                                                          <span>{isDisconnected ? 'Stream Offline' : 'Webcam Connecting...'}</span>
+                                                        </div>
+                                                      </div>
+                                                    );
+                                                  })()}
+                                                  </div>
 
                                               {/* Candidate Details & Status Controls */}
                                               <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
