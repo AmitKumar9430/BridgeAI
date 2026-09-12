@@ -735,13 +735,13 @@ export const BossAdminDashboard = () => {
 
         {/* Main Tabs Navigation: ONLY SHOWN IF !sidebarOpen (Keep any one at once: either sidebar or attached tabs) */}
         {!sidebarOpen && (
-          <div className="border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 pb-1">
+          <div className="border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 pb-1">
             <div className="flex flex-wrap gap-2 text-sm font-semibold">
               <button
                 onClick={() => setActiveTab('hierarchy')}
                 className={`px-4 py-2.5 rounded-t-xl transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'hierarchy'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200 shadow-2xs'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800 shadow-2xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -753,7 +753,7 @@ export const BossAdminDashboard = () => {
                 onClick={() => setActiveTab('enroll')}
                 className={`px-4 py-2.5 rounded-t-xl transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'enroll'
-                    ? 'bg-white text-emerald-600 border-emerald-600 border-x border-t border-slate-200 shadow-2xs'
+                    ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 border-emerald-600 dark:border-emerald-500 border-x border-t border-slate-200 dark:border-slate-800 shadow-2xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -765,7 +765,7 @@ export const BossAdminDashboard = () => {
                 onClick={() => setActiveTab('admins')}
                 className={`px-4 py-2.5 rounded-t-xl transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'admins'
-                    ? 'bg-white text-purple-600 border-purple-600 border-x border-t border-slate-200 shadow-2xs'
+                    ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 border-purple-600 dark:border-purple-500 border-x border-t border-slate-200 dark:border-slate-800 shadow-2xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -777,7 +777,7 @@ export const BossAdminDashboard = () => {
                 onClick={() => setActiveTab('vigilance')}
                 className={`px-4 py-2.5 rounded-t-xl transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'vigilance'
-                    ? 'bg-white text-rose-600 border-rose-600 border-x border-t border-slate-200 shadow-2xs'
+                    ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 border-rose-600 dark:border-rose-500 border-x border-t border-slate-200 dark:border-slate-800 shadow-2xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -789,7 +789,7 @@ export const BossAdminDashboard = () => {
                 onClick={() => setActiveTab('audit')}
                 className={`px-4 py-2.5 rounded-t-xl transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'audit'
-                    ? 'bg-white text-slate-800 border-slate-800 border-x border-t border-slate-200 shadow-2xs'
+                    ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-800 dark:border-slate-400 border-x border-t border-slate-200 dark:border-slate-800 shadow-2xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -800,10 +800,10 @@ export const BossAdminDashboard = () => {
 
             <button
               onClick={handleToggleSidebar}
-              className="flex items-center gap-2 px-3 py-1.5 mb-1 text-xs font-semibold rounded-lg border bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 mb-1 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 hover:text-slate-900 dark:hover:text-white shadow-2xs transition-all"
               title="Switch to full left sidebar"
             >
-              <PanelLeftOpen className="w-4 h-4 text-purple-600" />
+              <PanelLeftOpen className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               <span>Switch to Sidebar</span>
             </button>
           </div>
@@ -830,16 +830,16 @@ export const BossAdminDashboard = () => {
                 value={treeSearch}
                 onChange={(e) => setTreeSearch(e.target.value)}
                 placeholder="Search by Institution, Location, Super Admin, or Faculty Specialist..."
-                className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 font-medium">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-medium">
               <span className="hidden lg:inline">Hierarchy: Institution → Super Admins → Faculty Specialists → Subjects</span>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => setExpandedInstitutions({})}
-                  className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                  className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors border border-transparent dark:border-slate-700"
                 >
                   Collapse All
                 </button>
@@ -850,7 +850,7 @@ export const BossAdminDashboard = () => {
                     filteredTree.forEach(i => { exp[i.id] = true; });
                     setExpandedInstitutions(exp);
                   }}
-                  className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                  className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors border border-transparent dark:border-slate-700"
                 >
                   Expand All
                 </button>
@@ -869,7 +869,7 @@ export const BossAdminDashboard = () => {
                 const isInstExpanded = !!expandedInstitutions[inst.id];
 
                 return (
-                  <div key={inst.id} className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden transition-all">
+                  <div key={inst.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden transition-all">
                     {/* LEVEL 1: INSTITUTION HEADER CARD */}
                     <div className={`p-4 sm:p-5 bg-white dark:bg-slate-900 transition-all ${isInstExpanded ? 'border-b border-slate-200 dark:border-slate-800' : ''}`}>
                       {/* Top Tier: Identity, Status & Action Controls */}
@@ -1012,22 +1012,22 @@ export const BossAdminDashboard = () => {
                       <div className="p-4 space-y-4 bg-slate-50/50 dark:bg-slate-800/40">
                         {/* RUNNING CURRICULUM SUBJECTS UNDER THIS INSTITUTION */}
                         <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3.5 shadow-2xs space-y-3">
-                          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                              <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
                                 <BookOpen className="w-3.5 h-3.5" />
                               </div>
-                              <h4 className="text-xs font-bold text-slate-900">
+                              <h4 className="text-xs font-bold text-slate-900 dark:text-white">
                                 Curriculum Subjects Running Under {inst.name}
                               </h4>
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                                 {inst.subjects?.length || 0} Subjects
                               </span>
                             </div>
                           </div>
 
                           {(!inst.subjects || inst.subjects.length === 0) ? (
-                            <div className="p-3 text-center text-xs text-slate-400 italic bg-slate-50/50 rounded-lg">
+                            <div className="p-3 text-center text-xs text-slate-400 dark:text-slate-500 italic bg-slate-50/50 dark:bg-slate-800/50 rounded-lg">
                               No active curriculum subjects configured for this institution yet.
                             </div>
                           ) : (
@@ -1035,37 +1035,37 @@ export const BossAdminDashboard = () => {
                               {inst.subjects.map((sub) => (
                                 <div
                                   key={sub.id}
-                                  className="p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-emerald-300 hover:shadow-2xs transition-all space-y-2 border-l-4"
+                                  className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-2xs transition-all space-y-2 border-l-4"
                                   style={{ borderLeftColor: sub.badgeColor || '#059669' }}
                                 >
                                   <div className="flex items-start justify-between gap-2">
-                                    <h5 className="text-xs font-bold text-slate-900 line-clamp-1">{sub.title}</h5>
-                                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-200/70 text-slate-700 shrink-0">
+                                    <h5 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1">{sub.title}</h5>
+                                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-200 shrink-0">
                                       {sub.category || 'Curriculum'}
                                     </span>
                                   </div>
 
                                   {sub.description && (
-                                    <p className="text-[11px] text-slate-500 line-clamp-2">
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
                                       {sub.description}
                                     </p>
                                   )}
 
-                                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px]">
+                                  <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10px]">
                                     {sub.assignedTrainers && sub.assignedTrainers.length > 0 ? (
-                                      <span className="text-emerald-700 font-semibold flex items-center gap-1.5">
-                                        <GraduationCap className="w-3 h-3 text-emerald-700" />
+                                      <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
+                                        <GraduationCap className="w-3 h-3 text-emerald-700 dark:text-emerald-400" />
                                         <span>Faculty:</span>
                                         <span className="font-bold">{sub.assignedTrainers.join(', ')}</span>
                                       </span>
                                     ) : (
-                                      <span className="text-amber-700 font-medium flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                                        <Clock className="w-3 h-3 text-amber-600" />
+                                      <span className="text-amber-700 dark:text-amber-300 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800/60">
+                                        <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                                         <span>Awaiting Faculty Allocation</span>
                                       </span>
                                     )}
 
-                                    <span className="text-slate-400 font-mono">
+                                    <span className="text-slate-400 dark:text-slate-500 font-mono">
                                       {sub.enrolledCount || 0} Enrolled
                                     </span>
                                   </div>
@@ -1076,7 +1076,7 @@ export const BossAdminDashboard = () => {
                         </div>
 
                         {(!inst.superAdmins || inst.superAdmins.length === 0) ? (
-                          <div className="p-4 bg-white border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-400">
+                          <div className="p-4 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-center text-xs text-slate-400 dark:text-slate-500">
                             No Super Admins provisioned yet for this institution. Click &quot;Add Super Admin&quot; above.
                           </div>
                         ) : (
@@ -1086,11 +1086,11 @@ export const BossAdminDashboard = () => {
                             return (
                               <div key={sa.id} className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-2xs overflow-hidden">
                                 {/* Super Admin Row */}
-                                <div className="p-3.5 bg-slate-50/90 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="p-3.5 bg-slate-50/90 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                   <div className="flex items-center gap-3">
                                     <button
                                       onClick={() => setExpandedAdmins(prev => ({ ...prev, [sa.id]: !isSaExpanded }))}
-                                      className="text-slate-400 hover:text-slate-700"
+                                      className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                                     >
                                       {isSaExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                                     </button>
@@ -1101,19 +1101,19 @@ export const BossAdminDashboard = () => {
 
                                     <div>
                                       <div className="flex items-center gap-2">
-                                        <h4 className="text-xs font-bold text-slate-900">{sa.fullName}</h4>
-                                        <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                                        <h4 className="text-xs font-bold text-slate-900 dark:text-white">{sa.fullName}</h4>
+                                        <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                                           Super Admin
                                         </span>
                                         {sa.active ? (
-                                          <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> ACTIVE
+                                          <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400"></span> ACTIVE
                                           </span>
                                         ) : (
-                                          <span className="text-[10px] text-rose-700 font-bold">SUSPENDED</span>
+                                          <span className="text-[10px] text-rose-700 dark:text-rose-400 font-bold">SUSPENDED</span>
                                         )}
                                       </div>
-                                      <div className="flex items-center gap-3 text-[11px] text-slate-500 font-mono mt-0.5">
+                                      <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                                         <span>{sa.email}</span>
                                         {sa.phone && <span>• {sa.phone}</span>}
                                       </div>
@@ -1121,14 +1121,14 @@ export const BossAdminDashboard = () => {
                                   </div>
 
                                   <div className="flex items-center gap-2 self-end sm:self-auto">
-                                    <span className="text-[11px] font-semibold text-slate-500">
+                                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                                       {sa.trainers?.length || 0} Faculty under this Admin
                                     </span>
                                     <button
                                       onClick={() => openProfileModal(sa.id, sa)}
-                                      className="px-2.5 py-1 text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                                      className="px-2.5 py-1 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
                                     >
-                                      <Eye className="w-3 h-3 text-blue-600" />
+                                      <Eye className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                                       <span>View Profile</span>
                                     </button>
                                   </div>
@@ -1138,7 +1138,7 @@ export const BossAdminDashboard = () => {
                                 {isSaExpanded && (
                                   <div className="p-3 bg-white dark:bg-slate-900 space-y-2">
                                     {(!sa.trainers || sa.trainers.length === 0) ? (
-                                      <div className="p-3 text-center text-[11px] text-slate-400 italic">
+                                      <div className="p-3 text-center text-[11px] text-slate-400 dark:text-slate-500 italic">
                                         No trainers assigned directly under this Super Admin.
                                       </div>
                                     ) : (
@@ -1146,7 +1146,7 @@ export const BossAdminDashboard = () => {
                                         {sa.trainers.map((trainer) => (
                                           <div
                                             key={trainer.id}
-                                            className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-blue-300 hover:shadow-2xs transition-all flex flex-col justify-between space-y-2"
+                                            className="p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-2xs transition-all flex flex-col justify-between space-y-2"
                                           >
                                             <div className="flex items-start justify-between gap-2">
                                               <div className="flex items-center gap-2.5">
@@ -1154,14 +1154,14 @@ export const BossAdminDashboard = () => {
                                                   {trainer.fullName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'TR'}
                                                 </div>
                                                 <div>
-                                                  <span className="text-xs font-bold text-slate-900 block leading-tight">{trainer.fullName}</span>
-                                                  <span className="text-[10px] font-mono text-slate-400">{trainer.email}</span>
+                                                  <span className="text-xs font-bold text-slate-900 dark:text-white block leading-tight">{trainer.fullName}</span>
+                                                  <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">{trainer.email}</span>
                                                 </div>
                                               </div>
 
                                               <button
                                                 onClick={() => openProfileModal(trainer.id, trainer)}
-                                                className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                                                className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded transition-colors"
                                                 title="View Full Trainer Profile"
                                               >
                                                 <Eye className="w-3.5 h-3.5" />
@@ -1170,19 +1170,19 @@ export const BossAdminDashboard = () => {
 
                                             {/* Specialization Badge */}
                                             <div>
-                                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-300/90 px-2 py-0.5 rounded-full">
-                                                <Target className="w-3 h-3 text-amber-700" />
+                                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-900 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300/90 dark:border-amber-800/60 px-2 py-0.5 rounded-full">
+                                                <Target className="w-3 h-3 text-amber-700 dark:text-amber-400" />
                                                 <span>Specialization: {trainer.domainSpecialization || trainer.assignedSubject || 'Computer Science & AI'}</span>
                                               </span>
                                             </div>
 
                                             {/* Courses List */}
                                             {trainer.courses && trainer.courses.length > 0 && (
-                                              <div className="pt-1 border-t border-slate-100 flex flex-wrap items-center gap-1">
-                                                <span className="text-[10px] text-slate-400 font-medium">Subjects:</span>
+                                              <div className="pt-1 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-1">
+                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Subjects:</span>
                                                 {trainer.courses.map((c, i) => (
-                                                  <span key={i} className="text-[10px] font-semibold text-slate-700 bg-white px-1.5 py-0.5 rounded border border-slate-200 flex items-center gap-1">
-                                                    <BookOpen className="w-2.5 h-2.5 text-blue-600" />
+                                                  <span key={i} className="text-[10px] font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 flex items-center gap-1">
+                                                    <BookOpen className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400" />
                                                     <span>{c.title}</span>
                                                   </span>
                                                 ))}
@@ -1212,25 +1212,25 @@ export const BossAdminDashboard = () => {
       {activeTab === 'enroll' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-6">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               <span>Enroll New Educational Institution</span>
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Register an autonomous university, institute, or engineering college with full campus location details, accreditation credentials, and provision its initial Lead Super Admin.
             </p>
           </div>
 
           {enrollError && (
-            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-medium flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-800 dark:text-rose-300 font-medium flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               <span>{enrollError}</span>
             </div>
           )}
 
           {enrollSuccess && (
-            <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-medium flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 font-medium flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>{enrollSuccess}</span>
             </div>
           )}
@@ -1238,14 +1238,14 @@ export const BossAdminDashboard = () => {
           <form onSubmit={handleEnrollInstitution} className="space-y-6">
             {/* SECTION 1: INSTITUTIONAL CORE IDENTITY */}
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1.5 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-1.5 flex items-center gap-1.5">
                 <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-mono">1</span>
                 <span>Institution Core Identity & Affiliation</span>
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Institution Full Name <span className="text-rose-600">*</span>
                   </label>
                   <input
@@ -1254,12 +1254,12 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.name}
                     onChange={(e) => setEnrollForm({ ...enrollForm, name: e.target.value })}
                     placeholder="e.g. Vellore Institute of Technology (VIT)"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Code / Acronym
                   </label>
                   <input
@@ -1267,20 +1267,20 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.code}
                     onChange={(e) => setEnrollForm({ ...enrollForm, code: e.target.value })}
                     placeholder="e.g. VIT-V"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg uppercase focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 uppercase focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Institution Category
                   </label>
                   <select
                     value={enrollForm.category}
                     onChange={(e) => setEnrollForm({ ...enrollForm, category: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
                     <option value="Institute of National Importance">Institute of National Importance</option>
                     <option value="Central University">Central University</option>
@@ -1292,7 +1292,7 @@ export const BossAdminDashboard = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Accreditation & NIRF Ranking
                   </label>
                   <input
@@ -1300,26 +1300,26 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.accreditation}
                     onChange={(e) => setEnrollForm({ ...enrollForm, accreditation: e.target.value })}
                     placeholder="e.g. NAAC A++ | NIRF Rank #8"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Established Year
                   </label>
                   <input
                     type="number"
                     value={enrollForm.establishedYear}
                     onChange={(e) => setEnrollForm({ ...enrollForm, establishedYear: Number(e.target.value) })}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-rose-700 dark:text-rose-400 mb-1 flex items-center justify-between">
                     <span>Max Allowed Strikes (Boss Admin Mandate) *</span>
-                    <span className="text-[10px] font-normal text-slate-500">Auto-terminates at limit</span>
+                    <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">Auto-terminates at limit</span>
                   </label>
                   <input
                     type="number"
@@ -1336,14 +1336,14 @@ export const BossAdminDashboard = () => {
 
             {/* SECTION 2: CAMPUS LOCATION DETAILS */}
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1.5 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-1.5 flex items-center gap-1.5">
                 <span className="w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] flex items-center justify-center font-mono">2</span>
                 <span>Complete Campus Location & Address Details</span>
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-3">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Campus Street / Zone Address <span className="text-rose-600">*</span>
                   </label>
                   <input
@@ -1352,12 +1352,12 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.campusAddress}
                     onChange={(e) => setEnrollForm({ ...enrollForm, campusAddress: e.target.value })}
                     placeholder="e.g. Katpadi, Thiruvalam Road, Outer Campus"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     City <span className="text-rose-600">*</span>
                   </label>
                   <input
@@ -1366,12 +1366,12 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.city}
                     onChange={(e) => setEnrollForm({ ...enrollForm, city: e.target.value })}
                     placeholder="e.g. Vellore"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     State / Province <span className="text-rose-600">*</span>
                   </label>
                   <input
@@ -1380,12 +1380,12 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.state}
                     onChange={(e) => setEnrollForm({ ...enrollForm, state: e.target.value })}
                     placeholder="e.g. Tamil Nadu"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     PIN / Postal Code
                   </label>
                   <input
@@ -1393,7 +1393,7 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.postalCode}
                     onChange={(e) => setEnrollForm({ ...enrollForm, postalCode: e.target.value })}
                     placeholder="e.g. 632014"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
                   />
                 </div>
               </div>
@@ -1401,14 +1401,14 @@ export const BossAdminDashboard = () => {
 
             {/* SECTION 3: OFFICIAL CONTACT & WEB */}
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1.5 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-1.5 flex items-center gap-1.5">
                 <span className="w-4 h-4 rounded-full bg-emerald-600 text-white text-[10px] flex items-center justify-center font-mono">3</span>
                 <span>Administrative Contact & Website</span>
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Official Central Email
                   </label>
                   <input
@@ -1416,12 +1416,12 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.contactEmail}
                     onChange={(e) => setEnrollForm({ ...enrollForm, contactEmail: e.target.value })}
                     placeholder="registrar@vit.ac.in"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Campus Telephone
                   </label>
                   <input
@@ -1429,12 +1429,12 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.contactPhone}
                     onChange={(e) => setEnrollForm({ ...enrollForm, contactPhone: e.target.value })}
                     placeholder="+91-416-224-3091"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Portal / Website URL
                   </label>
                   <input
@@ -1442,25 +1442,25 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.websiteUrl}
                     onChange={(e) => setEnrollForm({ ...enrollForm, websiteUrl: e.target.value })}
                     placeholder="https://vit.ac.in"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* SECTION 4: INITIAL LEAD SUPER ADMIN PROVISIONING */}
-            <div className="space-y-3 p-4 bg-purple-50/50 border border-purple-200 rounded-xl">
-              <h3 className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
+            <div className="space-y-3 p-4 bg-purple-50/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 rounded-xl">
+              <h3 className="text-xs font-bold text-purple-900 dark:text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
                 <span className="w-4 h-4 rounded-full bg-purple-600 text-white text-[10px] flex items-center justify-center font-mono">4</span>
                 <span>Initial Lead Super Admin Provisioning (Instant Onboarding)</span>
               </h3>
-              <p className="text-[11px] text-purple-800">
+              <p className="text-[11px] text-purple-800 dark:text-purple-300/80">
                 You can assign the first Super Admin right now. Additional Super Admins can be added subsequently.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Super Admin Full Name
                   </label>
                   <input
@@ -1468,12 +1468,12 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.superAdminFullName}
                     onChange={(e) => setEnrollForm({ ...enrollForm, superAdminFullName: e.target.value })}
                     placeholder="e.g. Dr. K. Viswanathan"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Super Admin Official Email
                   </label>
                   <input
@@ -1481,38 +1481,38 @@ export const BossAdminDashboard = () => {
                     value={enrollForm.superAdminEmail}
                     onChange={(e) => setEnrollForm({ ...enrollForm, superAdminEmail: e.target.value })}
                     placeholder="superadmin@vit.ac.in"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Initial Access Password
                   </label>
                   <input
                     type="text"
                     value={enrollForm.superAdminPassword}
                     onChange={(e) => setEnrollForm({ ...enrollForm, superAdminPassword: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white font-mono focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-purple-500 focus:outline-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* SECTION 5: CURRICULUM SUBJECTS RUNNING UNDER THIS INSTITUTION */}
-            <div className="space-y-4 p-4 bg-blue-50/40 border border-blue-200 rounded-xl">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-200/80 pb-2.5">
+            <div className="space-y-4 p-4 bg-blue-50/40 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 rounded-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-200/80 dark:border-blue-800/60 pb-2.5">
                 <div>
-                  <h3 className="text-xs font-bold text-blue-950 uppercase tracking-wider flex items-center gap-1.5">
+                  <h3 className="text-xs font-bold text-blue-950 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
                     <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-mono">5</span>
                     <span>Curriculum Subjects Running Under This Institution</span>
                   </h3>
-                  <p className="text-[11px] text-blue-800 mt-0.5">
+                  <p className="text-[11px] text-blue-800 dark:text-blue-300/80 mt-0.5">
                     Specify the subjects and courses running under this institution upon enrollment. Each subject will be created with its initial syllabus module, and faculty specialists can be allocated subsequently.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 bg-white text-blue-800 border border-blue-200 rounded-lg text-xs font-bold shadow-2xs whitespace-nowrap">
+                  <span className="px-2.5 py-1 bg-white dark:bg-slate-800 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-lg text-xs font-bold shadow-2xs whitespace-nowrap">
                     {enrollForm.initialSubjects?.length || 0} Subjects
                   </span>
                   <button
@@ -1531,18 +1531,18 @@ export const BossAdminDashboard = () => {
                 {enrollForm.initialSubjects?.map((sub, idx) => (
                   <div
                     key={idx}
-                    className="p-3.5 bg-white border border-blue-100 rounded-xl shadow-2xs space-y-2.5"
+                    className="p-3.5 bg-white dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700 rounded-xl shadow-2xs space-y-2.5"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                        <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                         <span>Subject #{idx + 1}</span>
                       </span>
                       {enrollForm.initialSubjects.length > 1 && (
                         <button
                           type="button"
                           onClick={() => handleRemoveSubject(idx)}
-                          className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 p-1 hover:bg-rose-50 rounded transition-colors"
+                          className="text-xs text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 flex items-center gap-1 p-1 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded transition-colors"
                           title="Remove subject"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1553,7 +1553,7 @@ export const BossAdminDashboard = () => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="sm:col-span-2">
-                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                           Subject Title <span className="text-rose-600">*</span>
                         </label>
                         <input
@@ -1562,18 +1562,18 @@ export const BossAdminDashboard = () => {
                           value={sub.title}
                           onChange={(e) => handleSubjectChange(idx, 'title', e.target.value)}
                           placeholder="e.g. Cyber Security & Cryptography"
-                          className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                           Category / Specialization Domain
                         </label>
                         <select
                           value={sub.category}
                           onChange={(e) => handleSubjectChange(idx, 'category', e.target.value)}
-                          className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         >
                           <option value="Artificial Intelligence">Artificial Intelligence</option>
                           <option value="Computer Science Core">Computer Science Core</option>
@@ -1588,7 +1588,7 @@ export const BossAdminDashboard = () => {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                         Curriculum Syllabus Brief / Overview
                       </label>
                       <input
@@ -1596,7 +1596,7 @@ export const BossAdminDashboard = () => {
                         value={sub.description}
                         onChange={(e) => handleSubjectChange(idx, 'description', e.target.value)}
                         placeholder="e.g. Core principles, practical laboratory projects, and industry benchmark assessments."
-                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       />
                     </div>
                   </div>
@@ -1605,11 +1605,11 @@ export const BossAdminDashboard = () => {
             </div>
 
             {/* Submit Action Bar */}
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => setActiveTab('hierarchy')}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition-colors"
               >
                 Cancel
               </button>
@@ -1648,7 +1648,7 @@ export const BossAdminDashboard = () => {
                 });
                 setShowAddAdminModal(true);
               }}
-              className="px-3.5 py-1.5 bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs"
+              className="px-3.5 py-1.5 bg-[#0F172A] hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Provision Super Admin</span>
@@ -1667,25 +1667,25 @@ export const BossAdminDashboard = () => {
                   <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {superAdmins.map((sa) => (
                   <tr key={sa.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="p-3 font-bold text-slate-900 flex items-center gap-2">
+                    <td className="p-3 font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
                         {sa.fullName?.charAt(0) || 'S'}
                       </div>
                       <span>{sa.fullName}</span>
                     </td>
-                    <td className="p-3 text-slate-700 font-semibold">{sa.institutionName}</td>
+                    <td className="p-3 text-slate-700 dark:text-slate-300 font-semibold">{sa.institutionName}</td>
                     <td className="p-3 font-mono text-slate-600 dark:text-slate-300">{sa.email}</td>
                     <td className="p-3 text-slate-600 dark:text-slate-300">{sa.phone || 'N/A'}</td>
                     <td className="p-3">
                       {sa.status === 'ACTIVE' ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                           ACTIVE
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-300">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
                           SUSPENDED
                         </span>
                       )}
@@ -1694,7 +1694,7 @@ export const BossAdminDashboard = () => {
                       <div className="inline-flex items-center gap-1.5">
                         <button
                           onClick={() => openProfileModal(sa.id, sa)}
-                          className="px-2.5 py-1 text-xs border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 font-medium"
+                          className="px-2.5 py-1 text-xs border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium"
                         >
                           View Profile
                         </button>
@@ -1907,9 +1907,9 @@ export const BossAdminDashboard = () => {
               <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">Review Warnings Issued by Officers</h3>
-                  <p className="text-xs text-slate-500">Live & archived warnings issued to exam candidates by vigilance staff.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Live & archived warnings issued to exam candidates by vigilance staff.</p>
                 </div>
-                <span className="text-xs font-mono text-slate-500 bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg border border-amber-200">
+                <span className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800/60">
                   Total Warnings: {vigilanceWarnings.length}
                 </span>
               </div>
@@ -1929,14 +1929,14 @@ export const BossAdminDashboard = () => {
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {vigilanceWarnings.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="p-8 text-center text-slate-500">
+                        <td colSpan={6} className="p-8 text-center text-slate-500 dark:text-slate-400">
                           No warnings recorded yet.
                         </td>
                       </tr>
                     ) : (
                       vigilanceWarnings.map(record => (
                         <tr key={record.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
-                          <td className="p-3 font-mono text-slate-500">
+                          <td className="p-3 font-mono text-slate-500 dark:text-slate-400">
                             {new Date(record.createdAt).toLocaleString()}
                           </td>
                           <td className="p-3 font-semibold text-slate-900 dark:text-white">
@@ -1945,14 +1945,14 @@ export const BossAdminDashboard = () => {
                           <td className="p-3 text-slate-800 dark:text-slate-200 font-medium">
                             {record.studentName || 'Student ID: ' + record.studentId}
                           </td>
-                          <td className="p-3 font-mono text-slate-500">
+                          <td className="p-3 font-mono text-slate-500 dark:text-slate-400">
                             #{record.attemptId}
                           </td>
                           <td className="p-3 text-slate-700 dark:text-slate-300 max-w-xs">
                             {record.reason}
                           </td>
                           <td className="p-3">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                               WARNING_ISSUED
                             </span>
                           </td>
@@ -1971,9 +1971,9 @@ export const BossAdminDashboard = () => {
               <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">Student Exam Termination Records</h3>
-                  <p className="text-xs text-slate-500">Terminated examination sessions due to severe malpractice or multiple violations.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Terminated examination sessions due to severe malpractice or multiple violations.</p>
                 </div>
-                <span className="text-xs font-mono text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 font-bold">
+                <span className="text-xs font-mono text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900/60 font-bold">
                   Total Terminations: {vigilanceTerminations.length}
                 </span>
               </div>
@@ -1993,19 +1993,19 @@ export const BossAdminDashboard = () => {
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {vigilanceTerminations.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="p-8 text-center text-slate-500">
+                        <td colSpan={6} className="p-8 text-center text-slate-500 dark:text-slate-400">
                           No student exam terminations recorded.
                         </td>
                       </tr>
                     ) : (
                       vigilanceTerminations.map((term, idx) => (
                         <tr key={idx} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
-                          <td className="p-3 font-mono text-slate-500">
+                          <td className="p-3 font-mono text-slate-500 dark:text-slate-400">
                             {term.terminatedAt ? new Date(term.terminatedAt).toLocaleString() : 'Recent'}
                           </td>
                           <td className="p-3">
                             <div className="font-semibold text-slate-900 dark:text-white">{term.studentName || 'Student'}</div>
-                            <div className="text-[11px] text-slate-500 font-mono">{term.studentEmail}</div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{term.studentEmail}</div>
                           </td>
                           <td className="p-3 text-slate-800 dark:text-slate-200">
                             {term.examTitle || 'Midterm Assessment'}
@@ -2017,7 +2017,7 @@ export const BossAdminDashboard = () => {
                             {term.reason || 'Multiple unauthorized tab switches and browser extensions detected.'}
                           </td>
                           <td className="p-3">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-900">
                               TERMINATED
                             </span>
                           </td>
@@ -2036,9 +2036,9 @@ export const BossAdminDashboard = () => {
               <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">Vigilance Officer Activity Log</h3>
-                  <p className="text-xs text-slate-500">Actions taken specifically by accounts with ROLE_VIGILANCE_OFFICER.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Actions taken specifically by accounts with ROLE_VIGILANCE_OFFICER.</p>
                 </div>
-                <span className="text-xs font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                <span className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
                   Total Logged Events: {vigilanceActivities.length}
                 </span>
               </div>
@@ -2056,17 +2056,17 @@ export const BossAdminDashboard = () => {
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {vigilanceActivities.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="p-8 text-center text-slate-500 font-sans">
+                        <td colSpan={4} className="p-8 text-center text-slate-500 dark:text-slate-400 font-sans">
                           No officer activities logged yet.
                         </td>
                       </tr>
                     ) : (
                       vigilanceActivities.map(log => (
                         <tr key={log.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
-                          <td className="p-3 text-slate-500">{new Date(log.timestamp).toLocaleString()}</td>
+                          <td className="p-3 text-slate-500 dark:text-slate-400">{new Date(log.timestamp).toLocaleString()}</td>
                           <td className="p-3 text-slate-900 dark:text-white font-medium">{log.performedByEmail}</td>
                           <td className="p-3">
-                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200 font-sans">
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-900 font-sans">
                               {log.action}
                             </span>
                           </td>
@@ -2101,28 +2101,28 @@ export const BossAdminDashboard = () => {
                   <th className="p-3">Event Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {auditLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="p-3 text-slate-500">{new Date(log.timestamp).toLocaleString()}</td>
-                    <td className="p-3 text-slate-900 font-medium">{log.performedByEmail}</td>
+                    <td className="p-3 text-slate-500 dark:text-slate-400">{new Date(log.timestamp).toLocaleString()}</td>
+                    <td className="p-3 text-slate-900 dark:text-white font-medium">{log.performedByEmail}</td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[11px] bg-slate-100 text-slate-800 border border-slate-200 font-sans">
+                      <span className="px-2 py-0.5 rounded text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-sans">
                         {log.performedByRole}
                       </span>
                     </td>
                     <td className="p-3">
                       <span className={`px-2 py-0.5 rounded text-[11px] font-bold font-sans ${
                         log.action.includes('ENROLLED') || log.action.includes('CREATED')
-                          ? 'bg-emerald-100 text-emerald-800'
+                          ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300'
                           : log.action.includes('DELETED') || log.action.includes('VIOLATION')
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-blue-100 text-blue-800'
+                          ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300'
+                          : 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300'
                       }`}>
                         {log.action}
                       </span>
                     </td>
-                    <td className="p-3 text-slate-700 max-w-md truncate">{log.details}</td>
+                    <td className="p-3 text-slate-700 dark:text-slate-300 max-w-md truncate">{log.details}</td>
                   </tr>
                 ))}
               </tbody>
@@ -2156,28 +2156,28 @@ export const BossAdminDashboard = () => {
 
             <form onSubmit={handleCreateSuperAdmin} className="p-5 space-y-3.5">
               {adminModalError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-medium flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-800 dark:text-rose-300 font-medium flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                   <span>{adminModalError}</span>
                 </div>
               )}
 
               {adminModalSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-medium flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 font-medium flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>{adminModalSuccess}</span>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Target Institution <span className="text-rose-600">*</span>
                 </label>
                 <select
                   value={adminFormData.institutionName}
                   onChange={(e) => setAdminFormData({ ...adminFormData, institutionName: e.target.value })}
                   required
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 >
                   <option value="">-- Select Institution --</option>
                   {institutions.map((inst) => (
@@ -2189,7 +2189,7 @@ export const BossAdminDashboard = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Super Admin Full Name <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -2198,12 +2198,12 @@ export const BossAdminDashboard = () => {
                   value={adminFormData.fullName}
                   onChange={(e) => setAdminFormData({ ...adminFormData, fullName: e.target.value })}
                   placeholder="e.g. Dr. Sunita Rao"
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Official Email Address <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -2212,13 +2212,13 @@ export const BossAdminDashboard = () => {
                   value={adminFormData.email}
                   onChange={(e) => setAdminFormData({ ...adminFormData, email: e.target.value })}
                   placeholder="sunita.superadmin@bridgeai.edu"
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Mobile Phone
                   </label>
                   <input
@@ -2226,35 +2226,35 @@ export const BossAdminDashboard = () => {
                     value={adminFormData.phone}
                     onChange={(e) => setAdminFormData({ ...adminFormData, phone: e.target.value })}
                     placeholder="+91-9876500099"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Password
                   </label>
                   <input
                     type="text"
                     value={adminFormData.password}
                     onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowAddAdminModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={adminModalLoading}
-                  className="px-4 py-2 bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors"
+                  className="px-4 py-2 bg-[#0F172A] hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors"
                 >
                   {adminModalLoading ? 'Provisioning...' : 'Provision Super Admin'}
                 </button>
@@ -2287,15 +2287,15 @@ export const BossAdminDashboard = () => {
 
             <form onSubmit={handleAppointOfficer} className="p-5 space-y-3.5">
               {appointOfficerError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-medium flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-800 dark:text-rose-300 font-medium flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                   <span>{appointOfficerError}</span>
                 </div>
               )}
 
               {appointOfficerSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-medium flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 font-medium flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>{appointOfficerSuccess}</span>
                 </div>
               )}
@@ -2433,15 +2433,15 @@ export const BossAdminDashboard = () => {
 
             <form onSubmit={handleSaveResetOfficerPassword} className="p-5 space-y-3.5">
               {resetOfficerError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-medium flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-800 dark:text-rose-300 font-medium flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                   <span>{resetOfficerError}</span>
                 </div>
               )}
 
               {resetOfficerSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-medium flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 font-medium flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>{resetOfficerSuccess}</span>
                 </div>
               )}
