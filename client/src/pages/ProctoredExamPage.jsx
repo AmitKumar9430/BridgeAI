@@ -1995,10 +1995,10 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       {/* 4. WORKSPACE: CODING PROBLEM VS MCQ */}
       {isCodingProblem ? (
         /* CUSTOMIZABLE TWO-COLUMN SPLIT WORKSPACE WITH SEPARATE SCROLLING */
-        <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden h-[calc(100vh-130px)] min-h-[580px]">
+        <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-y-auto lg:overflow-hidden min-h-[580px] lg:h-[calc(100vh-130px)]">
           
           {/* ============================================================ */}
-          {/* LEFT COLUMN: PROBLEM SPECIFICATION & EXPLANATION (Independent Scroll) */}
+          {/* LEFT COLUMN: PROBLEM SPECIFICATION & EXPLANATION (Independent Scroll on Desktop, Stack on Mobile) */}
           {/* ============================================================ */}
           <div className={`${
             splitLayout === '0-100'
@@ -2008,7 +2008,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               : splitLayout === '40-60'
               ? 'lg:col-span-5'
               : 'lg:col-span-6'
-          } flex flex-col border-r h-full overflow-hidden shrink-0 ${
+          } flex flex-col border-b lg:border-b-0 lg:border-r h-auto min-h-[360px] lg:h-full overflow-hidden shrink-0 ${
             editorTheme === 'dark' ? 'bg-[#1a1a1a] border-zinc-800 text-zinc-200' : 'bg-white border-slate-200 text-slate-800'
           }`}>
             {/* Top Tabs */}
@@ -2299,7 +2299,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               : splitLayout === '40-60'
               ? 'lg:col-span-7'
               : 'lg:col-span-6'
-          } flex flex-col h-full overflow-hidden ${
+          } flex flex-col h-auto min-h-[520px] lg:h-full overflow-hidden ${
             editorTheme === 'dark' ? 'bg-[#1e1e1e] text-zinc-100' : 'bg-white text-slate-900'
           }`}>
             

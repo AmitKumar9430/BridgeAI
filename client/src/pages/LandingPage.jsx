@@ -486,7 +486,7 @@ export const LandingPage = ({ onNavigateLogin, onNavigateRegister, onExploreCour
                 <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
                 <span className="font-mono text-slate-500 dark:text-slate-400 ml-2 text-[11px] hidden sm:inline">BridgeAI Secure Proctored Browser • Institutional Session Active</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 px-2.5 py-0.5 rounded-full font-mono text-[11px] border border-rose-200 dark:border-rose-500/30 flex items-center gap-1.5">
                   <Clock className="w-3 h-3" />
                   <span>34:12 remaining</span>
@@ -538,7 +538,7 @@ export const LandingPage = ({ onNavigateLogin, onNavigateRegister, onExploreCour
                   </pre>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                <div className="mt-4 pt-3 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-[11px] text-slate-400">
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
                     <span>Memory: 16.4 MB</span>
@@ -546,8 +546,8 @@ export const LandingPage = ({ onNavigateLogin, onNavigateRegister, onExploreCour
                     <span>Runtime: 38 ms</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 bg-slate-800 text-slate-200 rounded-lg text-xs font-bold">Run Code</span>
-                    <span className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold">Submit Solution</span>
+                    <span className="px-3 py-1 bg-slate-800 text-slate-200 rounded-lg text-xs font-bold cursor-pointer">Run Code</span>
+                    <span className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold cursor-pointer">Submit Solution</span>
                   </div>
                 </div>
               </div>
@@ -759,7 +759,7 @@ export const LandingPage = ({ onNavigateLogin, onNavigateRegister, onExploreCour
                 </div>
                 <div className="space-y-2">
                   <p className="text-xs text-slate-300">Q: What is the time complexity of searching an element in a balanced Binary Search Tree?</p>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     <div className="p-2.5 rounded bg-slate-900 border border-slate-800 text-slate-400">A) O(n)</div>
                     <div className="p-2.5 rounded bg-blue-600/30 border border-blue-500 text-blue-200 font-bold flex items-center justify-between">
                       <span>B) O(log n)</span>
@@ -794,7 +794,7 @@ export const LandingPage = ({ onNavigateLogin, onNavigateRegister, onExploreCour
                   <span className="text-sm font-bold text-slate-200">Official Exam Scorecard &amp; Audit Summary</span>
                   <span className="px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs font-bold">PASSED WITH DISTINCTION</span>
                 </div>
-                <div className="flex items-center gap-6 text-xs text-slate-300">
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs text-slate-300">
                   <div>
                     <span className="text-slate-500 block">Total Score</span>
                     <span className="text-lg font-black text-white">92 / 100</span>

@@ -419,7 +419,7 @@ export const SuperAdminDashboard = () => {
 
   return (
     <>
-      <div className={sidebarOpen ? "flex gap-6 items-start" : "space-y-6"}>
+      <div className={sidebarOpen ? "flex flex-col lg:flex-row gap-6 items-start" : "space-y-6"}>
       {sidebarOpen && (
         <DashboardSidebar
           isOpen={sidebarOpen}
@@ -435,14 +435,28 @@ export const SuperAdminDashboard = () => {
         />
       )}
 
-      <div className={sidebarOpen ? "flex-1 min-w-0 space-y-6" : "space-y-6"}>
+      <div className={sidebarOpen ? "w-full lg:flex-1 min-w-0 space-y-6" : "w-full space-y-6"}>
+        {/* Mobile Quick Bar to open sidebar drawer if on small screen */}
+        <div className="lg:hidden mb-4 flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow-xs hover:bg-indigo-700 transition-colors"
+          >
+            <PanelLeftOpen className="w-4 h-4" />
+            <span>Administration Menu</span>
+          </button>
+          <span className="text-xs text-slate-500 font-medium capitalize truncate max-w-[150px]">
+            {superAdminEssentials.find(i => i.id === activeTab)?.label || activeTab}
+          </span>
+        </div>
+
         {/* Super Admin Institute Header */}
-        <div className="bg-[#0F172A] text-white rounded-xl p-6 shadow-md border border-slate-800">
+        <div className="bg-[#0F172A] text-white rounded-xl p-4 sm:p-6 shadow-md border border-slate-800">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2">
-                <Building2 className="w-6 h-6 text-blue-400" />
-                <h1 className="text-2xl font-bold">{myInstitute}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <Building2 className="w-6 h-6 text-blue-400 shrink-0" />
+                <h1 className="text-xl sm:text-2xl font-bold">{myInstitute}</h1>
                 <span className="bg-blue-500/20 text-blue-300 text-xs px-2.5 py-0.5 rounded-full font-bold border border-blue-500/40">
                   INSTITUTE SUPER ADMIN
                 </span>

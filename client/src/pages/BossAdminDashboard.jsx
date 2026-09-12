@@ -561,7 +561,7 @@ export const BossAdminDashboard = () => {
 
   return (
     <>
-      <div className={sidebarOpen ? "flex gap-6 items-start" : "space-y-6"}>
+      <div className={sidebarOpen ? "flex flex-col lg:flex-row gap-6 items-start" : "space-y-6"}>
       {sidebarOpen && (
         <DashboardSidebar
           isOpen={sidebarOpen}
@@ -578,14 +578,28 @@ export const BossAdminDashboard = () => {
         />
       )}
 
-      <div className={sidebarOpen ? "flex-1 min-w-0 space-y-6" : "space-y-6"}>
+      <div className={sidebarOpen ? "w-full lg:flex-1 min-w-0 space-y-6" : "w-full space-y-6"}>
+        {/* Mobile Quick Bar to open sidebar drawer if on small screen */}
+        <div className="lg:hidden mb-4 flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-600 text-white shadow-xs hover:bg-purple-700 transition-colors"
+          >
+            <PanelLeftOpen className="w-4 h-4" />
+            <span>Master Governance Menu</span>
+          </button>
+          <span className="text-xs text-slate-500 font-medium capitalize truncate max-w-[150px]">
+            {bossAdminEssentials.find(i => i.id === activeTab)?.label || activeTab}
+          </span>
+        </div>
+
         {/* Boss Admin Master Header */}
-        <div className="bg-[#0F172A] text-white rounded-2xl p-6 shadow-md border border-slate-800">
+        <div className="bg-[#0F172A] text-white rounded-2xl p-4 sm:p-6 shadow-md border border-slate-800">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <ShieldAlert className="w-6 h-6 text-rose-500 shrink-0" />
-                <h1 className="text-2xl font-bold">Boss Admin Master Console</h1>
+                <h1 className="text-xl sm:text-2xl font-bold">Boss Admin Master Console</h1>
                 <span className="bg-rose-500/20 text-rose-300 text-xs px-2.5 py-0.5 rounded-full font-bold border border-rose-500/40">
                   ENTERPRISE GOVERNANCE
                 </span>

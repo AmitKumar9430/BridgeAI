@@ -570,7 +570,23 @@ export const VigilanceDashboard = () => {
   };
 
   return (
-    <div className={sidebarOpen ? "flex gap-6 items-start" : "space-y-6"}>
+    <>
+      {/* Mobile Top Navigation Quick Bar (Only on mobile/tablet) */}
+      <div className="lg:hidden mb-4 flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
+        <button
+          type="button"
+          onClick={handleToggleSidebar}
+          className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-900/60 cursor-pointer shadow-2xs"
+        >
+          <PanelLeftOpen className="w-4 h-4" />
+          <span>Vigilance Bureau Menu</span>
+        </button>
+        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 capitalize bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
+          Tab: {activeTab}
+        </span>
+      </div>
+
+      <div className={sidebarOpen ? "flex flex-col lg:flex-row gap-6 items-start" : "space-y-6"}>
       {sidebarOpen && (
         <DashboardSidebar
           isOpen={sidebarOpen}
@@ -586,7 +602,7 @@ export const VigilanceDashboard = () => {
         />
       )}
 
-      <div className={sidebarOpen ? "flex-1 min-w-0 space-y-6" : "space-y-6"}>
+      <div className={sidebarOpen ? "w-full lg:flex-1 min-w-0 space-y-6" : "space-y-6"}>
         {/* OFFICER IDENTITY & VIGILANCE MISSION HEADER */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -2574,5 +2590,6 @@ export const VigilanceDashboard = () => {
         )}
       </div>
     </div>
+    </>
   );
 };

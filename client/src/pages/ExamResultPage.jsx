@@ -44,16 +44,16 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12 text-slate-900 dark:text-slate-100">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <button
           onClick={onBackToDashboard}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors self-start sm:self-auto"
         >
           <ArrowLeft className="w-4 h-4" />
           Return to Dashboard
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isSelfAssessment && onRetakeExam && (
             <button
               onClick={() => onRetakeExam(examId)}
@@ -158,22 +158,22 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
         <p className="text-xs mt-1 text-slate-600 dark:text-slate-300">Candidate: <strong>{studentName}</strong></p>
 
         {/* Score metrics */}
-        <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-6 bg-white dark:bg-slate-900/90 py-4 px-8 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-4 sm:gap-6 bg-white dark:bg-slate-900/90 py-4 px-4 sm:px-8 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Total Score</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{score} / {totalMarks}</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">{score} / {totalMarks}</p>
           </div>
-          <div className="h-10 w-px bg-slate-200 dark:bg-slate-700"></div>
+          <div className="hidden sm:block h-10 w-px bg-slate-200 dark:bg-slate-700"></div>
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Percentage</p>
-            <p className={`text-2xl font-black mt-0.5 ${passed ? 'text-emerald-600' : 'text-rose-600'}`}>
+            <p className={`text-xl sm:text-2xl font-black mt-0.5 ${passed ? 'text-emerald-600' : 'text-rose-600'}`}>
               {percentage}%
             </p>
           </div>
-          <div className="h-10 w-px bg-slate-200 dark:bg-slate-700"></div>
+          <div className="hidden sm:block h-10 w-px bg-slate-200 dark:bg-slate-700"></div>
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Violation Strikes</p>
-            <p className={`text-2xl font-black mt-0.5 ${violationCount > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
+            <p className={`text-xl sm:text-2xl font-black mt-0.5 ${violationCount > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
               {violationCount}
             </p>
           </div>

@@ -1304,7 +1304,22 @@ public class OrderEventPublisher {
 
   return (
     <>
-      <div className={sidebarOpen ? "flex gap-6 items-start" : "space-y-6"}>
+      {/* Mobile Top Navigation Quick Bar (Only on mobile/tablet) */}
+      <div className="lg:hidden mb-4 flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
+        <button
+          type="button"
+          onClick={handleToggleSidebar}
+          className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold border border-blue-200 dark:border-blue-900/60 cursor-pointer shadow-2xs"
+        >
+          <PanelLeftOpen className="w-4 h-4" />
+          <span>Faculty Essentials Menu</span>
+        </button>
+        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 capitalize bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
+          Tab: {activeTab.replace('-', ' ')}
+        </span>
+      </div>
+
+      <div className={sidebarOpen ? "flex flex-col lg:flex-row gap-6 items-start" : "space-y-6"}>
       {sidebarOpen && (
         <DashboardSidebar
           isOpen={sidebarOpen}
@@ -1320,14 +1335,14 @@ public class OrderEventPublisher {
         />
       )}
 
-      <div className={sidebarOpen ? "flex-1 min-w-0 space-y-6" : "space-y-6"}>
+      <div className={sidebarOpen ? "w-full lg:flex-1 min-w-0 space-y-6" : "space-y-6"}>
         {/* Top Banner */}
-        <div className="bg-[#0F172A] text-white rounded-xl p-6 shadow-md border border-slate-800">
+        <div className="bg-[#0F172A] text-white rounded-2xl p-4 sm:p-6 shadow-md border border-slate-800">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2">
-                <BookPlus className="w-6 h-6 text-blue-400" />
-                <h1 className="text-2xl font-bold">Trainer Academic Console</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <BookPlus className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                <h1 className="text-xl sm:text-2xl font-bold">Trainer Academic Console</h1>
                 <span className="bg-blue-500/20 text-blue-300 text-xs px-2.5 py-0.5 rounded-full font-bold border border-blue-500/40">
                   {user?.assignedSubject || 'Computer Science & AI'}
                 </span>
