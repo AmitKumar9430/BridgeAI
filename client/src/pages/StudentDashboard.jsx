@@ -1703,10 +1703,17 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                       <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div>
                           {isTerminated ? (
-                            <span className="font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1">
-                              <ShieldAlert className="w-3.5 h-3.5" />
-                              <span>Audit Record Archived • Single Session Locked</span>
-                            </span>
+                            (ex.canReattempt || termRecord?.canReattempt) ? (
+                              <span className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Re-attempt Permitted by Faculty</span>
+                              </span>
+                            ) : (
+                              <span className="font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1">
+                                <ShieldAlert className="w-3.5 h-3.5" />
+                                <span>Audit Record Archived • Single Session Locked</span>
+                              </span>
+                            )
                           ) : isDone ? (
                             <span className="font-bold text-slate-900 dark:text-white">
                               Score: {ex.score} / {ex.totalMarks} ({ex.percentage}%) • {ex.passed ? 'PASSED' : 'FAILED'}
@@ -1724,20 +1731,44 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
                         <div>
                           {isTerminated ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (termRecord && termRecord.evidenceSnapshot) {
-                                  setSelectedEvidenceModal(termRecord);
-                                } else {
-                                  setActiveTab('vigilance-history');
-                                }
-                              }}
-                              className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                              <ShieldAlert className="w-4 h-4" />
-                              <span>View Reason & Evidence</span>
-                            </button>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (termRecord && termRecord.evidenceSnapshot) {
+                                    setSelectedEvidenceModal(termRecord);
+                                  } else {
+                                    setActiveTab('vigilance-history');
+                                  }
+                                }}
+                                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-700"
+                              >
+                                <ShieldAlert className="w-4 h-4 text-rose-400" />
+                                <span>View Reason & Evidence</span>
+                              </button>
+
+                              {(ex.canReattempt || termRecord?.canReattempt) && (
+                                isMobileOrTablet ? (
+                                  <button
+                                    disabled
+                                    className="px-3.5 py-2 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed flex items-center gap-1.5 border border-slate-300 dark:border-slate-700"
+                                    title="Desktop or Laptop required for Proctored Assessment"
+                                  >
+                                    <Monitor className="w-4 h-4 text-slate-400" />
+                                    <span>Desktop Required</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => onOpenExam && onOpenExam(ex.examId)}
+                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                                  >
+                                    <ShieldCheck className="w-4 h-4" />
+                                    <span>Re-attempt Assessment</span>
+                                  </button>
+                                )
+                              )}
+                            </div>
                           ) : isMobileOrTablet ? (
                             <button
                               disabled
@@ -2379,10 +2410,34 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
                           <div className="flex items-center justify-between text-[11px]">
                             <span className="text-slate-500">Re-attempt Status:</span>
-                            <span className={`font-bold ${incident.canReattempt ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-400'}`}>
+                            <span className={`font-bold ${incident.canReattempt ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'}`}>
                               {incident.canReattempt ? 'Re-attempt Approved by Faculty' : 'Locked (Institutional Authorization Required)'}
                             </span>
                           </div>
+
+                          {incident.canReattempt && (
+                            <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                              {isMobileOrTablet ? (
+                                <button
+                                  disabled
+                                  className="w-full py-2 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg text-xs font-semibold cursor-not-allowed flex items-center justify-center gap-1.5 border border-slate-300 dark:border-slate-700"
+                                  title="Desktop or Laptop required for Proctored Assessment"
+                                >
+                                  <Monitor className="w-4 h-4 text-slate-400" />
+                                  <span>Desktop / Laptop Required to Re-attempt</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenExam && onOpenExam(incident.examId)}
+                                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
+                                >
+                                  <ShieldCheck className="w-4 h-4" />
+                                  <span>Re-attempt Assessment Now (Faculty Approved)</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         {/* Timeline of interventions during attempt if any */}
@@ -3206,6 +3261,31 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                     <Download className="w-3.5 h-3.5" />
                     <span>Download Evidence Image</span>
                   </a>
+                )}
+                {selectedEvidenceModal.canReattempt && (
+                  isMobileOrTablet ? (
+                    <button
+                      disabled
+                      className="px-3.5 py-2 bg-slate-800 text-slate-500 rounded-xl text-xs font-semibold cursor-not-allowed flex items-center gap-1.5 border border-slate-700"
+                      title="Desktop or Laptop required for Proctored Assessment"
+                    >
+                      <Monitor className="w-3.5 h-3.5" />
+                      <span>Desktop Required</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const exId = selectedEvidenceModal.examId;
+                        setSelectedEvidenceModal(null);
+                        if (onOpenExam && exId) onOpenExam(exId);
+                      }}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Re-attempt Assessment</span>
+                    </button>
+                  )
                 )}
                 <button
                   type="button"
