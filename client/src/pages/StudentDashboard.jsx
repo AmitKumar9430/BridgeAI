@@ -860,18 +860,18 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
         {/* Tabs Bar: ONLY SHOWN IF !sidebarOpen (Keep any one at once: either sidebar or attached tabs) */}
         {!sidebarOpen && (
-          <div className="border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 pb-1">
+          <div className="border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 pb-1">
             <div className="flex flex-wrap gap-2 text-sm font-semibold">
               <button
                 onClick={() => setActiveTab('assignments')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'assignments'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
                 <span>My Coursework & Assignments</span>
-                <span className="text-xs px-1.5 py-0.2 bg-slate-100 text-slate-700 font-bold rounded border border-slate-200">
+                <span className="text-xs px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded border border-slate-200 dark:border-slate-700">
                   {assignmentsWithSub.length}
                 </span>
               </button>
@@ -880,7 +880,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 onClick={() => setActiveTab('projects')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'projects'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -891,7 +891,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 onClick={() => setActiveTab('exams')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'exams'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -902,7 +902,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 onClick={() => setActiveTab('recordings')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'recordings'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -913,14 +913,14 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 onClick={() => setActiveTab('materials')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'materials'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
                 title="Browse Subject-wise Modular Study Materials"
               >
-                <BookOpen className="w-4 h-4 text-emerald-600" />
+                <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Study Materials ({courses.length} Subjects)</span>
-                <span className="text-[10px] px-1.5 py-0.2 bg-emerald-100 text-emerald-800 font-bold rounded">
+                <span className="text-[10px] px-1.5 py-0.2 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold rounded border border-emerald-200 dark:border-emerald-800">
                   Modular
                 </span>
               </button>
@@ -929,15 +929,15 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 onClick={() => setActiveTab('certificates')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'certificates'
-                    ? 'bg-white text-amber-700 border-amber-600 border-x border-t border-slate-200 shadow-2xs'
+                    ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-400 border-amber-600 dark:border-amber-500 border-x border-t border-slate-200 dark:border-slate-800 shadow-2xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
                 title="View and download your earned examination and completion certificates"
               >
-                <Award className="w-4 h-4 text-amber-600" />
+                <Award className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <span>Earned Certificates ({certificates.length})</span>
                 {certificates.length > 0 && (
-                  <span className="text-[10px] px-1.5 py-0.2 bg-amber-100 text-amber-800 font-bold rounded border border-amber-200">
+                  <span className="text-[10px] px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold rounded border border-amber-200 dark:border-amber-800">
                     Verified
                   </span>
                 )}
@@ -947,15 +947,15 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 onClick={() => setActiveTab('vigilance-history')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'vigilance-history'
-                    ? 'bg-white text-rose-700 border-rose-600 border-x border-t border-slate-200 shadow-2xs'
+                    ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-400 border-rose-600 dark:border-rose-500 border-x border-t border-slate-200 dark:border-slate-800 shadow-2xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
                 title="View integrity audit records, termination reasons, and photo evidence"
               >
-                <ShieldAlert className="w-4 h-4 text-rose-600" />
+                <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                 <span>Vigilance & Termination History</span>
                 {vigilanceHistory.length > 0 && (
-                  <span className="text-[10px] px-1.5 py-0.2 bg-rose-100 text-rose-800 font-bold rounded border border-rose-200">
+                  <span className="text-[10px] px-1.5 py-0.2 bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 font-bold rounded border border-rose-200 dark:border-rose-800">
                     {vigilanceHistory.length}
                   </span>
                 )}
@@ -967,7 +967,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
               className="flex items-center gap-2 px-3 py-1.5 mb-1 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white shadow-2xs transition-all"
               title="Switch to full left sidebar"
             >
-              <PanelLeftOpen className="w-4 h-4 text-blue-600" />
+              <PanelLeftOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <span>Switch to Sidebar</span>
             </button>
           </div>
@@ -1024,19 +1024,19 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                       <tr key={a.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="p-3">
                           <div className="font-bold text-slate-900 dark:text-white">{a.title}</div>
-                          <span className="text-[11px] text-blue-700 font-semibold">{a.subjectName}</span>
+                          <span className="text-[11px] text-blue-700 dark:text-blue-400 font-semibold">{a.subjectName}</span>
                           {a.pdfAttachmentUrl && (
                             <a
                               href={a.pdfAttachmentUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-[11px] text-blue-600 hover:underline block mt-0.5"
+                              className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline block mt-0.5"
                             >
                               Download Problem PDF
                             </a>
                           )}
                         </td>
-                        <td className="p-3 text-slate-600 max-w-xs truncate">{a.description}</td>
+                        <td className="p-3 text-slate-600 dark:text-slate-300 max-w-xs truncate">{a.description}</td>
                         <td className="p-3 font-mono text-slate-600 dark:text-slate-300">
                           {a.dueDateTime ? new Date(a.dueDateTime).toLocaleString() : 'Open'}
                         </td>
@@ -1046,39 +1046,39 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                               href={sub.pdfSubmissionUrl || '#'}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-blue-600 font-bold hover:underline flex items-center gap-1 font-mono"
+                              className="text-blue-600 dark:text-blue-400 font-bold hover:underline flex items-center gap-1 font-mono"
                             >
-                              <FileText className="w-3.5 h-3.5 text-rose-600" />
+                              <FileText className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                               <span>View Submitted PDF</span>
                             </a>
                           ) : (
-                            <span className="text-slate-400 italic">Not submitted</span>
+                            <span className="text-slate-400 dark:text-slate-500 italic">Not submitted</span>
                           )}
                         </td>
                         <td className="p-3">
                           <span className={`px-2.5 py-1 rounded text-xs font-bold border ${
                             status === 'CHECKED'
-                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                               : status === 'UNDER_REVIEW'
-                              ? 'bg-amber-100 text-amber-800 border-amber-300'
+                              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
                               : status === 'SUBMITTED'
-                              ? 'bg-blue-100 text-blue-800 border-blue-300'
-                              : 'bg-slate-100 text-slate-700 border-slate-200'
+                              ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                           }`}>
                             {status}
                           </span>
                         </td>
-                        <td className="p-3 font-bold text-slate-900">
+                        <td className="p-3 font-bold text-slate-900 dark:text-white">
                           {sub && sub.status === 'CHECKED' ? (
                             <div>
                               <span>{sub.score} / 100</span>
-                              <span className="ml-1 text-emerald-700">({sub.grade || 'A'})</span>
+                              <span className="ml-1 text-emerald-700 dark:text-emerald-400">({sub.grade || 'A'})</span>
                               {sub.feedback && (
-                                <p className="text-[11px] font-normal text-slate-500 mt-0.5 line-clamp-1">{sub.feedback}</p>
+                                <p className="text-[11px] font-normal text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{sub.feedback}</p>
                               )}
                             </div>
                           ) : (
-                            <span className="text-slate-400 font-normal">Pending check</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-normal">Pending check</span>
                           )}
                         </td>
                         <td className="p-3 text-right">
@@ -1088,7 +1088,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                                 setSubmitAssignmentModal(item);
                                 setAssignForm({ pdfSubmissionUrl: '', submissionContent: '' });
                               }}
-                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors"
+                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors shadow-2xs"
                             >
                               Submit PDF
                             </button>
@@ -1104,8 +1104,8 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                               }}
                               className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${
                                 canEdit
-                                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300'
-                                  : 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed'
+                                  ? 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700'
+                                  : 'bg-slate-50 dark:bg-slate-800/40 text-slate-400 dark:text-slate-600 border border-slate-200 dark:border-slate-800 cursor-not-allowed'
                               }`}
                               title={canEdit ? 'Edit submission' : 'Trainer permission required to edit'}
                             >
@@ -1128,25 +1128,25 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
         <div className="space-y-6">
           {/* Incoming Invites Alert Banner */}
           {receivedInvites.length > 0 && (
-            <div className="bg-amber-50 border border-amber-300 rounded-xl p-5 shadow-sm space-y-3">
-              <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
-                <Users className="w-5 h-5 text-amber-700" />
+            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-xl p-5 shadow-sm space-y-3">
+              <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200 font-bold text-sm">
+                <Users className="w-5 h-5 text-amber-700 dark:text-amber-400" />
                 <span>Pending Team Collaboration Invitations ({receivedInvites.length})</span>
               </div>
-              <p className="text-xs text-amber-800">
+              <p className="text-xs text-amber-800 dark:text-amber-300">
                 You have received invitations from peers who are working on the same project topic. Accept to merge into their team space.
               </p>
               <div className="space-y-2 pt-1">
                 {receivedInvites.map((inv) => (
                   <div key={inv.id} className="bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/60 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                     <div>
-                      <div className="text-xs text-slate-800">
-                        <strong className="font-bold text-slate-900">{inv.senderName}</strong> invited you to join{' '}
-                        <span className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                      <div className="text-xs text-slate-800 dark:text-slate-200">
+                        <strong className="font-bold text-slate-900 dark:text-white">{inv.senderName}</strong> invited you to join{' '}
+                        <span className="font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">
                           {inv.teamName}
                         </span>
                       </div>
-                      <span className="text-[11px] text-slate-500 mt-1 block">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
                         Received on {new Date(inv.createdAt).toLocaleString()}
                       </span>
                     </div>
@@ -1159,7 +1159,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                       </button>
                       <button
                         onClick={() => handleRespondInvite(inv.id, false)}
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 border border-slate-300"
+                        className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 border border-slate-300 dark:border-slate-700"
                       >
                         <X className="w-3.5 h-3.5" /> Decline
                       </button>
@@ -1182,9 +1182,9 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
             </div>
 
             {Object.keys(myTeamByTopic).length === 0 ? (
-              <div className="p-8 text-center border border-dashed border-slate-200 rounded-xl text-slate-500 text-xs space-y-2">
+              <div className="p-8 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-slate-500 dark:text-slate-400 text-xs space-y-2">
                 <Users className="w-8 h-8 text-slate-400 mx-auto" />
-                <p className="font-semibold text-slate-700 text-sm">No Active Project Teams</p>
+                <p className="font-semibold text-slate-700 dark:text-slate-200 text-sm">No Active Project Teams</p>
                 <p>Select a project topic below to start or join a collaborative student team.</p>
               </div>
             ) : (
@@ -1204,28 +1204,28 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                       <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                            <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">
                               {topic?.subjectName || 'Computer Science & AI'}
                             </span>
-                            <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                            <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
                               Team Size Rule: Min {minSize} - Max {maxSize} Members
                             </span>
                             <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${
                               team.status === 'EVALUATED'
-                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                                 : team.status === 'SUBMITTED'
-                                ? 'bg-blue-100 text-blue-800 border-blue-300'
-                                : 'bg-amber-100 text-amber-800 border-amber-300'
+                                ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800'
+                                : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
                             }`}>
                               {team.status}
                             </span>
                           </div>
-                          <h4 className="text-base font-bold text-slate-900 mt-1">{topic?.title}</h4>
-                          <p className="text-xs text-slate-600 mt-0.5">{topic?.description}</p>
+                          <h4 className="text-base font-bold text-slate-900 dark:text-white mt-1">{topic?.title}</h4>
+                          <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">{topic?.description}</p>
                         </div>
                         <div className="text-right text-xs">
-                          <span className="text-slate-500 font-mono">Deadline: {topic?.deadline || 'Open'}</span>
-                          <div className="text-slate-700 font-bold mt-1">
+                          <span className="text-slate-500 dark:text-slate-400 font-mono">Deadline: {topic?.deadline || 'Open'}</span>
+                          <div className="text-slate-700 dark:text-slate-300 font-bold mt-1">
                             Instructor: {topic?.trainerName || 'Faculty'}
                           </div>
                         </div>
@@ -1234,18 +1234,18 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                       {/* Team Space Body */}
                       <div className="p-5 grid grid-cols-1 lg:grid-cols-12 gap-6">
                         {/* Team Roster & Invitations (5 cols) */}
-                        <div className="lg:col-span-5 space-y-4 border-b lg:border-b-0 lg:border-r border-slate-200 lg:pr-6 pb-4 lg:pb-0">
+                        <div className="lg:col-span-5 space-y-4 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800 lg:pr-6 pb-4 lg:pb-0">
                           <div className="flex items-center justify-between">
                             <div>
                               <div className="flex items-center gap-1.5">
-                                <h5 className="text-sm font-bold text-slate-900">{team.teamName}</h5>
+                                <h5 className="text-sm font-bold text-slate-900 dark:text-white">{team.teamName}</h5>
                                 {isLeader && (
                                   <button
                                     onClick={() => {
                                       setShowRenameModal({ topicId, currentName: team.teamName });
                                       setRenameTeamInput(team.teamName);
                                     }}
-                                    className="text-slate-400 hover:text-slate-700 p-0.5"
+                                    className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-0.5"
                                     title="Rename Team"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
@@ -1253,7 +1253,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                                 )}
                               </div>
                               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                                Team Leader: <span className="font-semibold text-slate-700">{team.leaderName}</span>
+                                Team Leader: <span className="font-semibold text-slate-700 dark:text-slate-300">{team.leaderName}</span>
                               </p>
                             </div>
 
@@ -1262,7 +1262,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                               onClick={() => handleOpenInviteModal(topicId)}
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors ${
                                 members.length >= maxSize
-                                  ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed'
                                   : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
                               }`}
                             >
@@ -1273,14 +1273,14 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
                           {/* Member Size Progress Meter */}
                           <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1.5 text-xs">
-                            <div className="flex justify-between font-semibold text-slate-700">
+                            <div className="flex justify-between font-semibold text-slate-700 dark:text-slate-300">
                               <span>Capacity: {members.length} / {maxSize} Members</span>
-                              <span className={`flex items-center gap-1 ${hasMinMet ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}`}>
-                                {hasMinMet && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                              <span className={`flex items-center gap-1 ${hasMinMet ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-amber-700 dark:text-amber-400 font-bold'}`}>
+                                {hasMinMet && <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
                                 <span>{hasMinMet ? 'Min Size Satisfied' : `Min Required: ${minSize}`}</span>
                               </span>
                             </div>
-                            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
                               <div
                                 className={`h-full transition-all ${
                                   members.length >= minSize ? 'bg-emerald-600' : 'bg-amber-500'
@@ -1292,20 +1292,20 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
                           {/* Teammates List & Available Slots */}
                           <div className="space-y-2">
-                            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                               Confirmed Teammates ({members.length} / {maxSize}):
                             </span>
                             <div className="space-y-1.5">
                               {members.map((m) => (
                                 <div key={m.id} className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/70 flex items-center justify-between text-xs">
-                                  <div>
+                                <div>
                                     <div className="font-bold text-slate-900 dark:text-white">{m.studentName}</div>
-                                    <div className="text-[11px] text-slate-500 font-mono">{m.studentEmail}</div>
+                                    <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{m.studentEmail}</div>
                                   </div>
                                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
                                     m.role === 'LEADER'
-                                      ? 'bg-slate-900 text-white border-slate-900'
-                                      : 'bg-slate-200 text-slate-700 border-slate-300'
+                                      ? 'bg-slate-900 dark:bg-blue-600 text-white border-slate-900 dark:border-blue-500'
+                                      : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600'
                                   }`}>
                                     {m.role}
                                   </span>
@@ -1314,11 +1314,11 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
                               {/* Open Capacity Slots */}
                               {Array.from({ length: Math.max(0, maxSize - members.length) }).map((_, idx) => (
-                                <div key={`open-slot-${idx}`} className="p-2 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/40 flex items-center justify-between text-xs text-slate-500">
+                                <div key={`open-slot-${idx}`} className="p-2 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/40 dark:bg-slate-800/20 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                                   <span className="italic text-[11px]">Open Place {members.length + idx + 1} of {maxSize} (Available)</span>
                                   <button
                                     onClick={() => handleOpenInviteModal(topicId)}
-                                    className="text-blue-600 hover:text-blue-800 font-semibold text-[11px] underline"
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-semibold text-[11px] underline"
                                   >
                                     + Invite Peer
                                   </button>
@@ -1329,18 +1329,18 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
                           {/* Sent Pending Invites */}
                           {teamData.pendingSentInvites && teamData.pendingSentInvites.length > 0 && (
-                            <div className="pt-2 border-t border-slate-200 space-y-1.5">
-                              <span className="text-xs font-bold text-slate-500">Sent Invites Awaiting Acceptance:</span>
+                            <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
+                              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Sent Invites Awaiting Acceptance:</span>
                               <div className="space-y-1">
                                 {teamData.pendingSentInvites.map(inv => (
-                                  <div key={inv.id} className="text-xs text-slate-600 flex items-center justify-between p-1.5 bg-amber-50/50 rounded border border-amber-200">
-                                    <span>To: <strong>{inv.recipientName}</strong></span>
+                                  <div key={inv.id} className="text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between p-1.5 bg-amber-50/50 dark:bg-amber-950/30 rounded border border-amber-200 dark:border-amber-900/60">
+                                    <span>To: <strong className="text-slate-800 dark:text-slate-100">{inv.recipientName}</strong></span>
                                     <div className="flex items-center gap-2">
-                                      <span className="text-[10px] font-bold text-amber-700">PENDING</span>
+                                      <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400">PENDING</span>
                                       {teamData.isLeader && (
                                         <button
                                           onClick={() => handleCancelInvite(inv.id)}
-                                          className="text-[10px] font-bold text-red-600 hover:text-red-800 underline transition-colors"
+                                          className="text-[10px] font-bold text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 underline transition-colors"
                                           title="Cancel this invitation"
                                         >
                                           Cancel
@@ -1356,9 +1356,9 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
                         {/* Shared Deliverables Console (7 cols) */}
                         <div className="lg:col-span-7 space-y-4">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
                             <div>
-                              <h5 className="text-sm font-bold text-slate-900">Shared Team Deliverables</h5>
+                              <h5 className="text-sm font-bold text-slate-900 dark:text-white">Shared Team Deliverables</h5>
                               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                                 Synchronized for all teammates. Any member can upload or update files.
                               </p>
@@ -1376,9 +1376,9 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                                   studentComments: team.studentComments || ''
                                 });
                               }}
-                              className="px-3.5 py-1.5 bg-[#0F172A] hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs w-fit"
+                              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs w-fit"
                             >
-                              <UploadCloud className="w-4 h-4 text-blue-400" />
+                              <UploadCloud className="w-4 h-4 text-white" />
                               <span>{team.zipFileUrl ? 'Update Deliverables' : 'Upload Deliverables'}</span>
                             </button>
                           </div>
@@ -1387,72 +1387,72 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                             {/* ZIP Archive */}
                             <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 space-y-1">
-                              <div className="flex items-center gap-1.5 text-slate-700 font-bold">
-                                <Archive className="w-4 h-4 text-amber-600" />
+                              <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-bold">
+                                <Archive className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                                 <span>Source Code ZIP</span>
                               </div>
                               {team.zipFileUrl ? (
-                                <a href={team.zipFileUrl} target="_blank" rel="noreferrer" className="text-blue-600 font-bold hover:underline break-all block">
+                                <a href={team.zipFileUrl} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline break-all block">
                                   Download ZIP Archive &rarr;
                                 </a>
                               ) : (
-                                <span className="text-slate-400 italic">Not uploaded yet</span>
+                                <span className="text-slate-400 dark:text-slate-500 italic">Not uploaded yet</span>
                               )}
                             </div>
 
                             {/* PPT Presentation */}
                             <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 space-y-1">
-                              <div className="flex items-center gap-1.5 text-slate-700 font-bold">
-                                <Presentation className="w-4 h-4 text-rose-600" />
+                              <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-bold">
+                                <Presentation className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                                 <span>Presentation Deck (PPT)</span>
                               </div>
                               {team.pptFileUrl ? (
-                                <a href={team.pptFileUrl} target="_blank" rel="noreferrer" className="text-blue-600 font-bold hover:underline break-all block">
+                                <a href={team.pptFileUrl} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline break-all block">
                                   View Presentation &rarr;
                                 </a>
                               ) : (
-                                <span className="text-slate-400 italic">Not uploaded yet</span>
+                                <span className="text-slate-400 dark:text-slate-500 italic">Not uploaded yet</span>
                               )}
                             </div>
 
                             {/* PDF Report */}
                             <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 space-y-1">
-                              <div className="flex items-center gap-1.5 text-slate-700 font-bold">
-                                <FileText className="w-4 h-4 text-emerald-600" />
+                              <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-bold">
+                                <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                                 <span>Technical Documentation (PDF)</span>
                               </div>
                               {team.pdfReportUrl ? (
-                                <a href={team.pdfReportUrl} target="_blank" rel="noreferrer" className="text-blue-600 font-bold hover:underline break-all block">
+                                <a href={team.pdfReportUrl} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline break-all block">
                                   Open PDF Report &rarr;
                                 </a>
                               ) : (
-                                <span className="text-slate-400 italic">Not uploaded yet</span>
+                                <span className="text-slate-400 dark:text-slate-500 italic">Not uploaded yet</span>
                               )}
                             </div>
 
                             {/* GitHub Repo */}
                             <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 space-y-1">
-                              <div className="flex items-center gap-1.5 text-slate-700 font-bold">
-                                <FolderGit2 className="w-4 h-4 text-slate-900" />
+                              <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-bold">
+                                <FolderGit2 className="w-4 h-4 text-slate-900 dark:text-slate-100" />
                                 <span>GitHub Repository</span>
                               </div>
                               {team.githubRepoUrl ? (
-                                <a href={team.githubRepoUrl} target="_blank" rel="noreferrer" className="text-blue-600 font-bold hover:underline break-all block">
+                                <a href={team.githubRepoUrl} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline break-all block">
                                   Explore Repository &rarr;
                                 </a>
                               ) : (
-                                <span className="text-slate-400 italic">Not uploaded yet</span>
+                                <span className="text-slate-400 dark:text-slate-500 italic">Not uploaded yet</span>
                               )}
                             </div>
                           </div>
 
                           {/* Live Demo URL if present */}
                           {team.liveDemoUrl && (
-                            <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 text-xs flex items-center justify-between">
-                              <span className="font-bold text-emerald-900 flex items-center gap-1.5">
-                                <ExternalLink className="w-4 h-4 text-emerald-700" /> Live Deployment:
+                            <div className="p-3 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/40 text-xs flex items-center justify-between">
+                              <span className="font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
+                                <ExternalLink className="w-4 h-4 text-emerald-700 dark:text-emerald-400" /> Live Deployment:
                               </span>
-                              <a href={team.liveDemoUrl} target="_blank" rel="noreferrer" className="text-emerald-800 font-mono font-bold hover:underline">
+                              <a href={team.liveDemoUrl} target="_blank" rel="noreferrer" className="text-emerald-800 dark:text-emerald-300 font-mono font-bold hover:underline">
                                 {team.liveDemoUrl}
                               </a>
                             </div>
@@ -1461,20 +1461,20 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                           {/* Last updated by banner */}
                           {team.lastUpdatedByName && (
                             <div className="text-[11px] text-slate-500 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-800/50 p-2 rounded border border-slate-200 dark:border-slate-700">
-                              Last updated by: <strong className="text-slate-700 font-bold">{team.lastUpdatedByName}</strong>
+                              Last updated by: <strong className="text-slate-700 dark:text-slate-200 font-bold">{team.lastUpdatedByName}</strong>
                               {team.lastUpdatedAt && ` on ${new Date(team.lastUpdatedAt).toLocaleString()}`}
                             </div>
                           )}
 
                           {/* Trainer Evaluation Result */}
                           {team.score != null && (
-                            <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-4 space-y-2 text-xs text-emerald-950">
+                            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-xl p-4 space-y-2 text-xs text-emerald-950 dark:text-emerald-100">
                               <div className="flex items-center justify-between">
-                                <span className="font-extrabold text-sm uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                                <span className="font-extrabold text-sm uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                                   <span>Trainer Evaluation Result</span>
                                 </span>
-                                <span className="text-base font-extrabold text-emerald-700">
+                                <span className="text-base font-extrabold text-emerald-700 dark:text-emerald-400">
                                   Score: {team.score} / 100
                                 </span>
                               </div>
@@ -1510,31 +1510,31 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                   <div key={topic.id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-3 bg-white dark:bg-slate-900 flex flex-col justify-between">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2 justify-between">
-                        <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                        <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">
                           {topic.subjectName || 'Core Engineering'}
                         </span>
-                        <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                        <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
                           Team: {topic.minTeamSize || 2} to {topic.maxTeamSize || 4} Members
                         </span>
                       </div>
-                      <h4 className="text-base font-bold text-slate-900">{topic.title}</h4>
-                      <p className="text-xs text-slate-600 leading-relaxed">{topic.description}</p>
+                      <h4 className="text-base font-bold text-slate-900 dark:text-white">{topic.title}</h4>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{topic.description}</p>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Instructor: <span className="font-semibold text-slate-700">{topic.trainerName || 'Faculty'}</span>
+                        Instructor: <span className="font-semibold text-slate-700 dark:text-slate-300">{topic.trainerName || 'Faculty'}</span>
                       </p>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                      <span className="text-slate-500 font-mono">Deadline: {topic.deadline || 'Open'}</span>
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                      <span className="text-slate-500 dark:text-slate-400 font-mono">Deadline: {topic.deadline || 'Open'}</span>
                       {isSelected ? (
-                        <span className="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                           <span>Selected (Active Team Above)</span>
                         </span>
                       ) : (
                         <button
                           onClick={() => handleSelectTopic(topic.id)}
-                          className="px-3.5 py-1.5 bg-[#0F172A] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
+                          className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
                         >
                           Select Project Topic
                         </button>
@@ -1551,16 +1551,16 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
       {/* TAB 3: PROCTORED EXAMS (TRAINER-ASSIGNED ASSESSMENTS) */}
       {activeTab === 'exams' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4 transition-colors">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3.5">
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Trainer-Assigned Assessments (Institutional Proctored Exams)</h3>
-                <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold border border-purple-200 flex items-center gap-1">
-                  <Building2 className="w-3 h-3" />
+                <span className="px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 text-[10px] font-bold border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                  <Building2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                   <span>{user?.institutionName || 'Enrolled Institution'}</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Formal subject examinations assigned by your institution&apos;s faculty. Enforces safe-browsing lockdown and a strict single-attempt policy. (For continuous self-evaluation and unlimited practice attempts, explore module self-assessments under <strong>Study Materials</strong>).
               </p>
             </div>
@@ -1568,11 +1568,11 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
           {/* Mobile / Tablet Lockdown Advisory */}
           {isMobileOrTablet && (
-            <div className="bg-rose-50 border-2 border-rose-300 rounded-xl p-4 text-xs flex items-start gap-3 shadow-xs animate-fadeIn">
-              <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-800 rounded-xl p-4 text-xs flex items-start gap-3 shadow-xs animate-fadeIn">
+              <ShieldAlert className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               <div>
-                <strong className="text-sm font-bold text-rose-950 block">Device Security Lockdown: Desktop or Laptop Required</strong>
-                <p className="text-rose-800 mt-1 leading-relaxed">
+                <strong className="text-sm font-bold text-rose-950 dark:text-rose-200 block">Device Security Lockdown: Desktop or Laptop Required</strong>
+                <p className="text-rose-800 dark:text-rose-300 mt-1 leading-relaxed">
                   Proctored assessments cannot be conducted on mobile phones or tablets due to hardware facial surveillance, physical keyboard requirements, and full-screen proctoring constraints. Please log in from a PC or laptop to attempt examinations.
                 </p>
               </div>
@@ -1825,12 +1825,12 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
               <div key={sess.id} className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3 bg-slate-50/50 dark:bg-slate-800/40">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                    <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">
                       {sess.subjectName || 'Computer Science'}
                     </span>
-                    <h4 className="text-sm font-bold text-slate-900 mt-1">{sess.title}</h4>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-1">{sess.title}</h4>
                   </div>
-                  <span className="text-xs text-slate-500 font-mono">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
                     {new Date(sess.scheduledAt).toLocaleDateString()}
                   </span>
                 </div>
@@ -1840,7 +1840,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 <div className="pt-2 flex justify-end">
                   <button
                     onClick={() => setWatchingRecordingModal(sess)}
-                    className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold flex items-center gap-1.5 shadow-2xs"
                   >
                     <PlayCircle className="w-4 h-4" />
                     Watch Lecture Video
@@ -1855,28 +1855,28 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
       {/* TAB 5: SUBJECT-WISE MODULAR STUDY MATERIALS */}
       {activeTab === 'materials' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-6 transition-colors">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Subject-Wise Modular Study Materials</h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Subject-Wise Modular Study Materials</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Browse official course materials, syllabus modules, code snippets, and system architectures across Global and Institution libraries.
               </p>
             </div>
             <div className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-1.5">
-              <Globe className="w-4 h-4 text-blue-600 shrink-0" />
+              <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
               <span>Unified Library: Segregated into Global and Institution-private study materials.</span>
             </div>
           </div>
 
           {/* DUAL LIBRARY FILTER TABS */}
-          <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 rounded-xl border border-slate-200">
+          <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => setStudyLibraryFilter('ALL')}
               className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
                 studyLibraryFilter === 'ALL'
-                  ? 'bg-white text-blue-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
@@ -1888,11 +1888,11 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
               onClick={() => setStudyLibraryFilter('GLOBAL')}
               className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
                 studyLibraryFilter === 'GLOBAL'
-                  ? 'bg-white text-blue-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Globe className="w-3.5 h-3.5 text-blue-600" />
+              <Globe className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               <span>Global Study-Material Library</span>
             </button>
 
@@ -1901,11 +1901,11 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
               onClick={() => setStudyLibraryFilter('INSTITUTION')}
               className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
                 studyLibraryFilter === 'INSTITUTION'
-                  ? 'bg-white text-purple-700 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Building2 className="w-3.5 h-3.5 text-purple-600" />
+              <Building2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
               <span>My Institution Library ({user?.institutionName || 'Enrolled Institute'})</span>
             </button>
           </div>
@@ -1940,56 +1940,56 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                           {course.category || 'Core Subject'}
                         </span>
-                        <span className="text-[11px] text-slate-400 font-medium">
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
                           {course.enrolledCount || 0} Enrolled
                         </span>
                       </div>
 
-                      <h4 className="text-base font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
+                      <h4 className="text-base font-bold text-slate-900 dark:text-white leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {course.title}
                       </h4>
 
-                      <p className="text-xs text-slate-600 line-clamp-3">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-3">
                         {course.description || 'Structured academic study materials and progressive modules.'}
                       </p>
 
                       {/* CURRICULUM SCOPE & SPECIFICATION STRIP (Zero trainer details for student privacy) */}
                       <div className="p-3 bg-slate-50/90 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                            <Layers className="w-3.5 h-3.5 text-blue-600" />
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Layers className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                             Library Scope:
                           </span>
                           {course.institutionId ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-800 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded-full">
-                              <Building2 className="w-3 h-3 text-purple-600" />
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-800 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 px-2 py-0.5 rounded-full">
+                              <Building2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                               {course.institutionName || user?.institutionName || 'Institution'} Private
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-800 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-full">
-                              <Globe className="w-3 h-3 text-blue-600" />
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full">
+                              <Globe className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                               Global Portal Library
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-500 space-y-1 pt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 space-y-1 pt-0.5">
                           <p className="flex items-center gap-1.5">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             <span>Modular sequential syllabus & code patterns</span>
                           </p>
                           <p className="flex items-center gap-1.5">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             <span>Module self-assessments (Unlimited practice retakes for self-evaluation)</span>
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-semibold text-slate-500">
+                    <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                         Progress: {course.progressPercentage || 0}%
                       </span>
                       <button
@@ -2024,7 +2024,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
               />
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500">
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
               <span>Showing <strong>{
                 certificates.filter(c => {
                   if (!certSearchQuery.trim()) return true;
@@ -2040,7 +2040,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 <button
                   type="button"
                   onClick={() => setCertSearchQuery('')}
-                  className="text-blue-600 hover:underline font-semibold"
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-semibold"
                 >
                   Clear filter
                 </button>
@@ -2063,19 +2063,19 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
             if (certificates.length === 0) {
               return (
                 <div className="bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-10 text-center space-y-4 shadow-2xs">
-                  <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
                     <Award className="w-7 h-7" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-base font-bold text-slate-800">No Certificates Earned Yet</h3>
-                    <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                    <h3 className="text-base font-bold text-slate-800 dark:text-white">No Certificates Earned Yet</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
                       Certificates are automatically awarded when you achieve 60% or higher in formal Proctored Subject Examinations.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setActiveTab('exams')}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1.5"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
                   >
                     <ShieldCheck className="w-4 h-4" />
                     <span>View Scheduled Proctored Exams</span>
@@ -2091,7 +2091,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                   <button
                     type="button"
                     onClick={() => setCertSearchQuery('')}
-                    className="text-blue-600 hover:underline font-bold"
+                    className="text-blue-600 dark:text-blue-400 hover:underline font-bold"
                   >
                     Reset search filter
                   </button>
@@ -2121,20 +2121,20 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                         {/* Card Header Badge & Type */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
                               <Award className="w-4 h-4" />
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 block">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block">
                                 {isDistinction ? 'Merit & Distinction' : 'Verified Passing'}
                               </span>
-                              <span className="text-[10px] text-slate-400 block font-mono">
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-mono">
                                 Exam #{c.examId || c.id}
                               </span>
                             </div>
                           </div>
 
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1 shrink-0">
                             <CheckCircle2 className="w-3 h-3" />
                             VERIFIED
                           </span>
@@ -2142,19 +2142,19 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
                         {/* Title & Recipient */}
                         <div>
-                          <h4 className="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-2 leading-snug">
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
                             {c.courseTitle}
                           </h4>
-                          <p className="text-xs text-slate-500 mt-1">
-                            Conferred to: <strong className="text-slate-800">{c.studentName}</strong>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Conferred to: <strong className="text-slate-800 dark:text-slate-200">{c.studentName}</strong>
                           </p>
                         </div>
 
                         {/* Credential ID Code with 1-click copy */}
                         <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-2 flex items-center justify-between gap-2">
                           <div className="min-w-0">
-                            <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Credential ID</span>
-                            <span className="font-mono text-xs font-bold text-slate-800 truncate block">
+                            <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 block">Credential ID</span>
+                            <span className="font-mono text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">
                               {c.certificateCode}
                             </span>
                           </div>
@@ -2164,27 +2164,27 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                             className="px-2 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1 shrink-0"
                             title="Copy Credential ID"
                           >
-                            <Copy className="w-3 h-3 text-slate-500" />
+                            <Copy className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                             <span>{copiedCertCode === c.certificateCode ? 'Copied' : 'Copy'}</span>
                           </button>
                         </div>
 
                         {/* Metadata row: Grade & Date */}
-                        <div className="grid grid-cols-2 gap-2 pt-1 text-xs border-t border-slate-100">
+                        <div className="grid grid-cols-2 gap-2 pt-1 text-xs border-t border-slate-100 dark:border-slate-800">
                           <div>
-                            <span className="text-[10px] text-slate-400 block">Score Achieved</span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Score Achieved</span>
                             <div className="flex items-center gap-1 mt-0.5">
-                              <strong className={`font-bold ${isDistinction ? 'text-emerald-700' : 'text-blue-700'}`}>
+                              <strong className={`font-bold ${isDistinction ? 'text-emerald-700 dark:text-emerald-400' : 'text-blue-700 dark:text-blue-400'}`}>
                                 {c.gradePercentage}%
                               </strong>
-                              <span className="text-[10px] text-slate-500">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400">
                                 ({isDistinction ? 'Distinction' : 'Passed'})
                               </span>
                             </div>
                           </div>
                           <div>
-                            <span className="text-[10px] text-slate-400 block">Date of Issue</span>
-                            <span className="font-medium text-slate-700 block mt-0.5">
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Date of Issue</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-300 block mt-0.5">
                               {dateStr}
                             </span>
                           </div>
@@ -2192,13 +2192,13 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                       </div>
 
                       {/* Card Action Buttons */}
-                      <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => setSelectedCertificate(c)}
-                          className="flex-1 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
+                          className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
                         >
-                          <Eye className="w-3.5 h-3.5 text-amber-400" />
+                          <Eye className="w-3.5 h-3.5 text-amber-300" />
                           <span>View Certificate</span>
                         </button>
                         <button
@@ -2207,7 +2207,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                           className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
                           title="Print or Save as PDF"
                         >
-                          <Printer className="w-3.5 h-3.5 text-slate-600" />
+                          <Printer className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />
                           <span>Print</span>
                         </button>
                       </div>
@@ -2534,12 +2534,12 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
       {submitAssignmentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Submit Assignment Deliverable</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{submitAssignmentModal.assignment.title}</p>
               </div>
-              <button onClick={() => setSubmitAssignmentModal(null)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setSubmitAssignmentModal(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -2558,7 +2558,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Student Comments / Problem Explanation
                 </label>
                 <textarea
@@ -2566,21 +2566,21 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                   value={assignForm.submissionContent}
                   onChange={(e) => setAssignForm({ ...assignForm, submissionContent: e.target.value })}
                   placeholder="Summarize your implementation, key findings, and architectural decisions..."
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setSubmitAssignmentModal(null)}
-                  className="px-4 py-2 bg-slate-100 rounded text-xs font-semibold"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors shadow-2xs"
                 >
                   Confirm PDF Submission
                 </button>
@@ -2594,25 +2594,25 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
       {showInviteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Invite Teammates to Project</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Showing peers who have chosen this exact same project topic
                 </p>
               </div>
-              <button onClick={() => setShowInviteModal(null)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setShowInviteModal(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3">
               {peersList.length === 0 ? (
-                <div className="p-6 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-lg">
+                <div className="p-6 text-center text-xs text-slate-500 dark:text-slate-400 border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
                   No other students have chosen this project topic yet. As more students select it, they will appear here for invitations.
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-72 overflow-y-auto">
                   {peersList.map((peer) => {
                     const activeTeam = myTeamByTopic[showInviteModal]?.team;
                     const myMembers = myTeamByTopic[showInviteModal]?.members || [];
@@ -2622,10 +2622,10 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                       <div key={peer.studentId} className="py-3 flex items-center justify-between text-xs">
                         <div>
                           <div className="font-bold text-slate-900 dark:text-white">{peer.studentName}</div>
-                          <div className="text-[11px] text-slate-500 font-mono">{peer.studentEmail}</div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{peer.studentEmail}</div>
                           {peer.hasTeam && (
-                            <span className="text-[10px] text-slate-500 block mt-0.5">
-                              In Team: <strong>{peer.teamName || 'Another Team'}</strong>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                              In Team: <strong className="text-slate-800 dark:text-slate-200">{peer.teamName || 'Another Team'}</strong>
                               {peer.teamMemberCount > 0 && ` (${peer.teamMemberCount}/${peer.teamCapacity} Members)`}
                             </span>
                           )}
@@ -2641,15 +2641,15 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                               Join Team
                             </button>
                           ) : peer.isCommittedMultiMember && !peer.teamHasSpace ? (
-                            <span className="px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                            <span className="px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                               Team Full
                             </span>
                           ) : peer.isCommittedMultiMember && !isSolo ? (
-                            <span className="px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                            <span className="px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                               In Another Team
                             </span>
                           ) : peer.alreadyInvited ? (
-                            <span className="px-2.5 py-1 rounded text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span className="px-2.5 py-1 rounded text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                               Invite Sent
                             </span>
                           ) : (
@@ -2669,10 +2669,10 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
               )}
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end">
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
               <button
                 onClick={() => setShowInviteModal(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold text-slate-700"
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors"
               >
                 Close
               </button>
@@ -2685,35 +2685,35 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
       {showRenameModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">Rename Team</h3>
-              <button onClick={() => setShowRenameModal(null)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setShowRenameModal(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <form onSubmit={handleRenameTeam} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">New Team Name *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">New Team Name *</label>
                 <input
                   type="text"
                   required
                   value={renameTeamInput}
                   onChange={(e) => setRenameTeamInput(e.target.value)}
                   placeholder="e.g. Distributed Core Team"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowRenameModal(null)}
-                  className="px-3 py-1.5 bg-slate-100 rounded text-xs font-semibold"
+                  className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold"
+                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors shadow-xs"
                 >
                   Save Name
                 </button>
@@ -2727,14 +2727,14 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
       {showSharedUploadModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Upload Shared Team Deliverables</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Team: <strong>{showSharedUploadModal.teamName}</strong> • Visible to all teammates
                 </p>
               </div>
-              <button onClick={() => setShowSharedUploadModal(null)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setShowSharedUploadModal(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -2777,50 +2777,50 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Public GitHub / GitLab Repository URL *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Public GitHub / GitLab Repository URL *</label>
                 <input
                   type="url"
                   required
                   value={projectDeliverables.githubRepoUrl}
                   onChange={(e) => setProjectDeliverables({ ...projectDeliverables, githubRepoUrl: e.target.value })}
                   placeholder="https://github.com/team-alpha/microservices"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Live Deployment / Cloud URL (Optional)</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Live Deployment / Cloud URL (Optional)</label>
                 <input
                   type="url"
                   value={projectDeliverables.liveDemoUrl}
                   onChange={(e) => setProjectDeliverables({ ...projectDeliverables, liveDemoUrl: e.target.value })}
                   placeholder="https://demo-app.bridgeai.edu"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Team Comments / Architecture Notes</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Team Comments / Architecture Notes</label>
                 <textarea
                   rows="2"
                   value={projectDeliverables.studentComments}
                   onChange={(e) => setProjectDeliverables({ ...projectDeliverables, studentComments: e.target.value })}
                   placeholder="Brief note explaining architecture, deployment steps, or teammate contribution notes..."
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowSharedUploadModal(null)}
-                  className="px-4 py-2 bg-slate-100 rounded text-xs font-semibold"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors shadow-xs"
                 >
                   Submit for Entire Team
                 </button>
@@ -2834,12 +2834,12 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
       {submitProjectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Submit Project Deliverables</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{submitProjectModal.title}</p>
               </div>
-              <button onClick={() => setSubmitProjectModal(null)} className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors">
+              <button onClick={() => setSubmitProjectModal(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -2879,27 +2879,27 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Public GitHub Repository</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Public GitHub Repository</label>
                 <input
                   type="url"
                   value={projectDeliverables.githubRepoUrl}
                   onChange={(e) => setProjectDeliverables({ ...projectDeliverables, githubRepoUrl: e.target.value })}
                   placeholder="https://github.com/my-username/project-repo"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setSubmitProjectModal(null)}
-                  className="px-4 py-2 bg-slate-100 rounded text-xs font-semibold"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors shadow-xs"
                 >
                   Submit Deliverables
                 </button>
@@ -2913,7 +2913,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
       {watchingRecordingModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden">
-            <div className="bg-[#0F172A] text-white p-4 flex items-center justify-between">
+            <div className="bg-slate-900 border-b border-slate-800 text-white p-4 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold">{watchingRecordingModal.title}</h3>
                 <p className="text-[11px] text-slate-400">Streamed Recording</p>
@@ -2934,7 +2934,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
             </div>
 
             <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800">
-              <h4 className="text-xs font-bold text-slate-800 mb-1">Instructor Session Notes:</h4>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Instructor Session Notes:</h4>
               <p className="text-xs text-slate-600 dark:text-slate-300">{watchingRecordingModal.recordingNotes || 'No notes attached.'}</p>
             </div>
           </div>
@@ -3009,7 +3009,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                 <button
                   type="button"
                   onClick={() => setSelectedCertificate(null)}
-                  className="no-print absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition-colors border border-slate-200 z-10 shadow-2xs"
+                  className="no-print absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-300 transition-colors border border-slate-200 dark:border-slate-700 z-10 shadow-2xs"
                   title="Close Certificate"
                 >
                   <X className="w-4 h-4" />
@@ -3101,10 +3101,10 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                   <button
                     type="button"
                     onClick={() => handleCopyCertCode(selectedCertificate.certificateCode)}
-                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-200"
+                    className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-200 dark:border-slate-700"
                     title="Copy Certificate ID"
                   >
-                    <Copy className="w-3.5 h-3.5 text-slate-500" />
+                    <Copy className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                     <span>{copiedCertCode === selectedCertificate.certificateCode ? 'Code Copied!' : 'Copy Credential ID'}</span>
                   </button>
 
@@ -3130,7 +3130,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                     <button
                       type="button"
                       onClick={() => setSelectedCertificate(null)}
-                      className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+                      className="px-5 py-2 bg-slate-800 hover:bg-slate-900 dark:hover:bg-slate-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm"
                       title="Close Certificate modal"
                     >
                       <X className="w-3.5 h-3.5" />
