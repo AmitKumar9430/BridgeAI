@@ -33,10 +33,26 @@ public class DataInitializer implements CommandLineRunner {
     private final InstitutionRepository institutionRepository;
     private final InstitutionService institutionService;
     private final PasswordEncoder passwordEncoder;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) {
         log.info("Checking initial system seed data...");
+
+        // Ensure recording_snapshot_url in exam_attempts can store large base64 photos
+        try {
+            jdbcTemplate.execute("ALTER TABLE exam_attempts MODIFY COLUMN recording_snapshot_url LONGTEXT");
+            log.info("Successfully updated recording_snapshot_url to LONGTEXT in MySQL");
+        } catch (Exception e1) {
+            try {
+                jdbcTemplate.execute("ALTER TABLE exam_attempts ALTER COLUMN recording_snapshot_url SET DATA TYPE VARCHAR(10000000)");
+                log.info("Successfully updated recording_snapshot_url in H2 database");
+            } catch (Exception e2) {
+                try {
+                    jdbcTemplate.execute("ALTER TABLE exam_attempts ALTER COLUMN recording_snapshot_url TYPE TEXT");
+                } catch (Exception ignored) {}
+            }
+        }
 
         // 0. Seed Institutions with complete location details
         seedInstitution("Indian Institute of Technology (IIT)", "IIT-D", "Institute of National Importance", "NAAC A++ | NIRF Rank #1",

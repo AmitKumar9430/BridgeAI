@@ -2352,7 +2352,36 @@ export const VigilanceDashboard = () => {
                                   if (file) {
                                     const reader = new FileReader();
                                     reader.onload = (ev) => {
-                                      setTerminationUploadedPhoto(ev.target.result);
+                                      const rawData = ev.target.result;
+                                      const img = new Image();
+                                      img.onload = () => {
+                                        const canvas = document.createElement('canvas');
+                                        const MAX_W = 1280;
+                                        const MAX_H = 720;
+                                        let w = img.width;
+                                        let h = img.height;
+                                        if (w > h) {
+                                          if (w > MAX_W) {
+                                            h = Math.round((h * MAX_W) / w);
+                                            w = MAX_W;
+                                          }
+                                        } else {
+                                          if (h > MAX_H) {
+                                            w = Math.round((w * MAX_H) / h);
+                                            h = MAX_H;
+                                          }
+                                        }
+                                        canvas.width = w;
+                                        canvas.height = h;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, 0, 0, w, h);
+                                        const compressed = canvas.toDataURL('image/jpeg', 0.82);
+                                        setTerminationUploadedPhoto(compressed);
+                                      };
+                                      img.onerror = () => {
+                                        setTerminationUploadedPhoto(rawData);
+                                      };
+                                      img.src = rawData;
                                     };
                                     reader.readAsDataURL(file);
                                   }

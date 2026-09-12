@@ -161,9 +161,17 @@ public class VigilanceService {
                 attempt.setCompletedAt(LocalDateTime.now());
                 attempt.setCanReattempt(false);
                 if (req.getEvidenceSnapshot() != null && !req.getEvidenceSnapshot().isEmpty()) {
-                    attempt.setRecordingSnapshotUrl(req.getEvidenceSnapshot());
+                    try {
+                        attempt.setRecordingSnapshotUrl(req.getEvidenceSnapshot());
+                        examAttemptRepository.saveAndFlush(attempt);
+                    } catch (Exception ex) {
+                        log.warn("Database column recording_snapshot_url constrained or existing table needs migration: {}. Saving reference.", ex.getMessage());
+                        attempt.setRecordingSnapshotUrl("EVIDENCE_SAVED_IN_VIGILANCE_RECORD");
+                        examAttemptRepository.save(attempt);
+                    }
+                } else {
+                    examAttemptRepository.save(attempt);
                 }
-                examAttemptRepository.save(attempt);
                 log.warn("Vigilance Officer {} terminated exam attempt id {}", officerStaffId, attempt.getId());
             });
         }

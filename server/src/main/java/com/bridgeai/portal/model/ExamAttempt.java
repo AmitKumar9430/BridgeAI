@@ -51,7 +51,7 @@ public class ExamAttempt {
     @Builder.Default
     private int violationCount = 0;
 
-    @Column(length = 500)
+    @Column(columnDefinition = "LONGTEXT")
     private String recordingSnapshotUrl;
 
     @Column(length = 100)
