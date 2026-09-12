@@ -581,7 +581,7 @@ public class ModuleService {
                 key={trainer.trainerId || trainer.id}
                 className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-200/80 bg-slate-50 dark:bg-slate-900/60/60 hover:bg-white hover:border-blue-300 hover:shadow-2xs transition-all"
               >
-                <div className="w-9 h-9 rounded-full bg-linear-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                   {trainer.trainerName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'TR'}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -1006,7 +1006,7 @@ public class ModuleService {
               )}
 
               {/* AFTER-READING MODULE ASSESSMENT / KNOWLEDGE CHECK */}
-              <div className="p-5 bg-linear-to-br from-slate-900 via-slate-850 to-indigo-950 text-white rounded-xl shadow-md border border-slate-800 space-y-4">
+              <div className="p-5 bg-slate-900 text-white rounded-xl shadow-md border border-slate-800 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-700/60">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400 shrink-0">

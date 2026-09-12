@@ -57,7 +57,7 @@ export const UserProfileModal = ({ userId, initialData, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
-        <div className="bg-linear-to-r from-slate-900 via-slate-800 to-indigo-950 text-white p-6 relative rounded-t-2xl">
+        <div className="bg-[#0F172A] text-white p-6 relative rounded-t-2xl border-b border-slate-800">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/80 transition-colors"
@@ -66,7 +66,7 @@ export const UserProfileModal = ({ userId, initialData, onClose }) => {
           </button>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-blue-600 via-indigo-600 to-purple-700 text-white font-bold text-xl flex items-center justify-center shadow-lg shrink-0 border-2 border-white/20">
+            <div className="w-16 h-16 rounded-2xl bg-blue-600 text-white font-bold text-xl flex items-center justify-center shadow-lg shrink-0 border-2 border-white/20">
               {profile?.fullName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'}
             </div>
             <div className="min-w-0 flex-1">

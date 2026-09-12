@@ -426,11 +426,8 @@ export const VigilanceDashboard = () => {
       canvas.height = 360;
       const ctx = canvas.getContext('2d');
 
-      // Draw dark background gradient
-      const grad = ctx.createLinearGradient(0, 0, 640, 360);
-      grad.addColorStop(0, '#0f172a');
-      grad.addColorStop(1, '#1e1b4b');
-      ctx.fillStyle = grad;
+      // Draw solid professional dark background
+      ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 0, 640, 360);
 
       // Draw simulated webcam / screen elements
@@ -1102,7 +1099,7 @@ export const VigilanceDashboard = () => {
                                               {/* Live Video Preview Window */}
                                               <div className="relative aspect-video bg-slate-950 flex items-center justify-center overflow-hidden">
                                                 {/* Simulated Live Stream Frame */}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/50 flex flex-col justify-between p-2.5 z-10 pointer-events-none">
+                                                <div className="absolute inset-0 bg-black/40 flex flex-col justify-between p-2.5 z-10 pointer-events-none">
                                                   <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-1.5">
                                                       <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
@@ -1186,10 +1183,9 @@ export const VigilanceDashboard = () => {
                                                           <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
                                                             <img
                                                               src={scrFrame}
-                                                              alt={`Live screen of ${st.studentName}`}
-                                                              className="w-full h-full object-contain bg-black"
+                                                              alt={`Live screen stream of ${st.studentName}`}
+                                                              className="w-full h-full object-cover"
                                                             />
-                                                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-20"></div>
                                                             <div className="absolute top-2 right-2 bg-blue-950/90 text-blue-300 border border-blue-700 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold flex items-center gap-1 z-10">
                                                               <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>
                                                               <span>SCREEN LIVE</span>
@@ -1199,7 +1195,6 @@ export const VigilanceDashboard = () => {
                                                       }
                                                       return (
                                                         <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-950 p-4 text-center overflow-hidden">
-                                                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-40"></div>
                                                           <div className="relative flex items-center justify-center">
                                                             <span className="absolute w-12 h-12 rounded-full bg-blue-500 opacity-25 animate-ping"></span>
                                                             <div className="w-11 h-11 rounded-xl bg-blue-950/90 border border-blue-500/60 flex items-center justify-center text-blue-400 shadow-md">
@@ -1224,14 +1219,12 @@ export const VigilanceDashboard = () => {
                                                             alt={`Live stream of ${st.studentName}`}
                                                             className="w-full h-full object-cover"
                                                           />
-                                                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-40"></div>
                                                         </div>
                                                       );
                                                     }
 
                                                     return (
-                                                      <div className="relative w-full h-full flex flex-col items-center justify-center bg-radial from-slate-900 via-slate-950 to-black overflow-hidden">
-                                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-60"></div>
+                                                      <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-950 overflow-hidden">
                                                         <div className="relative flex items-center justify-center">
                                                           <span className={`absolute w-16 h-16 rounded-full opacity-30 animate-ping ${isCritical ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : isDisconnected ? 'bg-slate-600' : 'bg-emerald-500'}`}></span>
                                                           <div className={`w-14 h-14 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors z-0 ${
@@ -1714,7 +1707,6 @@ export const VigilanceDashboard = () => {
                             alt={`Live Camera Feed of ${selectedStudent.studentName}`}
                             className="w-full h-full object-cover"
                           />
-                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-40"></div>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center space-y-2 text-slate-500">
@@ -1772,7 +1764,6 @@ export const VigilanceDashboard = () => {
                             alt={`Live Screen Feed of ${selectedStudent.studentName}`}
                             className="w-full h-full object-contain bg-black"
                           />
-                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-20"></div>
                         </div>
                       ) : (
                         <div className="w-full h-full p-4 bg-slate-900 flex flex-col justify-between text-xs text-slate-300">
@@ -2439,7 +2430,6 @@ export const VigilanceDashboard = () => {
                         alt={`Fullscreen camera stream of ${selectedStudent.studentName}`}
                         className="w-full h-full object-contain bg-black"
                       />
-                      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-30"></div>
                     </div>
                   ) : (
                     /* Animated Avatar Silhouette / Stream simulation */

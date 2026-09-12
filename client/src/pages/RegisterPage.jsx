@@ -86,8 +86,8 @@ export const RegisterPage = ({ onNavigateLanding, onNavigateLogin, onRegisterSuc
     <div className="min-h-screen flex relative overflow-hidden font-sans">
       {/* BACKGROUND IMAGE - Vivid and visible */}
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('${BG_IMAGE}')` }} />
-      {/* Light-dark balanced gradient: darker behind left text, transparent in center, soft on right */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#071329]/80 via-[#071329]/50 to-[#071329]/30 dark:from-[#020814]/90 dark:via-[#020814]/65 dark:to-[#020814]/40 backdrop-brightness-[0.82]" />
+      {/* Solid professional tint: gives crisp readability without color gradients */}
+      <div className="absolute inset-0 bg-[#071329]/75 dark:bg-[#020814]/85 backdrop-brightness-[0.82]" />
 
       <button onClick={toggleTheme} className="absolute top-4 right-4 z-20 p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all shadow-lg" title="Toggle theme">
         {isDark ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4" />}
@@ -139,7 +139,7 @@ export const RegisterPage = ({ onNavigateLanding, onNavigateLogin, onRegisterSuc
       <div className="relative z-10 flex items-center justify-center w-full lg:w-1/2 xl:w-[45%] p-4 sm:p-8">
         <div className="w-full max-w-md">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-white/10 dark:border-slate-700/60 overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-emerald-400 via-teal-500 to-blue-500" />
+            <div className="h-1 bg-emerald-600" />
 
             {/* Header */}
             <div className="px-7 pt-6 pb-4 border-b border-slate-100 dark:border-slate-800">

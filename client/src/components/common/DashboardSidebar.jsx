@@ -141,7 +141,7 @@ export const DashboardSidebar = ({
               <button
                 type="button"
                 onClick={onManageCredentials}
-                className="w-full mt-1.5 py-1.5 px-2.5 bg-gradient-to-r from-rose-500/10 to-purple-500/10 hover:from-rose-500/20 hover:to-purple-500/20 border border-rose-300/40 dark:border-rose-500/30 rounded-lg text-[11px] font-bold text-rose-700 dark:text-rose-300 flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                className="w-full mt-1.5 py-1.5 px-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-300 dark:border-slate-700 rounded-lg text-[11px] font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
               >
                 <KeyRound className="w-3.5 h-3.5 text-rose-500" />
                 <span>Manage Email & Login</span>

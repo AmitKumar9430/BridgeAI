@@ -890,7 +890,7 @@ export const SuperAdminDashboard = () => {
               {/* Right Column: Multi-Trainer Assignment Checkboxes & Assigned Team Panel */}
               <div className="md:col-span-8 space-y-5">
                 {/* SECTION A: ALL TRAINERS CURRENTLY ASSIGNED FOR SELECTED SUBJECT */}
-                <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-slate-50 dark:from-slate-800/80 dark:via-indigo-950/40 dark:to-slate-900 border-2 border-indigo-200 dark:border-indigo-800/60 rounded-xl p-5 shadow-xs space-y-3">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 pb-3">
                     <div className="flex items-center gap-2.5">
                       <div className="p-2 bg-indigo-600 rounded-lg text-white shadow-2xs">
@@ -1079,7 +1079,7 @@ export const SuperAdminDashboard = () => {
               {/* Right Column: Multi-Subject Assignment Checkboxes */}
               <div className="md:col-span-8 space-y-5">
                 {/* Selected Trainer Profile Card */}
-                <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-slate-50 dark:from-slate-800/80 dark:via-indigo-950/40 dark:to-slate-900 border-2 border-indigo-200 dark:border-indigo-800/60 rounded-xl p-5 shadow-xs space-y-3">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 pb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shadow-2xs">

@@ -401,10 +401,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       const ctx = canvas.getContext('2d');
 
       // Camera backdrop
-      const grad = ctx.createRadialGradient(240, 135, 20, 240, 135, 180);
-      grad.addColorStop(0, '#1e293b');
-      grad.addColorStop(1, '#090d16');
-      ctx.fillStyle = grad;
+      ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 0, 480, 270);
 
       // Subtle scanline overlay

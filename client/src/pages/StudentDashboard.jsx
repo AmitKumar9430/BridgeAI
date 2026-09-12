@@ -759,7 +759,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
 
         {/* Global Active Peer Invites Banner Across ALL Tabs */}
         {receivedInvites.length > 0 && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-2 border-amber-400 dark:border-amber-600/60 rounded-xl p-4 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all">
+          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-600/60 rounded-xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all">
             <div className="flex items-start gap-3">
               <div className="p-2 bg-amber-500 text-white rounded-lg shadow-sm">
                 <Users className="w-5 h-5" />
@@ -2002,7 +2002,7 @@ export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
                       className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-500 rounded-2xl p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group relative overflow-hidden"
                     >
                       {/* Top Accent Stripe */}
-                      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" />
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
 
                       <div className="space-y-3 pt-1">
                         {/* Card Header Badge & Type */}

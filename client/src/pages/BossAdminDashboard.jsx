@@ -612,7 +612,7 @@ export const BossAdminDashboard = () => {
             <div className="flex flex-wrap items-center gap-2.5">
               <button
                 onClick={() => setShowBossCredentialsModal(true)}
-                className="px-3.5 py-2 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-colors border border-rose-400/30"
+                className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-colors border border-purple-500/40"
                 title="Manage Boss Login Email, Name & Password"
               >
                 <KeyRound className="w-4 h-4" />
@@ -879,7 +879,7 @@ export const BossAdminDashboard = () => {
                           className="flex items-center gap-3.5 cursor-pointer select-none group min-w-0 flex-1"
                         >
                           {/* Institution Brand Avatar Badge */}
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-800 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/20 font-bold text-sm tracking-wider border border-white/10 ring-2 ring-indigo-50 dark:ring-indigo-950/40">
+                          <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-md font-bold text-sm tracking-wider border border-slate-700">
                             {inst.code || 'INST'}
                           </div>
 
@@ -1095,7 +1095,7 @@ export const BossAdminDashboard = () => {
                                       {isSaExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                                     </button>
 
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                    <div className="w-8 h-8 rounded-full bg-purple-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                       {sa.fullName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'SA'}
                                     </div>
 
@@ -1150,7 +1150,7 @@ export const BossAdminDashboard = () => {
                                           >
                                             <div className="flex items-start justify-between gap-2">
                                               <div className="flex items-center gap-2.5">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                                                <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
                                                   {trainer.fullName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'TR'}
                                                 </div>
                                                 <div>
