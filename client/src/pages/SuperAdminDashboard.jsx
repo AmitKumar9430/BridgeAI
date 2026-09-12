@@ -580,13 +580,13 @@ export const SuperAdminDashboard = () => {
 
         {/* Tabs Bar: ONLY SHOWN IF !sidebarOpen (Keep any one at once: either sidebar or attached tabs) */}
         {!sidebarOpen && (
-          <div className="border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 pb-1">
+          <div className="border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 pb-1">
             <div className="flex flex-wrap gap-2 text-sm font-semibold">
               <button
                 onClick={() => setActiveTab('trainers')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 ${
                   activeTab === 'trainers'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -596,7 +596,7 @@ export const SuperAdminDashboard = () => {
                 onClick={() => setActiveTab('matrix')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-1.5 ${
                   activeTab === 'matrix'
-                    ? 'bg-white text-indigo-600 border-indigo-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 border-indigo-600 dark:border-indigo-500 border-x border-t border-slate-200 dark:border-slate-800'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -607,7 +607,7 @@ export const SuperAdminDashboard = () => {
                 onClick={() => setActiveTab('students')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 ${
                   activeTab === 'students'
-                    ? 'bg-white text-blue-600 border-blue-600 border-x border-t border-slate-200'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
@@ -617,10 +617,10 @@ export const SuperAdminDashboard = () => {
 
             <button
               onClick={handleToggleSidebar}
-              className="flex items-center gap-2 px-3 py-1.5 mb-1 text-xs font-semibold rounded-lg border bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 mb-1 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white shadow-2xs transition-all"
               title="Switch to full left sidebar"
             >
-              <PanelLeftOpen className="w-4 h-4 text-indigo-600" />
+              <PanelLeftOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Switch to Sidebar</span>
             </button>
           </div>
@@ -649,14 +649,14 @@ export const SuperAdminDashboard = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => { setActiveTab('matrix'); }}
-                className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1"
+                className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1 shadow-2xs"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Manage Subject Allocations
               </button>
               <button
                 onClick={() => { setShowAddTrainer(true); setAddError(null); }}
-                className="px-3 py-1.5 bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-[#0F172A] hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-2xs"
               >
                 + Add Trainer
               </button>
@@ -772,11 +772,11 @@ export const SuperAdminDashboard = () => {
       {/* TAB 2: FACULTY & SUBJECT ASSIGNMENT MATRIX */}
       {activeTab === 'matrix' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-6 transition-colors">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-5 h-5 text-indigo-600" />
-                <h3 className="text-lg font-bold text-slate-900">Faculty & Subject Assignment Matrix</h3>
+                <SlidersHorizontal className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Faculty & Subject Assignment Matrix</h3>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Select any subject to view <strong>all faculty trainers allocated for that subject with their specialization</strong>. Assign multiple trainers to one subject or multiple subjects to one trainer.
@@ -784,13 +784,13 @@ export const SuperAdminDashboard = () => {
             </div>
 
             {/* Mode Switcher */}
-            <div className="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200 text-xs font-semibold">
+            <div className="inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 text-xs font-semibold">
               <button
                 onClick={() => setMatrixPerspective('subject')}
                 className={`px-3 py-1.5 rounded-md transition-colors ${
                   matrixPerspective === 'subject'
-                    ? 'bg-white text-indigo-700 shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-xs font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Assign by Subject
@@ -799,8 +799,8 @@ export const SuperAdminDashboard = () => {
                 onClick={() => setMatrixPerspective('trainer')}
                 className={`px-3 py-1.5 rounded-md transition-colors ${
                   matrixPerspective === 'trainer'
-                    ? 'bg-white text-indigo-700 shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-xs font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Assign by Faculty Trainer
@@ -810,15 +810,15 @@ export const SuperAdminDashboard = () => {
 
           {/* Feedback Banners */}
           {matrixSuccess && (
-            <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 font-medium flex items-center gap-2 animate-fadeIn">
-              <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 font-medium flex items-center gap-2 rounded-lg animate-fadeIn">
+              <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>{matrixSuccess}</span>
             </div>
           )}
 
           {matrixError && (
-            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800 font-medium flex items-center gap-2 animate-fadeIn">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-300 font-medium flex items-center gap-2 rounded-lg animate-fadeIn">
+              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
               <span>{matrixError}</span>
             </div>
           )}
@@ -832,7 +832,7 @@ export const SuperAdminDashboard = () => {
                   <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     1. Select Subject / Course
                   </h4>
-                  <span className="text-[11px] text-slate-500 font-medium">{courses.length} Subjects</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{courses.length} Subjects</span>
                 </div>
 
                 <div className="space-y-2.5 max-h-[560px] overflow-y-auto pr-1">
@@ -846,8 +846,8 @@ export const SuperAdminDashboard = () => {
                         onClick={() => handleSelectMatrixCourse(c.id)}
                         className={`w-full text-left p-3.5 rounded-xl border transition-all ${
                           isSelected
-                            ? 'bg-white border-indigo-500 shadow-sm ring-2 ring-indigo-500/20'
-                            : 'bg-white border-slate-200 hover:border-slate-300'
+                            ? 'bg-white dark:bg-slate-900 border-indigo-500 dark:border-indigo-500 shadow-sm ring-2 ring-indigo-500/20'
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -858,22 +858,22 @@ export const SuperAdminDashboard = () => {
                         </div>
 
                         {/* List of all trainers assigned to this subject */}
-                        <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1">
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-1">
                           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                             Assigned Trainers ({assignedTrainers.length}):
                           </span>
                           {assignedTrainers.length === 0 ? (
-                            <span className="text-[11px] text-amber-600 italic font-medium">No trainers assigned</span>
+                            <span className="text-[11px] text-amber-600 dark:text-amber-400 italic font-medium">No trainers assigned</span>
                           ) : (
                             <div className="flex flex-wrap gap-1">
                               {assignedTrainers.map(tr => (
                                 <span
                                   key={tr.id}
-                                  className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1"
+                                  className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800 inline-flex items-center gap-1"
                                   title={`Specialization: ${tr.specialization}`}
                                 >
                                   <span>{tr.fullName.split(' ')[0]}</span>
-                                  <span className="text-[9px] text-indigo-700 bg-indigo-100/70 px-1 rounded">
+                                  <span className="text-[9px] text-indigo-700 dark:text-indigo-300 bg-indigo-100/70 dark:bg-indigo-900/60 px-1 rounded">
                                     {tr.specialization.split(' ')[0]}
                                   </span>
                                 </span>
@@ -891,7 +891,7 @@ export const SuperAdminDashboard = () => {
               <div className="md:col-span-8 space-y-5">
                 {/* SECTION A: ALL TRAINERS CURRENTLY ASSIGNED FOR SELECTED SUBJECT */}
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 dark:border-slate-800 pb-3">
                     <div className="flex items-center gap-2.5">
                       <div className="p-2 bg-indigo-600 rounded-lg text-white shadow-2xs">
                         <Users className="w-5 h-5" />
@@ -900,7 +900,7 @@ export const SuperAdminDashboard = () => {
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                           All Faculty Trainers for "{currentCourse?.title || 'Selected Subject'}"
                         </h4>
-                        <p className="text-xs text-indigo-700 font-semibold">
+                        <p className="text-xs text-indigo-700 dark:text-indigo-400 font-semibold">
                           {currentCourseTrainers.length} Trainer(s) Currently Authorized for this Subject
                         </p>
                       </div>
@@ -916,39 +916,39 @@ export const SuperAdminDashboard = () => {
                   </div>
 
                   {currentCourseTrainers.length === 0 ? (
-                    <div className="p-4 text-center bg-white/90 rounded-lg border border-dashed border-amber-300 text-xs text-amber-800 space-y-1">
-                      <AlertCircle className="w-5 h-5 text-amber-600 mx-auto" />
+                    <div className="p-4 text-center bg-white/90 dark:bg-slate-800/60 rounded-lg border border-dashed border-amber-300 dark:border-amber-700/60 text-xs text-amber-800 dark:text-amber-300 space-y-1">
+                      <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mx-auto" />
                       <p className="font-bold">No Faculty Trainers Currently Assigned</p>
-                      <p className="text-slate-500">
+                      <p className="text-slate-500 dark:text-slate-400">
                         Check the specialized trainers in the roster below and click "Save Faculty Allocations" to assign them.
                       </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                       {currentCourseTrainers.map((tr) => (
-                        <div key={tr.id} className="bg-white border border-indigo-200 rounded-xl p-3.5 shadow-2xs flex items-start justify-between gap-3">
+                        <div key={tr.id} className="bg-white dark:bg-slate-800/80 border border-indigo-200 dark:border-slate-700 rounded-xl p-3.5 shadow-2xs flex items-start justify-between gap-3">
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-xs text-slate-900 dark:text-white">{tr.fullName}</span>
                               {tr.isPrimary && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 border border-blue-200">
+                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                                   Primary Lead
                                 </span>
                               )}
                             </div>
 
                             {/* PROMINENT SPECIALIZATION BADGE */}
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-300 rounded-md font-bold text-[11px] shadow-2xs">
-                              <Target className="w-3.5 h-3.5 text-amber-700" />
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800 rounded-md font-bold text-[11px] shadow-2xs">
+                              <Target className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                               <span>Specialization:</span>
-                              <span className="text-amber-950 font-black">{tr.specialization}</span>
+                              <span className="text-amber-950 dark:text-amber-200 font-black">{tr.specialization}</span>
                             </div>
 
-                            <p className="text-[11px] text-slate-500 font-mono">{tr.email}</p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{tr.email}</p>
                           </div>
 
-                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[10px] font-bold shrink-0 inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-emerald-600" />
+                          <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded text-[10px] font-bold shrink-0 inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                             <span>Assigned</span>
                           </span>
                         </div>
@@ -959,7 +959,7 @@ export const SuperAdminDashboard = () => {
 
                 {/* SECTION B: MULTI-SELECT CHECKLIST OF ALL AVAILABLE FACULTY */}
                 <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-3 bg-white dark:bg-slate-900">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                     <div>
                       <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                         2. Faculty Roster (Toggle Checkboxes to Assign / Unassign)
@@ -979,8 +979,8 @@ export const SuperAdminDashboard = () => {
                           onClick={() => handleToggleTrainerForCourse(t.id)}
                           className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer transition-all ${
                             isChecked
-                              ? 'bg-indigo-50/80 border-indigo-400 shadow-xs ring-1 ring-indigo-300'
-                              : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+                              ? 'bg-indigo-50/80 dark:bg-indigo-950/50 border-indigo-400 dark:border-indigo-600 shadow-xs ring-1 ring-indigo-300 dark:ring-indigo-700'
+                              : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -988,19 +988,19 @@ export const SuperAdminDashboard = () => {
                               type="checkbox"
                               checked={isChecked}
                               onChange={() => {}} // Handled by parent container click
-                              className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                              className="w-4 h-4 text-indigo-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-indigo-500 cursor-pointer"
                             />
                             <div className="space-y-1">
                               <div className="flex flex-wrap items-center gap-2">
                                 <span className="font-bold text-xs text-slate-900 dark:text-white">{t.fullName}</span>
                                 {/* PROMINENT SPECIALIZATION BADGE */}
-                                <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 inline-flex items-center gap-1.5">
-                                  <Target className="w-3 h-3 text-amber-700" />
+                                <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 inline-flex items-center gap-1.5">
+                                  <Target className="w-3 h-3 text-amber-700 dark:text-amber-400" />
                                   <span>Specialization:</span>
-                                  <span className="font-black text-amber-950">{t.assignedSubject || 'General Domain'}</span>
+                                  <span className="font-black text-amber-950 dark:text-amber-200">{t.assignedSubject || 'General Domain'}</span>
                                 </span>
                               </div>
-                              <span className="text-[11px] text-slate-500 block font-mono">
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-mono">
                                 {t.email} • {t.phone || 'No phone'}
                               </span>
                             </div>
@@ -1009,7 +1009,7 @@ export const SuperAdminDashboard = () => {
                           <span className={`text-xs font-bold px-3 py-1 rounded-md shrink-0 border inline-flex items-center gap-1.5 ${
                             isChecked
                               ? 'bg-indigo-600 text-white border-indigo-700 shadow-2xs'
-                              : 'bg-slate-100 text-slate-500 border-slate-200'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                           }`}>
                             {isChecked ? (
                               <>
@@ -1038,7 +1038,7 @@ export const SuperAdminDashboard = () => {
                   <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     1. Select Faculty Trainer
                   </h4>
-                  <span className="text-[11px] text-slate-500 font-medium">{trainers.length} Trainers</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{trainers.length} Trainers</span>
                 </div>
 
                 <div className="space-y-2.5 max-h-[560px] overflow-y-auto pr-1">
@@ -1052,21 +1052,21 @@ export const SuperAdminDashboard = () => {
                         onClick={() => handleSelectMatrixTrainer(t.id)}
                         className={`w-full text-left p-3.5 rounded-xl border transition-all ${
                           isSelected
-                            ? 'bg-white border-indigo-500 shadow-sm ring-2 ring-indigo-500/20'
-                            : 'bg-white border-slate-200 hover:border-slate-300'
+                            ? 'bg-white dark:bg-slate-900 border-indigo-500 dark:border-indigo-500 shadow-sm ring-2 ring-indigo-500/20'
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <span className="text-xs font-bold text-slate-900 dark:text-white block leading-snug">{t.fullName}</span>
-                          <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 shrink-0">
+                          <span className="text-[10px] font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800 shrink-0">
                             {assignedSubjects.length} Subject(s)
                           </span>
                         </div>
 
                         {/* Specialization Badge */}
                         <div className="mt-2">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-300 inline-flex items-center gap-1">
-                            <Target className="w-3 h-3 text-amber-700" />
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 inline-flex items-center gap-1">
+                            <Target className="w-3 h-3 text-amber-700 dark:text-amber-400" />
                             <span>{t.assignedSubject || 'General'}</span>
                           </span>
                         </div>
@@ -1080,17 +1080,17 @@ export const SuperAdminDashboard = () => {
               <div className="md:col-span-8 space-y-5">
                 {/* Selected Trainer Profile Card */}
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 dark:border-slate-800 pb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shadow-2xs">
                         {(currentTrainer?.fullName || 'T')[0]}
                       </div>
                       <div>
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white">{currentTrainer?.fullName}</h4>
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-50 text-amber-900 border border-amber-300 rounded text-[11px] font-bold mt-0.5">
-                          <Target className="w-3 h-3 text-amber-700" />
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800 rounded text-[11px] font-bold mt-0.5">
+                          <Target className="w-3 h-3 text-amber-700 dark:text-amber-400" />
                           <span>Core Specialization:</span>
-                          <span className="font-black text-amber-950">{currentTrainer?.assignedSubject || 'Computer Science & AI'}</span>
+                          <span className="font-black text-amber-950 dark:text-amber-200">{currentTrainer?.assignedSubject || 'Computer Science & AI'}</span>
                         </div>
                       </div>
                     </div>
@@ -1105,15 +1105,15 @@ export const SuperAdminDashboard = () => {
                   </div>
 
                   <div>
-                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
                       Currently Assigned to Teach ({currentTrainerCourses.length} Subjects):
                     </span>
                     {currentTrainerCourses.length === 0 ? (
-                      <span className="text-xs text-amber-700 italic">No subjects assigned yet. Select subjects below.</span>
+                      <span className="text-xs text-amber-700 dark:text-amber-400 italic">No subjects assigned yet. Select subjects below.</span>
                     ) : (
                       <div className="flex flex-wrap gap-1.5">
                         {currentTrainerCourses.map(c => (
-                          <span key={c.id} className="text-xs font-bold px-2.5 py-1 rounded-md bg-white text-blue-900 border border-blue-200 shadow-2xs">
+                          <span key={c.id} className="text-xs font-bold px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 text-blue-900 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-2xs">
                             {c.title}
                           </span>
                         ))}
@@ -1124,7 +1124,7 @@ export const SuperAdminDashboard = () => {
 
                 {/* Subject Checklist */}
                 <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-3 bg-white dark:bg-slate-900">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                     <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                       2. Subject Curriculum (Toggle Checkboxes to Assign to this Trainer)
                     </h4>
@@ -1139,8 +1139,8 @@ export const SuperAdminDashboard = () => {
                           onClick={() => handleToggleCourseForTrainer(c.id)}
                           className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                             isChecked
-                              ? 'bg-indigo-50/80 border-indigo-400 shadow-xs ring-1 ring-indigo-300'
-                              : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+                              ? 'bg-indigo-50/80 dark:bg-indigo-950/50 border-indigo-400 dark:border-indigo-600 shadow-xs ring-1 ring-indigo-300 dark:ring-indigo-700'
+                              : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -1148,18 +1148,18 @@ export const SuperAdminDashboard = () => {
                               type="checkbox"
                               checked={isChecked}
                               onChange={() => {}} // Handled by parent click
-                              className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                              className="w-4 h-4 text-indigo-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-indigo-500 cursor-pointer"
                             />
                             <div>
                               <span className="font-bold text-xs text-slate-900 dark:text-white">{c.title}</span>
-                              <span className="text-[11px] text-slate-500 block font-mono">ID #{c.id} • Category: {c.category || 'Engineering'}</span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-mono">ID #{c.id} • Category: {c.category || 'Engineering'}</span>
                             </div>
                           </div>
 
                           <span className={`text-xs font-bold px-3 py-1 rounded-md shrink-0 border inline-flex items-center gap-1.5 ${
                             isChecked
                               ? 'bg-indigo-600 text-white border-indigo-700 shadow-2xs'
-                              : 'bg-slate-100 text-slate-500 border-slate-200'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                           }`}>
                             {isChecked ? (
                               <>
@@ -1276,22 +1276,22 @@ export const SuperAdminDashboard = () => {
 
             <form onSubmit={handleAddTrainer} className="p-5 space-y-3.5">
               {addError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800 font-medium flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 rounded-lg text-xs text-rose-800 dark:text-rose-300 font-medium flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                   <span>{addError}</span>
                 </div>
               )}
 
               {addSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 font-medium flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs text-emerald-800 dark:text-emerald-300 font-medium flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>{addSuccess}</span>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Trainer Full Name <span className="text-rose-600">*</span>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Trainer Full Name <span className="text-rose-600 dark:text-rose-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -1299,35 +1299,35 @@ export const SuperAdminDashboard = () => {
                   value={trainerForm.fullName}
                   onChange={(e) => setTrainerForm({ ...trainerForm, fullName: e.target.value })}
                   placeholder="e.g. Dr. Rajesh Kulkarni"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Core Subject Specialization <span className="text-rose-600">*</span>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Core Subject Specialization <span className="text-rose-600 dark:text-rose-400">*</span>
                 </label>
                 <select
                   value={trainerForm.assignedSubject}
                   onChange={(e) => setTrainerForm({ ...trainerForm, assignedSubject: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 >
-                  <option value="Computer Science & AI">Computer Science & AI</option>
-                  <option value="Advanced Python & Microservices">Advanced Python & Microservices</option>
-                  <option value="Cloud Computing & DevOps">Cloud Computing & DevOps</option>
-                  <option value="Java & Enterprise Systems">Java & Enterprise Systems</option>
-                  <option value="Data Engineering & Analytics">Data Engineering & Analytics</option>
-                  <option value="Cybersecurity & Cryptography">Cybersecurity & Cryptography</option>
-                  <option value="Fullstack Web Technologies">Fullstack Web Technologies</option>
+                  <option value="Computer Science & AI" className="dark:bg-slate-800">Computer Science & AI</option>
+                  <option value="Advanced Python & Microservices" className="dark:bg-slate-800">Advanced Python & Microservices</option>
+                  <option value="Cloud Computing & DevOps" className="dark:bg-slate-800">Cloud Computing & DevOps</option>
+                  <option value="Java & Enterprise Systems" className="dark:bg-slate-800">Java & Enterprise Systems</option>
+                  <option value="Data Engineering & Analytics" className="dark:bg-slate-800">Data Engineering & Analytics</option>
+                  <option value="Cybersecurity & Cryptography" className="dark:bg-slate-800">Cybersecurity & Cryptography</option>
+                  <option value="Fullstack Web Technologies" className="dark:bg-slate-800">Fullstack Web Technologies</option>
                 </select>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                   This specialization will be prominently displayed on all subjects taught by this trainer.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Official Email Address <span className="text-rose-600">*</span>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Official Email Address <span className="text-rose-600 dark:text-rose-400">*</span>
                 </label>
                 <input
                   type="email"
@@ -1335,12 +1335,12 @@ export const SuperAdminDashboard = () => {
                   value={trainerForm.email}
                   onChange={(e) => setTrainerForm({ ...trainerForm, email: e.target.value })}
                   placeholder="rajesh.trainer@bridgeai.edu"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Contact Mobile Number
                 </label>
                 <input
@@ -1348,28 +1348,28 @@ export const SuperAdminDashboard = () => {
                   value={trainerForm.phone}
                   onChange={(e) => setTrainerForm({ ...trainerForm, phone: e.target.value })}
                   placeholder="+91-9876543210"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Initial Account Password <span className="text-rose-600">*</span>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Initial Account Password <span className="text-rose-600 dark:text-rose-400">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={trainerForm.password}
                   onChange={(e) => setTrainerForm({ ...trainerForm, password: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowAddTrainer(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg transition-colors border border-transparent dark:border-slate-700"
                 >
                   Cancel
                 </button>
