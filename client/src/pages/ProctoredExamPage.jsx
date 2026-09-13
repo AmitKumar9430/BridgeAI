@@ -245,7 +245,6 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   useEffect(() => { codingAnswersRef.current = codingAnswers; }, [codingAnswers]);
   const answersRef = useRef(answers);
   useEffect(() => { answersRef.current = answers; }, [answers]);
-  useEffect(() => { handleSubmitExamRef.current = handleSubmitExam; }, [handleSubmitExam]);
 
   const videoRef = useRef(null);
   const pipVideoRef = useRef(null);
@@ -1729,6 +1728,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       setSubmitting(false);
     }
   };
+  handleSubmitExamRef.current = handleSubmitExam;
 
   const formatTimer = (seconds) => {
     const m = Math.floor(seconds / 60);
