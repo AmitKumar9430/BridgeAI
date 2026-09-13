@@ -158,6 +158,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   const [sendingStudentChat, setSendingStudentChat] = useState(false);
   const seenChatIdsRef = useRef(new Set());
 
+  // Reload interception warning modal state
+  const [showReloadWarningModal, setShowReloadWarningModal] = useState(false);
+
   // Draggable position for Proctor Chat widget (button & drawer)
   const [chatPosition, setChatPosition] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -1078,6 +1081,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       violationsRef.current = [];
       setViolationModal(null);
       setViolationWarning(null);
+      setShowReloadWarningModal(false);
       setTerminatedByOfficer(false);
       setTerminationReasonText('');
       setTerminationEvidenceSnapshot(null);
@@ -1179,6 +1183,19 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     };
 
     const handleKeyDown = (e) => {
+      // Intercept reload attempts (F5, Ctrl+R, Cmd+R, Ctrl+F5)
+      const isReloadShortcut =
+        e.key === 'F5' ||
+        ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R'));
+
+      if (isReloadShortcut) {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowReloadWarningModal(true);
+        reportViolation('PAGE_RELOAD_ATTEMPT', 'Candidate attempted to reload or refresh examination window.');
+        return;
+      }
+
       if (
         e.key === 'F12' ||
         (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
@@ -1187,6 +1204,14 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         e.preventDefault();
         reportViolation('DEVTOOLS_OPEN', `Blocked developer shortcut: ${e.key}`);
       }
+    };
+
+    // Intercept native browser reload and tab navigation
+    const handleBeforeUnload = (e) => {
+      if (submittingRef.current) return;
+      e.preventDefault();
+      e.returnValue = 'Warning: Reloading or leaving the page during the exam is strictly prohibited and may cause session termination. Do you want to cancel and stay on the exam?';
+      return e.returnValue;
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -1198,6 +1223,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     document.addEventListener('cut', handleClipboard);
     document.addEventListener('contextmenu', handleContextMenu);
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     // Continuous runtime browser extension DOM mutation observer
     const stopExtensionObserver = startRuntimeProtectionObserver((violation) => {
@@ -1239,6 +1265,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       document.removeEventListener('cut', handleClipboard);
       document.removeEventListener('contextmenu', handleContextMenu);
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
 
       if (tabSwitchTimerRef.current) {
         clearInterval(tabSwitchTimerRef.current);
@@ -4176,7 +4203,54 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         </div>
       )}
 
-      {/* 7B. PROCTOR LIVE CHAT DRAWER & FLOATING WIDGET (DRAGGABLE) */}
+      {/* 7B. PAGE RELOAD WARNING MODAL */}
+      {showReloadWarningModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 border-2 border-amber-500 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 text-slate-900 dark:text-white">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-300 dark:border-amber-800">
+                <AlertTriangle className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  Page Reload Prohibited
+                </h3>
+                <p className="text-xs font-mono text-amber-600 dark:text-amber-400 font-semibold">
+                  SECURITY ANOMALY DETECTED
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl space-y-2 text-xs">
+              <p className="text-amber-900 dark:text-amber-200 font-semibold leading-relaxed">
+                Reloading or refreshing the page while an assessment is active is strictly prohibited.
+              </p>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                Refreshing the window will disconnect your proctoring hardware feeds and may cause immediate session termination or automatic disqualification by the vigilance officer.
+              </p>
+              <div className="pt-2 border-t border-amber-200 dark:border-amber-800 text-[11px] font-mono text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5" />
+                <span>Action intercepted & blocked by Safe Browser Lockdown.</span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowReloadWarningModal(false);
+                  handleReEnterFullscreen();
+                }}
+                className="w-full sm:w-auto px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Cancel & Stay in Examination</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7C. PROCTOR LIVE CHAT DRAWER & FLOATING WIDGET (DRAGGABLE) */}
       {(() => {
         const widgetWidth = showStudentChatDrawer ? 384 : 160;
         const widgetHeight = showStudentChatDrawer ? 380 : 50;
