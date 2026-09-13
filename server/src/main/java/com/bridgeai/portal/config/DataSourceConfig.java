@@ -33,39 +33,19 @@ public class DataSourceConfig {
     @Bean
     @Primary
     public DataSource dataSource() {
-        log.info("Testing connection to primary database: {}", dbUrl);
-        boolean aivenConnected = false;
-
-        try {
-            DriverManager.setLoginTimeout(3);
-            try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
-                if (conn.isValid(3)) {
-                    aivenConnected = true;
-                    log.info("Successfully authenticated and connected to primary Aiven Cloud MySQL!");
-                }
-            }
-        } catch (Exception ex) {
-            log.warn("Notice: Primary Aiven MySQL returned [{}]. This commonly happens if your current IP is not whitelisted in Aiven IP Filter or credentials were reset. Activating resilient in-memory fallback datasource.", ex.getMessage());
-        }
+        log.info("Initializing primary database connection pool for URL: {}", dbUrl);
 
         HikariConfig config = new HikariConfig();
-        if (aivenConnected) {
-            config.setJdbcUrl(dbUrl);
-            config.setUsername(dbUser);
-            config.setPassword(dbPassword);
-            config.setDriverClassName(driverClassName);
-            config.setMaximumPoolSize(10);
-            config.setMinimumIdle(2);
-            config.setPoolName("AivenMySQLPool");
-        } else {
-            // Resilient MySQL-mode fallback
-            config.setJdbcUrl("jdbc:h2:mem:defaultdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1");
-            config.setUsername("sa");
-            config.setPassword("");
-            config.setDriverClassName("org.h2.Driver");
-            config.setMaximumPoolSize(5);
-            config.setPoolName("ResilientLocalPool");
-        }
+        config.setJdbcUrl(dbUrl);
+        config.setUsername(dbUser);
+        config.setPassword(dbPassword);
+        config.setDriverClassName(driverClassName);
+        config.setMaximumPoolSize(25);
+        config.setMinimumIdle(5);
+        config.setConnectionTimeout(30000);
+        config.setIdleTimeout(600000);
+        config.setMaxLifetime(1800000);
+        config.setPoolName("AivenMySQLPool");
 
         return new HikariDataSource(config);
     }

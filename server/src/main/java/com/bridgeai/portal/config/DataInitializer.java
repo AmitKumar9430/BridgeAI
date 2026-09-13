@@ -42,16 +42,9 @@ public class DataInitializer implements CommandLineRunner {
         // Ensure recording_snapshot_url in exam_attempts can store large base64 photos
         try {
             jdbcTemplate.execute("ALTER TABLE exam_attempts MODIFY COLUMN recording_snapshot_url LONGTEXT");
-            log.info("Successfully updated recording_snapshot_url to LONGTEXT in MySQL");
-        } catch (Exception e1) {
-            try {
-                jdbcTemplate.execute("ALTER TABLE exam_attempts ALTER COLUMN recording_snapshot_url SET DATA TYPE VARCHAR(10000000)");
-                log.info("Successfully updated recording_snapshot_url in H2 database");
-            } catch (Exception e2) {
-                try {
-                    jdbcTemplate.execute("ALTER TABLE exam_attempts ALTER COLUMN recording_snapshot_url TYPE TEXT");
-                } catch (Exception ignored) {}
-            }
+            log.info("Successfully ensured recording_snapshot_url is LONGTEXT in MySQL");
+        } catch (Exception e) {
+            log.debug("Notice on recording_snapshot_url column definition: {}", e.getMessage());
         }
 
         // 0. Seed Institutions with complete location details
