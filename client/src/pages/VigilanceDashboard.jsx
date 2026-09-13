@@ -1145,14 +1145,22 @@ export const VigilanceDashboard = () => {
                                             >
                                               {/* Live Video Preview Window */}
                                               <div className="relative aspect-video bg-slate-950 flex items-center justify-center overflow-hidden">
-                                                {/* Simulated Live Stream Frame */}
+                                                {/* Stream Frame Indicators */}
                                                 <div className="absolute inset-0 bg-black/40 flex flex-col justify-between p-2.5 z-10 pointer-events-none">
                                                   <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-1.5">
-                                                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-                                                      <span className="text-[10px] font-black uppercase tracking-wider text-rose-400 bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-rose-900/60">
-                                                        LIVE 30FPS
-                                                      </span>
+                                                      {(st.isLive || st.status === 'IN_PROGRESS') ? (
+                                                        <>
+                                                          <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                                                          <span className="text-[10px] font-black uppercase tracking-wider text-rose-400 bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-rose-900/60">
+                                                            LIVE 30FPS
+                                                          </span>
+                                                        </>
+                                                      ) : (
+                                                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-slate-700">
+                                                          {st.status === 'TERMINATED_BY_VIOLATION' ? 'TERMINATED' : st.status === 'SUBMITTED' ? 'SUBMITTED' : 'OFFLINE'}
+                                                        </span>
+                                                      )}
                                                     </div>
 
                                                     {/* Alert Pill */}
@@ -1297,14 +1305,27 @@ export const VigilanceDashboard = () => {
                                                   </div>
 
                                               {/* Candidate Details & Status Controls */}
-                                              <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
+                                              <div className="p-3.5 space-y-2.5 flex-1 flex flex-col justify-between">
                                                 <div>
+                                                  {/* Assessment Name Badge */}
+                                                  <div className="mb-1.5 flex items-center justify-between gap-1.5">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 truncate bg-blue-50 dark:bg-blue-950/70 border border-blue-200/80 dark:border-blue-900/60 px-2 py-0.5 rounded" title={st.examTitle || exam.examTitle}>
+                                                      {st.examTitle || exam.examTitle || 'Proctored Assessment'}
+                                                    </span>
+                                                    {(st.isLive || st.status === 'IN_PROGRESS') && (
+                                                      <span className="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 px-1.5 py-0.2 rounded flex items-center gap-1 shrink-0">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                                                        LIVE
+                                                      </span>
+                                                    )}
+                                                  </div>
+
                                                   <div className="flex items-start justify-between gap-1">
-                                                    <h4 className="font-black text-slate-900 dark:text-white text-sm truncate">
+                                                    <h4 className="font-bold text-slate-900 dark:text-white text-sm truncate">
                                                       {st.studentName}
                                                     </h4>
                                                   </div>
-                                                  <div className="text-[11px] text-slate-400 font-mono">
+                                                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                                                     ID: #{st.studentId} · Started: {st.startedAt ? new Date(st.startedAt).toLocaleTimeString() : 'N/A'}
                                                   </div>
                                                 </div>
