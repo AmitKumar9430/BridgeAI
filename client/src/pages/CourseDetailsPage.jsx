@@ -15,7 +15,13 @@ import {
 export const CourseDetailsPage = ({ courseId, onBack, onOpenExam }) => {
   const { user } = useAuth();
   const isStudent = user?.role === 'ROLE_STUDENT';
-  const [libraryFilter, setLibraryFilter] = useState('ALL'); // 'ALL' | 'GLOBAL' | 'INSTITUTION'
+  const [libraryFilter, setLibraryFilter] = useState(() => {
+    try {
+      return localStorage.getItem('bridgeai_study_filter') || 'ALL';
+    } catch (e) {
+      return 'ALL';
+    }
+  }); // 'ALL' | 'GLOBAL' | 'INSTITUTION'
   const [courseData, setCourseData] = useState(null);
   const [allCourses, setAllCourses] = useState([]);
   const [currentCourseId, setCurrentCourseId] = useState(courseId || 1);
@@ -294,9 +300,8 @@ public class ModuleService {
           };
         });
 
-        // If backend has topics, use dynamic syllabus; else fall back to default
-        const hasBackendTopics = dynamicSyllabus.some(m => m.topics.length > 0);
-        const finalSyllabus = hasBackendTopics ? dynamicSyllabus : defaultModularSyllabus;
+        // Use trainer-configured modules from backend; fallback only if no modules exist at all
+        const finalSyllabus = dynamicSyllabus.length > 0 ? dynamicSyllabus : defaultModularSyllabus;
         setModularSyllabus(finalSyllabus);
 
         // Set active topic

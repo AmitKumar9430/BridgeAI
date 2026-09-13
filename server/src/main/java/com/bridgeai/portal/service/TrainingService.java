@@ -626,9 +626,23 @@ public class TrainingService {
         if (dto.getRichContent() != null) {
             existing.setRichContent(dto.getRichContent());
         }
+        if (dto.getVideoEmbedUrl() != null) {
+            existing.setVideoEmbedUrl(dto.getVideoEmbedUrl().trim());
+        }
+        if (dto.getOrderIndex() > 0) {
+            existing.setOrderIndex(dto.getOrderIndex());
+        }
+        if (dto.getModuleId() != null && dto.getModuleId() > 0) {
+            existing.setModuleId(dto.getModuleId());
+        }
+        if (dto.getVisibilityScope() != null && !dto.getVisibilityScope().isBlank()) {
+            existing.setVisibilityScope(dto.getVisibilityScope().trim().toUpperCase());
+        } else if (dto.getIsGlobal() != null || dto.getIsInstitution() != null) {
+            boolean isGlob = Boolean.TRUE.equals(dto.getIsGlobal());
+            boolean isInst = Boolean.TRUE.equals(dto.getIsInstitution());
+            existing.setVisibilityScope(isGlob && isInst ? "BOTH" : (isGlob ? "GLOBAL" : "INSTITUTION"));
+        }
         return resourceRepository.save(existing);
-    
-
     }
     @Transactional
     public void deleteResource(Long resourceId) {

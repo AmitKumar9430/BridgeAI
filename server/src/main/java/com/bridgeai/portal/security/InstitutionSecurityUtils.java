@@ -60,15 +60,20 @@ public class InstitutionSecurityUtils {
     }
 
     public boolean canAccessResource(User user, ResourceItem resource, Long courseInstId, String courseInstName) {
-        if (user == null || resource == null) {
+        if (resource == null) {
             return false;
-        }
-        if (user.getRole() == Role.ROLE_BOSS_ADMIN) {
-            return true;
         }
 
         String scope = resource.getVisibilityScope();
+        // Global and Both scoped study materials are accessible to everyone across all institutions
         if (scope == null || "GLOBAL".equalsIgnoreCase(scope) || "BOTH".equalsIgnoreCase(scope)) {
+            return true;
+        }
+
+        if (user == null) {
+            return false;
+        }
+        if (user.getRole() == Role.ROLE_BOSS_ADMIN) {
             return true;
         }
 

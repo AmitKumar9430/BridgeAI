@@ -9,7 +9,8 @@ import {
   Clock, ShieldCheck, Trash2, HelpCircle, Sparkles, CheckCircle2,
   FileText, FolderGit2, FileCode, Presentation, Archive, UploadCloud, RefreshCw,
   Download, Upload, Check, Lock, Star, Target, X, Globe, Building2, Layers,
-  PanelLeftOpen, PanelLeftClose, Code2, Terminal, Code, ListOrdered, History, KeyRound, Edit3
+  PanelLeftOpen, PanelLeftClose, Code2, Terminal, Code, ListOrdered, History, KeyRound, Edit3,
+  BookOpen, Pencil, ChevronDown, ChevronUp, Eye, EyeOff
 } from 'lucide-react';
 import { DashboardSidebar } from '../components/common/DashboardSidebar';
 import { LiveSessionsTab } from '../components/common/LiveSessionsTab';
@@ -310,6 +311,9 @@ export const TrainerDashboard = ({
   const [showRecordingModal, setShowRecordingModal] = useState(false);
   const [showMaterialModal, setShowMaterialModal] = useState(false);
   const [showCreateModuleModal, setShowCreateModuleModal] = useState(false);
+  const [editingResourceId, setEditingResourceId] = useState(null);
+  const [editingModule, setEditingModule] = useState(null);
+  const [expandedTopicId, setExpandedTopicId] = useState(null);
   const [selectedCourseId, setSelectedCourseId] = useState(1);
   const [courseDetail, setCourseDetail] = useState(null);
   const [moduleForm, setModuleForm] = useState({ title: '', description: '', orderIndex: 1 });
@@ -326,7 +330,16 @@ export const TrainerDashboard = ({
           }
         } catch (e) {}
       }
-      if (detail) setCourseDetail(detail);
+      if (detail) {
+        setCourseDetail(detail);
+        if (detail.modules && detail.modules.length > 0) {
+          setMaterialForm(prev => ({
+            ...prev,
+            courseId: cId,
+            moduleId: prev.moduleId && detail.modules.some(m => m.module.id === prev.moduleId) ? prev.moduleId : detail.modules[0].module.id
+          }));
+        }
+      }
     } catch (err) {
       console.error('Failed to load course details', err);
     }
@@ -1258,25 +1271,96 @@ public class OrderEventPublisher {
     )
   );
 
-  // 11B. Create Course Module
-  const handleCreateModule = async (e) => {
-    e.preventDefault();
+  // 11B. Module CRUD (Create, Edit, Delete)
+  const handleEditModule = (mod) => {
+    setEditingModule(mod);
+    setModuleForm({
+      title: mod.title || '',
+      description: mod.description || '',
+      orderIndex: mod.orderIndex || 1
+    });
+    setShowCreateModuleModal(true);
+  };
+
+  const handleDeleteModule = async (moduleId, title) => {
     if (!isConcernedFaculty) {
-      alert(`Unauthorized: Modules for subject '${selectedCourse?.title}' can only be created by the concerned faculty (${selectedCourse?.trainerName || 'Assigned Trainer'}).`);
+      alert(`Unauthorized: Modules for subject '${selectedCourse?.title}' can only be deleted by the concerned faculty.`);
       return;
     }
+    if (!window.confirm(`Are you sure you want to delete module "${title}" and all its study materials? This cannot be undone.`)) return;
     try {
-      await api.post(`/courses/${selectedCourseId}/modules`, moduleForm);
-      alert('New course module created successfully!');
-      setShowCreateModuleModal(false);
-      setModuleForm({ title: '', description: '', orderIndex: 1 });
+      await api.delete(`/courses/modules/${moduleId}`);
+      alert('Module and associated study materials deleted successfully!');
       fetchCourseDetail(selectedCourseId);
     } catch (err) {
-      alert('Failed to create module: ' + (err.response?.data?.message || err.message));
+      alert('Failed to delete module: ' + (err.response?.data?.message || err.message));
     }
   };
 
-  // 12. Add Study Material
+  const handleCreateModule = async (e) => {
+    e.preventDefault();
+    if (!isConcernedFaculty) {
+      alert(`Unauthorized: Modules for subject '${selectedCourse?.title}' can only be managed by the concerned faculty (${selectedCourse?.trainerName || 'Assigned Trainer'}).`);
+      return;
+    }
+    try {
+      if (editingModule) {
+        await api.put(`/courses/modules/${editingModule.id}`, moduleForm);
+        alert('Course module updated successfully!');
+      } else {
+        await api.post(`/courses/${selectedCourseId}/modules`, moduleForm);
+        alert('New course module created successfully!');
+      }
+      setShowCreateModuleModal(false);
+      setEditingModule(null);
+      setModuleForm({ title: '', description: '', orderIndex: 1 });
+      fetchCourseDetail(selectedCourseId);
+    } catch (err) {
+      alert('Failed to save module: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  // 12. Topic / Study Material CRUD (Create, Edit, Delete)
+  const handleEditMaterial = (res, mod) => {
+    setEditingResourceId(res.id);
+    const isGlob = res.visibilityScope === 'GLOBAL' || res.visibilityScope === 'BOTH';
+    const isInst = res.visibilityScope === 'INSTITUTION' || res.visibilityScope === 'BOTH';
+    setMaterialForm({
+      courseId: selectedCourseId,
+      moduleId: mod?.id || res.moduleId,
+      title: res.title || '',
+      resourceType: res.resourceType || 'ARTICLE',
+      description: res.description || '',
+      richContent: res.richContent || '',
+      urlOrPath: res.urlOrPath || '',
+      videoEmbedUrl: res.videoEmbedUrl || '',
+      orderIndex: res.orderIndex || 1,
+      isGlobal: isGlob,
+      isInstitution: isInst,
+      includeModuleTest: false,
+      testTitle: '',
+      durationMinutes: 20,
+      passingPercentage: 60
+    });
+    setMaterialQuestions([]);
+    setShowMaterialModal(true);
+  };
+
+  const handleDeleteMaterial = async (resId, title) => {
+    if (!isConcernedFaculty) {
+      alert(`Unauthorized: Study materials for subject '${selectedCourse?.title}' can only be deleted by the concerned faculty.`);
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to delete study material "${title}"?`)) return;
+    try {
+      await api.delete(`/courses/resources/${resId}`);
+      alert('Study material topic deleted successfully!');
+      fetchCourseDetail(selectedCourseId);
+    } catch (err) {
+      alert('Failed to delete study material: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
   const handleAddMaterial = async (e) => {
     e.preventDefault();
     if (!isConcernedFaculty) {
@@ -1298,28 +1382,39 @@ public class OrderEventPublisher {
     }
 
     try {
-      await api.post(`/courses/${selectedCourseId}/resources`, {
-        ...materialForm,
-        courseId: selectedCourseId,
-        visibilityScope: calculatedScope,
-        isGlobal: materialForm.isGlobal,
-        isInstitution: materialForm.isInstitution,
-        institutionId: user?.institutionId || selectedCourse?.institutionId || null,
-        institutionName: user?.institutionName || selectedCourse?.institutionName || '',
-        questions: materialForm.includeModuleTest
-          ? materialQuestions.map(q => ({
-              ...q,
-              correctOption: normalizeCorrectOption(q.correctOption, q.optionA, q.optionB, q.optionC, q.optionD)
-            }))
-          : []
-      });
-      alert(materialForm.includeModuleTest
-        ? `Study material and Module Assessment Test with ${materialQuestions.length} questions published successfully under [${calculatedScope}] library! Available for students after reading.`
-        : `Study material published successfully under [${calculatedScope}] library!`);
+      if (editingResourceId) {
+        await api.put(`/courses/resources/${editingResourceId}`, {
+          ...materialForm,
+          visibilityScope: calculatedScope,
+          isGlobal: materialForm.isGlobal,
+          isInstitution: materialForm.isInstitution
+        });
+        alert(`Study material topic updated successfully under [${calculatedScope}] library!`);
+      } else {
+        await api.post(`/courses/${selectedCourseId}/resources`, {
+          ...materialForm,
+          courseId: selectedCourseId,
+          visibilityScope: calculatedScope,
+          isGlobal: materialForm.isGlobal,
+          isInstitution: materialForm.isInstitution,
+          institutionId: user?.institutionId || selectedCourse?.institutionId || null,
+          institutionName: user?.institutionName || selectedCourse?.institutionName || '',
+          questions: materialForm.includeModuleTest
+            ? materialQuestions.map(q => ({
+                ...q,
+                correctOption: normalizeCorrectOption(q.correctOption, q.optionA, q.optionB, q.optionC, q.optionD)
+              }))
+            : []
+        });
+        alert(materialForm.includeModuleTest
+          ? `Study material and Module Assessment Test with ${materialQuestions.length} questions published successfully under [${calculatedScope}] library! Available for students after reading.`
+          : `Study material published successfully under [${calculatedScope}] library!`);
+      }
       setShowMaterialModal(false);
+      setEditingResourceId(null);
       fetchCourseDetail(selectedCourseId);
     } catch (err) {
-      alert('Failed to publish study material: ' + (err.response?.data?.message || err.message));
+      alert('Failed to save study material: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -1342,7 +1437,8 @@ public class OrderEventPublisher {
     { id: 'scheduled-exams', label: 'Scheduled Exams', icon: Calendar, count: exams.length },
     { id: 'live-sessions', label: 'Live Sessions (Meet/Zoom)', icon: Video },
     { id: 'student-attempts', label: 'Student Attempts & Re-attempt', icon: ShieldCheck, count: allAttempts.length },
-    { id: 'recordings', label: 'Recorded Lectures & Study Materials', icon: Video, count: sessions.length }
+    { id: 'curriculum', label: 'Curriculum & Study Materials', icon: BookOpen, count: courses.length },
+    { id: 'recordings', label: 'Recorded Lectures', icon: Video, count: sessions.length }
   ];
 
   return (
@@ -1617,6 +1713,21 @@ public class OrderEventPublisher {
               </button>
 
               <button
+                onClick={() => setActiveTab('curriculum')}
+                className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
+                  activeTab === 'curriculum'
+                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500 border-x border-t border-slate-200 dark:border-slate-800 font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Curriculum & Study Materials</span>
+                <span className="text-xs px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded border border-slate-200 dark:border-slate-700">
+                  {courses.length}
+                </span>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('recordings')}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'recordings'
@@ -1624,7 +1735,7 @@ public class OrderEventPublisher {
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-transparent'
                 }`}
               >
-                <span>Recorded Lectures & Study Materials</span>
+                <span>Recorded Lectures</span>
                 <span className="text-xs px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded border border-slate-200 dark:border-slate-700">
                   {sessions.length}
                 </span>
@@ -2533,10 +2644,39 @@ public class OrderEventPublisher {
         </div>
       )}
 
-      {/* TAB 4: RECORDED LECTURES & STUDY MATERIALS */}
-      {activeTab === 'recordings' && (
+      {/* TABS: CURRICULUM & STUDY MATERIALS / RECORDED LECTURES */}
+      {(activeTab === 'curriculum' || activeTab === 'recordings') && (
         <div className="space-y-6">
+          {/* Quick Sub-Tab Selector */}
+          <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit border border-slate-200 dark:border-slate-700">
+            <button
+              type="button"
+              onClick={() => setActiveTab('curriculum')}
+              className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                activeTab === 'curriculum'
+                  ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Curriculum & Study Materials ({courses.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('recordings')}
+              className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                activeTab === 'recordings'
+                  ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Video className="w-3.5 h-3.5" />
+              <span>Recorded Lectures ({sessions.length})</span>
+            </button>
+          </div>
+
           {/* Section 1: Modular Study Materials Curriculum */}
+          {activeTab === 'curriculum' && (
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-5 transition-colors">
             {/* Subject Selector & Concerned Faculty Authorization Bar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl">
@@ -2735,10 +2875,32 @@ public class OrderEventPublisher {
                           )}
                         </div>
                         <div className="flex items-center gap-1.5">
+                          {isConcernedFaculty && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleEditModule(mod)}
+                                className="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded transition-colors"
+                                title="Edit Module Title & Description"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteModule(mod.id, mod.title)}
+                                className="p-1.5 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors"
+                                title="Delete Module and its Topics"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          )}
                           <button
                             onClick={() => {
+                              setEditingResourceId(null);
                               setMaterialForm({
                                 ...materialForm,
+                                courseId: selectedCourseId,
                                 moduleId: mod.id,
                                 title: '',
                                 description: '',
@@ -2759,8 +2921,10 @@ public class OrderEventPublisher {
                           </button>
                           <button
                             onClick={() => {
+                              setEditingResourceId(null);
                               setMaterialForm({
                                 ...materialForm,
+                                courseId: selectedCourseId,
                                 moduleId: mod.id,
                                 title: '',
                                 description: '',
@@ -2783,41 +2947,136 @@ public class OrderEventPublisher {
                         {resources.length === 0 ? (
                           <div className="p-3 text-center text-slate-400 dark:text-slate-500 italic">No topics published in this module yet.</div>
                         ) : (
-                          resources.map((res) => (
-                            <div key={res.id} className="p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 rounded-lg">
-                              <div>
-                                <span className="font-bold text-slate-900 dark:text-white block">{res.title}</span>
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400">{res.description || 'Article with code examples'}</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-[11px]">
-                                {res.visibilityScope === 'BOTH' ? (
-                                  <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
-                                    <Layers className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                                    Global & Institution
-                                  </span>
-                                ) : res.visibilityScope === 'INSTITUTION' ? (
-                                  <span className="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800 flex items-center gap-1">
-                                    <Building2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                                    {res.institutionName || 'Institution'} Private
-                                  </span>
-                                ) : (
-                                  <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-bold border border-blue-200 dark:border-blue-800 flex items-center gap-1">
-                                    <Globe className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                                    Global Library
-                                  </span>
+                          resources.map((res) => {
+                            const isExpanded = expandedTopicId === res.id;
+                            return (
+                              <div key={res.id} className="p-2.5 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 rounded-lg transition-colors">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-slate-900 dark:text-white text-xs">{res.title}</span>
+                                      {res.videoEmbedUrl && (
+                                        <span className="px-1.5 py-0.2 rounded bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-[10px] font-bold border border-rose-200 dark:border-rose-900 flex items-center gap-1">
+                                          <Video className="w-2.5 h-2.5" />
+                                          Video
+                                        </span>
+                                      )}
+                                      {res.richContent && (
+                                        <span className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                                          <FileText className="w-2.5 h-2.5" />
+                                          Notes
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{res.description || 'Structured academic study material'}</p>
+                                  </div>
+
+                                  <div className="flex flex-wrap items-center gap-1.5 text-[11px] shrink-0">
+                                    {res.visibilityScope === 'BOTH' ? (
+                                      <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                                        <Layers className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                        Global & Institution
+                                      </span>
+                                    ) : res.visibilityScope === 'INSTITUTION' ? (
+                                      <span className="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                                        <Building2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                                        {res.institutionName || 'Institution'} Private
+                                      </span>
+                                    ) : (
+                                      <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-bold border border-blue-200 dark:border-blue-800 flex items-center gap-1">
+                                        <Globe className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                                        Global Library
+                                      </span>
+                                    )}
+
+                                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-200 dark:border-slate-700">
+                                      {res.resourceType || 'ARTICLE'}
+                                    </span>
+
+                                    {res.urlOrPath && (
+                                      <a href={res.urlOrPath} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline flex items-center gap-0.5 px-1.5 py-0.5">
+                                        <span>Link</span>
+                                        <ExternalLink className="w-3 h-3" />
+                                      </a>
+                                    )}
+
+                                    {/* Preview / Eye Toggle */}
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedTopicId(isExpanded ? null : res.id)}
+                                      className={`p-1.5 rounded transition-colors ${
+                                        isExpanded
+                                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300'
+                                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                                      }`}
+                                      title={isExpanded ? 'Hide Preview' : 'Preview Content'}
+                                    >
+                                      {isExpanded ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                    </button>
+
+                                    {/* Edit Topic */}
+                                    {isConcernedFaculty && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleEditMaterial(res, mod)}
+                                        className="p-1.5 rounded text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors"
+                                        title="Edit Study Material Topic"
+                                      >
+                                        <Pencil className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+
+                                    {/* Delete Topic */}
+                                    {isConcernedFaculty && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteMaterial(res.id, res.title)}
+                                        className="p-1.5 rounded text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors"
+                                        title="Delete Topic"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Inline Expanded Topic Preview Drawer */}
+                                {isExpanded && (
+                                  <div className="mt-3 p-3.5 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/80 space-y-2.5 text-xs animate-fadeIn">
+                                    <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 pb-1.5">
+                                      <span>Topic ID: #{res.id} • Order: {res.orderIndex || 1} • Visibility: <strong>{res.visibilityScope || 'GLOBAL'}</strong></span>
+                                      <button onClick={() => setExpandedTopicId(null)} className="hover:underline text-slate-600 dark:text-slate-300">Close Preview</button>
+                                    </div>
+                                    {res.videoEmbedUrl && (
+                                      <div className="space-y-1">
+                                        <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                          <Video className="w-3.5 h-3.5 text-rose-500" /> Video Lecture Preview:
+                                        </span>
+                                        <div className="aspect-video w-full max-w-md rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
+                                          <iframe
+                                            src={res.videoEmbedUrl}
+                                            title={res.title}
+                                            className="w-full h-full"
+                                            allowFullScreen
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                    {res.richContent ? (
+                                      <div className="space-y-1">
+                                        <span className="font-bold text-slate-700 dark:text-slate-300">Curriculum Content &amp; Code:</span>
+                                        <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 whitespace-pre-wrap font-sans text-xs leading-relaxed max-h-60 overflow-y-auto">
+                                          {res.richContent}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <p className="italic text-slate-400">No rich text notes published for this topic.</p>
+                                    )}
+                                  </div>
                                 )}
-                                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-200 dark:border-slate-700">
-                                  {res.resourceType || 'ARTICLE'}
-                                </span>
-                                {res.urlOrPath && (
-                                  <a href={res.urlOrPath} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline flex items-center gap-0.5">
-                                    <span>Attachment</span>
-                                    <ExternalLink className="w-3 h-3" />
-                                  </a>
-                                )}
                               </div>
-                            </div>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     </div>
@@ -2826,7 +3085,10 @@ public class OrderEventPublisher {
               </div>
             )}
           </div>
-          {/* Live & Recorded Sessions */}
+          )}
+
+          {/* Section 2: Live & Recorded Sessions */}
+          {activeTab === 'recordings' && (
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4 transition-colors">
             <div className="flex items-center justify-between">
               <div>
@@ -2888,6 +3150,7 @@ public class OrderEventPublisher {
               </table>
             </div>
           </div>
+          )}
         </div>
       )}
         </div>
@@ -4124,16 +4387,25 @@ public class OrderEventPublisher {
         </div>
       )}
 
-      {/* MODAL: Create New Module */}
+      {/* MODAL: Create / Edit Module */}
       {showCreateModuleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Create New Course Module</h3>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  {editingModule ? 'Edit Course Module' : 'Create New Course Module'}
+                </h3>
                 <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-0.5">Subject: {selectedCourse?.title}</p>
               </div>
-              <button onClick={() => setShowCreateModuleModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
+              <button
+                onClick={() => {
+                  setShowCreateModuleModal(false);
+                  setEditingModule(null);
+                  setModuleForm({ title: '', description: '', orderIndex: 1 });
+                }}
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -4165,7 +4437,11 @@ public class OrderEventPublisher {
               <div className="pt-2 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModuleModal(false)}
+                  onClick={() => {
+                    setShowCreateModuleModal(false);
+                    setEditingModule(null);
+                    setModuleForm({ title: '', description: '', orderIndex: 1 });
+                  }}
                   className="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
@@ -4174,7 +4450,7 @@ public class OrderEventPublisher {
                   type="submit"
                   className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors"
                 >
-                  Create Module
+                  {editingModule ? 'Save Changes' : 'Create Module'}
                 </button>
               </div>
             </form>
@@ -4188,10 +4464,18 @@ public class OrderEventPublisher {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Publish Modular Study Material</h3>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  {editingResourceId ? 'Edit Study Material Topic' : 'Publish Modular Study Material'}
+                </h3>
                 <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-0.5">Subject: {selectedCourse?.title} • Faculty: {selectedCourse?.trainerName}</p>
               </div>
-              <button onClick={() => setShowMaterialModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors">
+              <button
+                onClick={() => {
+                  setShowMaterialModal(false);
+                  setEditingResourceId(null);
+                }}
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -4615,7 +4899,10 @@ public class OrderEventPublisher {
               <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowMaterialModal(false)}
+                  onClick={() => {
+                    setShowMaterialModal(false);
+                    setEditingResourceId(null);
+                  }}
                   className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
@@ -4624,7 +4911,7 @@ public class OrderEventPublisher {
                   type="submit"
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors"
                 >
-                  Publish Study Material
+                  {editingResourceId ? 'Save Changes' : (materialForm.includeModuleTest ? 'Publish Topic & Module Test' : 'Publish Study Material')}
                 </button>
               </div>
             </form>
