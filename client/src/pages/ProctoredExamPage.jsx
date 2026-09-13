@@ -257,6 +257,15 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   useEffect(() => {
     screenStreamRef.current = screenStream;
   }, [screenStream]);
+
+  // Live student microphone audio streaming states & refs
+  const [audioStream, setAudioStream] = useState(null);
+  const audioStreamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const latestAudioChunkRef = useRef(null);
+  const currentAudioLevelRef = useRef(0);
+  const bcRef = useRef(null);
+
   const gutterRef = useRef(null);
   const editorTextareaRef = useRef(null);
 
@@ -296,14 +305,118 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       if (screenStream) {
         screenStream.getTracks().forEach((track) => track.stop());
       }
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        try { mediaRecorderRef.current.stop(); } catch (e) {}
+      }
     };
   }, []);
+
+  const setupAudioCapture = (aStream) => {
+    try {
+      // 1. AudioContext analyser for live audio level (0-100 VU meter)
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        const audioCtx = new AudioCtx();
+        const source = audioCtx.createMediaStreamSource(aStream);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 128;
+        source.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        const checkLevel = () => {
+          if (!aStream.active || aStream.getAudioTracks().every(t => t.readyState === 'ended')) {
+            return;
+          }
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const avg = sum / dataArray.length;
+          currentAudioLevelRef.current = Math.min(100, Math.round((avg / 128) * 100));
+          requestAnimationFrame(checkLevel);
+        };
+        requestAnimationFrame(checkLevel);
+      }
+
+      // 2. MediaRecorder to slice real candidate audio into continuous streaming chunks
+      if (typeof MediaRecorder !== 'undefined') {
+        let mimeType = 'audio/webm;codecs=opus';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = MediaRecorder.isTypeSupported('audio/webm')
+            ? 'audio/webm'
+            : (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus') ? 'audio/ogg;codecs=opus' : '');
+        }
+
+        const options = mimeType ? { mimeType } : {};
+        const recorder = new MediaRecorder(aStream, options);
+        mediaRecorderRef.current = recorder;
+
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64Audio = reader.result;
+              latestAudioChunkRef.current = base64Audio;
+
+              // Immediately push to BroadcastChannel for instant zero-latency peer listening
+              try {
+                if (bcRef.current) {
+                  bcRef.current.postMessage({
+                    type: 'AUDIO_CHUNK',
+                    attemptId: examDataRef.current?.attemptId || examData?.attemptId,
+                    audioChunk: base64Audio,
+                    audioLevel: currentAudioLevelRef.current,
+                    timestamp: Date.now()
+                  });
+                }
+              } catch (bErr) {}
+            };
+            reader.readAsDataURL(e.data);
+          }
+        };
+
+        // Emit chunks every 1000ms for seamless stream continuity
+        recorder.start(1000);
+      }
+    } catch (err) {
+      console.warn('Audio capture setup error:', err);
+    }
+  };
 
   const initCamera = async () => {
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        let stream = null;
+        try {
+          // Request both video and live audio for authentic proctoring
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
+          });
+        } catch (mediaErr) {
+          console.warn('Microphone permission not granted, falling back to video only:', mediaErr);
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+
         setCameraStream(stream);
+
+        // Check and setup live audio capture if audio track exists
+        const audioTracks = stream.getAudioTracks();
+        if (audioTracks.length > 0) {
+          const aStream = new MediaStream(audioTracks);
+          setAudioStream(aStream);
+          audioStreamRef.current = aStream;
+          setupAudioCapture(aStream);
+        }
+
         if (previewVideoRef.current) {
           previewVideoRef.current.srcObject = stream;
         }
@@ -695,7 +808,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     }
   };
 
-  // Continuous frame streaming to Vigilance Dashboard
+  // Continuous frame and audio streaming to Vigilance Dashboard
   useEffect(() => {
     if (!examStarted || !examData?.attemptId) return;
 
@@ -703,6 +816,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     try {
       if (typeof BroadcastChannel !== 'undefined') {
         bc = new BroadcastChannel('bridgeai_surveillance_feed');
+        bcRef.current = bc;
       }
     } catch (e) {
       // ignore
@@ -715,6 +829,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
 
         const isCamActive = Boolean(cameraStream || camFrame);
         const isScrActive = Boolean(screenStream || scrFrame);
+        const isAudioActive = Boolean(audioStreamRef.current && audioStreamRef.current.getAudioTracks().some(t => t.readyState === 'live'));
+        const audioChunkToSend = latestAudioChunkRef.current;
+        const currentAudioLevel = currentAudioLevelRef.current || 0;
 
         if (bc) {
           try {
@@ -725,6 +842,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               screenFrame: scrFrame,
               cameraConnected: isCamActive,
               screenConnected: isScrActive,
+              audioConnected: isAudioActive,
+              audioLevel: currentAudioLevel,
+              audioChunk: audioChunkToSend,
               timestamp: Date.now()
             });
           } catch (e) {}
@@ -734,7 +854,10 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
           cameraFrame: camFrame,
           screenFrame: scrFrame,
           cameraConnected: isCamActive,
-          screenConnected: isScrActive
+          screenConnected: isScrActive,
+          audioConnected: isAudioActive,
+          audioLevel: currentAudioLevel,
+          audioChunk: audioChunkToSend
         }).catch(() => {});
       } catch (err) {
         // ignore
@@ -750,8 +873,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     return () => {
       clearInterval(streamTimer);
       if (bc) bc.close();
+      bcRef.current = null;
     };
-  }, [examStarted, examData?.attemptId, cameraStream, screenStream]);
+  }, [examStarted, examData?.attemptId, cameraStream, screenStream, audioStream]);
 
   // MCQ Keyboard Navigation and Shortcut Support
   useEffect(() => {

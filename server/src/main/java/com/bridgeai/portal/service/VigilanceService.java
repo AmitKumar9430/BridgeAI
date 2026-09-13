@@ -31,6 +31,7 @@ public class VigilanceService {
 
     @Getter
     @Setter
+    @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
@@ -40,21 +41,35 @@ public class VigilanceService {
         private String screenFrame;
         private boolean cameraConnected;
         private boolean screenConnected;
+        private String audioChunk;
+        private boolean audioConnected;
+        private int audioLevel;
         private long timestamp;
     }
 
     private final Map<Long, LiveStreamFrame> liveStreamFrames = new java.util.concurrent.ConcurrentHashMap<>();
 
-    public void saveLiveStreamFrame(Long attemptId, String cameraFrame, String screenFrame, boolean cameraConnected, boolean screenConnected) {
+    public void saveLiveStreamFrame(Long attemptId, String cameraFrame, String screenFrame, 
+                                    boolean cameraConnected, boolean screenConnected, 
+                                    String audioChunk, boolean audioConnected, int audioLevel) {
         if (attemptId == null) return;
+        LiveStreamFrame prev = liveStreamFrames.get(attemptId);
+        String finalAudio = (audioChunk != null && !audioChunk.isBlank()) ? audioChunk : (prev != null ? prev.getAudioChunk() : null);
         liveStreamFrames.put(attemptId, LiveStreamFrame.builder()
                 .attemptId(attemptId)
-                .cameraFrame(cameraFrame)
-                .screenFrame(screenFrame)
+                .cameraFrame(cameraFrame != null ? cameraFrame : (prev != null ? prev.getCameraFrame() : null))
+                .screenFrame(screenFrame != null ? screenFrame : (prev != null ? prev.getScreenFrame() : null))
                 .cameraConnected(cameraConnected)
                 .screenConnected(screenConnected)
+                .audioChunk(finalAudio)
+                .audioConnected(audioConnected)
+                .audioLevel(audioLevel)
                 .timestamp(System.currentTimeMillis())
                 .build());
+    }
+
+    public void saveLiveStreamFrame(Long attemptId, String cameraFrame, String screenFrame, boolean cameraConnected, boolean screenConnected) {
+        saveLiveStreamFrame(attemptId, cameraFrame, screenFrame, cameraConnected, screenConnected, null, true, 0);
     }
 
     public LiveStreamFrame getLiveStreamFrame(Long attemptId) {
@@ -421,19 +436,25 @@ public class VigilanceService {
             studentMap.put("isLive", isLive);
             studentMap.put("hasActiveStream", hasActiveStream);
 
+            int audioLevel = 0;
             if (hasActiveStream && streamFrame != null) {
                 studentMap.put("cameraFrame", streamFrame.getCameraFrame());
                 studentMap.put("screenFrame", streamFrame.getScreenFrame());
+                studentMap.put("audioChunk", streamFrame.getAudioChunk());
                 if (streamFrame.isCameraConnected()) cameraConnected = true;
                 if (streamFrame.isScreenConnected()) screenConnected = true;
+                if (streamFrame.isAudioConnected()) audioConnected = true;
+                audioLevel = streamFrame.getAudioLevel();
             } else {
                 studentMap.put("cameraFrame", null);
                 studentMap.put("screenFrame", null);
+                studentMap.put("audioChunk", null);
             }
 
             studentMap.put("cameraConnected", cameraConnected);
             studentMap.put("screenConnected", screenConnected);
             studentMap.put("audioConnected", audioConnected);
+            studentMap.put("audioLevel", audioLevel);
             studentMap.put("networkConnected", networkConnected);
             studentMap.put("audioMuted", false);
             studentMap.put("durationMinutes", exam != null ? exam.getDurationMinutes() : 45);

@@ -172,9 +172,12 @@ public class VigilanceController {
             @RequestBody Map<String, Object> payload) {
         String cameraFrame = (String) payload.get("cameraFrame");
         String screenFrame = (String) payload.get("screenFrame");
+        String audioChunk = (String) payload.get("audioChunk");
         boolean camOn = Boolean.TRUE.equals(payload.get("cameraConnected"));
         boolean scrOn = Boolean.TRUE.equals(payload.get("screenConnected"));
-        vigilanceService.saveLiveStreamFrame(attemptId, cameraFrame, screenFrame, camOn, scrOn);
+        boolean audioOn = payload.containsKey("audioConnected") ? Boolean.TRUE.equals(payload.get("audioConnected")) : true;
+        int audioLevel = payload.get("audioLevel") != null ? ((Number) payload.get("audioLevel")).intValue() : 0;
+        vigilanceService.saveLiveStreamFrame(attemptId, cameraFrame, screenFrame, camOn, scrOn, audioChunk, audioOn, audioLevel);
         return ResponseEntity.ok(Map.of("status", "STREAM_INGESTED", "attemptId", attemptId));
     }
 
@@ -182,7 +185,17 @@ public class VigilanceController {
     public ResponseEntity<VigilanceService.LiveStreamFrame> getLiveStream(@PathVariable Long attemptId) {
         VigilanceService.LiveStreamFrame frame = vigilanceService.getLiveStreamFrame(attemptId);
         if (frame == null) {
-            return ResponseEntity.ok(new VigilanceService.LiveStreamFrame(attemptId, null, null, false, false, 0));
+            return ResponseEntity.ok(VigilanceService.LiveStreamFrame.builder()
+                    .attemptId(attemptId)
+                    .cameraFrame(null)
+                    .screenFrame(null)
+                    .cameraConnected(false)
+                    .screenConnected(false)
+                    .audioChunk(null)
+                    .audioConnected(false)
+                    .audioLevel(0)
+                    .timestamp(0)
+                    .build());
         }
         return ResponseEntity.ok(frame);
     }

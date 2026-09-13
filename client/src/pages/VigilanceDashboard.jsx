@@ -11,7 +11,7 @@ import {
   Video, Monitor, Mic, MicOff, Camera, MessageSquare, CameraOff,
   Building2, GraduationCap, ChevronDown, ChevronUp, Radio, AlertOctagon,
   Image as ImageIcon, Download, CheckSquare, Maximize2, Minimize2, Sparkles, UserCheck,
-  Play, StopCircle, QrCode, Smartphone, Tablet, Copy
+  Play, StopCircle, QrCode, Smartphone, Tablet, Copy, Volume2, VolumeX
 } from 'lucide-react';
 import { ChangePasswordModal } from '../components/common/ChangePasswordModal';
 
@@ -83,6 +83,30 @@ export const VigilanceDashboard = () => {
 
   // Audio Control in monitoring view
   const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const [audioVolume, setAudioVolume] = useState(1.0);
+  const isAudioMutedRef = useRef(isAudioMuted);
+  const audioVolumeRef = useRef(audioVolume);
+  useEffect(() => { isAudioMutedRef.current = isAudioMuted; }, [isAudioMuted]);
+  useEffect(() => { audioVolumeRef.current = audioVolume; }, [audioVolume]);
+
+  const selectedStudentRef = useRef(selectedStudent);
+  useEffect(() => { selectedStudentRef.current = selectedStudent; }, [selectedStudent]);
+
+  const lastPlayedAudioChunkRef = useRef(null);
+
+  // Play incoming real-time audio chunk through officer speakers
+  const playCandidateAudioChunk = (audioChunk) => {
+    if (isAudioMutedRef.current || !audioChunk) return;
+    try {
+      const audio = new Audio(audioChunk);
+      audio.volume = audioVolumeRef.current;
+      audio.play().catch(e => {
+        // Autoplay may need user gesture
+      });
+    } catch (err) {
+      console.warn('Live audio playback error:', err);
+    }
+  };
 
   // Chat Drawer State
   const [chatMessages, setChatMessages] = useState([]);
@@ -182,9 +206,28 @@ export const VigilanceDashboard = () => {
                 screenFrame: e.data.screenFrame,
                 cameraConnected: e.data.cameraConnected,
                 screenConnected: e.data.screenConnected,
+                audioConnected: e.data.audioConnected,
+                audioLevel: e.data.audioLevel,
                 timestamp: e.data.timestamp
               }
             }));
+            if (e.data.audioChunk && selectedStudentRef.current?.attemptId === e.data.attemptId) {
+              playCandidateAudioChunk(e.data.audioChunk);
+            }
+          } else if (e.data?.type === 'AUDIO_CHUNK' && e.data.attemptId) {
+            if (selectedStudentRef.current?.attemptId === e.data.attemptId) {
+              playCandidateAudioChunk(e.data.audioChunk);
+            }
+            if (typeof e.data.audioLevel === 'number') {
+              setLiveFrames(prev => ({
+                ...prev,
+                [e.data.attemptId]: {
+                  ...(prev[e.data.attemptId] || {}),
+                  audioLevel: e.data.audioLevel,
+                  audioConnected: true
+                }
+              }));
+            }
           }
         };
       }
@@ -196,13 +239,20 @@ export const VigilanceDashboard = () => {
     };
   }, []);
 
-  // Fast polling of live stream frame when active candidate is being monitored or viewed in fullscreen
+  // Fast polling of live stream frame & audio when active candidate is being monitored or viewed in fullscreen
   useEffect(() => {
     if (!selectedStudent?.attemptId) return;
     const pollCandidateStream = async () => {
       try {
         const res = await api.get(`/vigilance/feed/stream/${selectedStudent.attemptId}`);
-        if (res.data && (res.data.cameraFrame || res.data.screenFrame)) {
+        if (res.data) {
+          if (res.data.audioChunk && selectedStudentRef.current?.attemptId === selectedStudent.attemptId) {
+            if (lastPlayedAudioChunkRef.current !== res.data.audioChunk) {
+              lastPlayedAudioChunkRef.current = res.data.audioChunk;
+              playCandidateAudioChunk(res.data.audioChunk);
+            }
+          }
+
           setLiveFrames(prev => ({
             ...prev,
             [selectedStudent.attemptId]: {
@@ -210,6 +260,8 @@ export const VigilanceDashboard = () => {
               screenFrame: res.data.screenFrame,
               cameraConnected: res.data.cameraConnected,
               screenConnected: res.data.screenConnected,
+              audioConnected: res.data.audioConnected,
+              audioLevel: res.data.audioLevel,
               timestamp: res.data.timestamp
             }
           }));
@@ -218,7 +270,9 @@ export const VigilanceDashboard = () => {
             cameraFrame: res.data.cameraFrame,
             screenFrame: res.data.screenFrame,
             cameraConnected: res.data.cameraConnected,
-            screenConnected: res.data.screenConnected
+            screenConnected: res.data.screenConnected,
+            audioConnected: res.data.audioConnected,
+            audioLevel: res.data.audioLevel
           } : prev);
         }
       } catch (err) {
@@ -1393,8 +1447,15 @@ export const VigilanceDashboard = () => {
                                                   <div className={`py-1 rounded border ${st.screenConnected ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
                                                     Scr: {st.screenConnected ? 'ON' : 'OFF'}
                                                   </div>
-                                                  <div className={`py-1 rounded border ${st.audioConnected ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-                                                    Mic: {st.audioConnected ? 'ON' : 'OFF'}
+                                                  <div className={`py-1 rounded border flex items-center justify-center gap-1 ${
+                                                    st.audioConnected
+                                                      ? ((liveFrames[st.attemptId]?.audioLevel || st.audioLevel || 0) > 15
+                                                          ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 font-bold animate-pulse'
+                                                          : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400')
+                                                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                                                  }`}>
+                                                    <Mic className="w-2.5 h-2.5 shrink-0" />
+                                                    <span>Mic: {st.audioConnected ? ((liveFrames[st.attemptId]?.audioLevel || st.audioLevel || 0) > 15 ? 'SPEAK' : 'LIVE') : 'OFF'}</span>
                                                   </div>
                                                   <div className={`py-1 rounded border ${st.networkConnected ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
                                                     Net: {st.networkConnected ? 'OK' : 'LOST'}
@@ -1926,46 +1987,116 @@ export const VigilanceDashboard = () => {
                   </div>
                 </div>
 
-                {/* Audio Status & Mute/Unmute Strip */}
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-md">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isAudioMuted ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}`}>
-                      {isAudioMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                    </div>
-                    <div>
-                      <div className="font-semibold flex items-center gap-2 text-white">
-                        <span>Candidate Microphone Stream</span>
-                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold border ${isAudioMuted ? 'bg-amber-950/80 text-amber-300 border-amber-800/80' : 'bg-emerald-950/80 text-emerald-300 border-emerald-800/80'}`}>
-                          {isAudioMuted ? 'MUTED BY OFFICER' : 'LIVE LISTENING ACTIVE'}
-                        </span>
-                        {!isAudioMuted && (
-                          <div className="flex items-center gap-0.5 ml-1">
-                            <span className="w-1 h-3 bg-emerald-400 rounded-full animate-bounce"></span>
-                            <span className="w-1 h-4 bg-emerald-400 rounded-full animate-bounce [animation-delay:150ms]"></span>
-                            <span className="w-1 h-2 bg-emerald-400 rounded-full animate-bounce [animation-delay:300ms]"></span>
-                            <span className="w-1 h-3.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:450ms]"></span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">
-                        Continuous acoustic ambient monitoring for background whispered answers or multi-voice speech.
-                      </div>
-                    </div>
-                  </div>
+                {/* Real-time Candidate Microphone Audio Streaming Strip */}
+                {(() => {
+                  const currentAttemptId = selectedStudent.attemptId;
+                  const frameData = liveFrames[currentAttemptId] || {};
+                  const currentLevel = frameData.audioLevel !== undefined ? frameData.audioLevel : (selectedStudent.audioLevel || 0);
+                  const isAudioConnected = frameData.audioConnected !== undefined ? frameData.audioConnected : (selectedStudent.audioConnected !== false);
+                  const isSpeaking = currentLevel > 15;
 
-                  <button
-                    type="button"
-                    onClick={() => setIsAudioMuted(!isAudioMuted)}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border ${
-                      isAudioMuted
-                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500'
-                        : 'bg-amber-600 hover:bg-amber-700 text-white border-amber-500'
-                    }`}
-                  >
-                    {isAudioMuted ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
-                    <span>{isAudioMuted ? 'Unmute Audio' : 'Mute Audio'}</span>
-                  </button>
-                </div>
+                  return (
+                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs shadow-md">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                          isAudioMuted
+                            ? 'bg-amber-950/80 text-amber-400 border border-amber-800'
+                            : (isSpeaking
+                                ? 'bg-emerald-600 text-white border border-emerald-400 shadow-sm animate-pulse'
+                                : 'bg-emerald-950 text-emerald-400 border border-emerald-800')
+                        }`}>
+                          {isAudioMuted ? <VolumeX className="w-5 h-5" /> : (isSpeaking ? <Mic className="w-5 h-5 animate-bounce" /> : <Volume2 className="w-5 h-5" />)}
+                        </div>
+
+                        <div>
+                          <div className="font-semibold flex items-center gap-2 text-white flex-wrap">
+                            <span>Candidate Live Audio Feed</span>
+                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold border flex items-center gap-1 ${
+                              isAudioMuted
+                                ? 'bg-amber-950/80 text-amber-300 border-amber-800/80'
+                                : 'bg-emerald-950/80 text-emerald-300 border-emerald-800/80'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${isAudioMuted ? 'bg-amber-400' : 'bg-emerald-400 animate-ping'}`} />
+                              {isAudioMuted ? 'MUTED BY OFFICER' : (isSpeaking ? `VOICE ACTIVE (${currentLevel}%)` : `LISTENING (${currentLevel}%)`)}
+                            </span>
+                            {isAudioConnected && !isAudioMuted && (
+                              <span className="text-[10px] text-emerald-400 font-mono bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-900/60">
+                                Opus 48kHz HD
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Dynamic 8-bar Real-time VU Equalizer Meter */}
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-end gap-1 h-4 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                              {[10, 20, 30, 45, 60, 75, 88, 98].map((threshold, idx) => {
+                                const isActive = !isAudioMuted && isAudioConnected && currentLevel >= threshold;
+                                return (
+                                  <div
+                                    key={idx}
+                                    style={{ height: `${Math.max(3, (idx + 1) * 2)}px` }}
+                                    className={`w-1 rounded-full transition-all duration-75 ${
+                                      isActive
+                                        ? (idx >= 6 ? 'bg-rose-500 shadow-rose-500/50' : idx >= 4 ? 'bg-amber-400' : 'bg-emerald-400')
+                                        : 'bg-slate-700/60'
+                                    }`}
+                                  />
+                                );
+                              })}
+                            </div>
+                            <span className="text-[11px] text-slate-400 font-mono">
+                              {isAudioMuted
+                                ? 'Audio output paused by officer'
+                                : (isSpeaking
+                                    ? 'Acoustic activity detected in test zone'
+                                    : 'Acoustic background ambient: Safe')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Audio Controls: Volume Slider & Mute/Unmute */}
+                      <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-2 md:pt-0 border-slate-800">
+                        <div className="flex items-center gap-1.5 bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                          <Volume2 className="w-3.5 h-3.5 text-slate-400" />
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value={audioVolume}
+                            disabled={isAudioMuted}
+                            onChange={(e) => setAudioVolume(parseFloat(e.target.value))}
+                            className="w-16 sm:w-20 accent-indigo-500 h-1 bg-slate-700 rounded-lg cursor-pointer disabled:opacity-40"
+                            title={`Listening Volume: ${Math.round(audioVolume * 100)}%`}
+                          />
+                          <span className="text-[10px] font-mono text-slate-400 w-7 text-right">
+                            {Math.round(audioVolume * 100)}%
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = !isAudioMuted;
+                            setIsAudioMuted(next);
+                            if (!next) {
+                              playCandidateAudioChunk(frameData.audioChunk);
+                            }
+                          }}
+                          className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border shrink-0 ${
+                            isAudioMuted
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500'
+                              : 'bg-amber-600 hover:bg-amber-700 text-white border-amber-500'
+                          }`}
+                        >
+                          {isAudioMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                          <span>{isAudioMuted ? 'Unmute Audio' : 'Mute Audio'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* SURVEILLANCE ACTION TOOLBAR (5 BUTTONS) */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
