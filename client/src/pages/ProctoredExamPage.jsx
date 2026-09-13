@@ -271,6 +271,11 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   const gutterRef = useRef(null);
   const editorTextareaRef = useRef(null);
 
+  const examStartedRef = useRef(examStarted);
+  useEffect(() => {
+    examStartedRef.current = examStarted;
+  }, [examStarted]);
+
   // Mobile / Tablet lockdown restriction
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
 
@@ -990,42 +995,56 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       }
 
       // 1. Mandatory Entire Screen Permission requested BEFORE starting exam
-      // (This guarantees browser permissions modal finishes before anti-cheat is armed, avoiding false strikes)
+      // The student CANNOT enter the exam until they share their entire screen!
       let currentScreen = screenStreamRef.current || screenStream;
-      if (!currentScreen && navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+      if (!currentScreen || !currentScreen.getVideoTracks().some(t => t.readyState === 'live')) {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          throw new Error('Screen sharing is not supported by your browser. Please take this exam using Google Chrome, Microsoft Edge, or Mozilla Firefox.');
+        }
+
         try {
           currentScreen = await navigator.mediaDevices.getDisplayMedia({
             video: {
-              cursor: 'always'
+              cursor: 'always',
+              displaySurface: 'monitor'
             },
             audio: false
           });
         } catch (scrErr) {
-          try {
-            currentScreen = await navigator.mediaDevices.getDisplayMedia({ video: true });
-          } catch (scrErr2) {
-            console.warn('Candidate screen share dismissed or cancelled:', scrErr2);
-          }
-        }
-        if (currentScreen) {
-          setScreenStream(currentScreen);
-          screenStreamRef.current = currentScreen;
-          if (screenVideoRef.current) {
-            screenVideoRef.current.muted = true;
-            screenVideoRef.current.defaultMuted = true;
-            screenVideoRef.current.playsInline = true;
-            screenVideoRef.current.srcObject = currentScreen;
-            screenVideoRef.current.play().catch(() => {});
-          }
-          const track = currentScreen.getVideoTracks()[0];
-          if (track) {
-            track.onended = () => {
-              setScreenStream(null);
-              screenStreamRef.current = null;
-            };
-          }
+          console.warn('Candidate screen share dismissed or cancelled:', scrErr);
+          throw new Error('Screen sharing is strictly mandatory. You cannot enter this proctored examination without sharing your Entire Screen.');
         }
       }
+
+      if (!currentScreen || !currentScreen.getVideoTracks().some(t => t.readyState === 'live')) {
+        throw new Error('Screen sharing is strictly mandatory. You cannot enter this proctored examination without sharing your Entire Screen.');
+      }
+
+      const screenTrack = currentScreen.getVideoTracks()[0];
+      const settings = screenTrack?.getSettings ? screenTrack.getSettings() : {};
+      if (settings.displaySurface && settings.displaySurface !== 'monitor') {
+        currentScreen.getTracks().forEach(t => t.stop());
+        setScreenStream(null);
+        screenStreamRef.current = null;
+        throw new Error('You must select and share your "Entire Screen", not just a single application window or browser tab. Please click "Start Proctored Examination" again and choose Entire Screen.');
+      }
+
+      setScreenStream(currentScreen);
+      screenStreamRef.current = currentScreen;
+      if (screenVideoRef.current) {
+        screenVideoRef.current.muted = true;
+        screenVideoRef.current.defaultMuted = true;
+        screenVideoRef.current.playsInline = true;
+        screenVideoRef.current.srcObject = currentScreen;
+        screenVideoRef.current.play().catch(() => {});
+      }
+      screenTrack.onended = () => {
+        setScreenStream(null);
+        screenStreamRef.current = null;
+        if (examStartedRef.current) {
+          reportViolation('SCREEN_SHARE_STOPPED', 'Candidate terminated screen sharing during live examination.');
+        }
+      };
 
       // 2. Mandatory Fullscreen Request
       const elem = document.documentElement;

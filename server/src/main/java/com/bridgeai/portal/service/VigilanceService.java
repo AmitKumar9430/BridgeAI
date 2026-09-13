@@ -381,17 +381,12 @@ public class VigilanceService {
             LiveStreamFrame streamFrame = liveStreamFrames.get(att.getId());
             boolean hasActiveStream = streamFrame != null && (System.currentTimeMillis() - streamFrame.getTimestamp() < 90000);
 
-            // Student is live if actively streaming, OR if status is IN_PROGRESS (not terminated and not submitted)
-            // and started within a generous window (handling any database vs server timezone offsets)
-            boolean isRecentlyStarted = att.getStartedAt() == null ||
-                    Math.abs(java.time.Duration.between(att.getStartedAt(), LocalDateTime.now()).toMinutes()) < (examDur + 360);
-            boolean isLive = !isTerminated && !isSubmitted && ("IN_PROGRESS".equalsIgnoreCase(att.getStatus()) || hasActiveStream);
-            if ("IN_PROGRESS".equalsIgnoreCase(att.getStatus()) && !hasActiveStream && !isRecentlyStarted) {
-                isLive = false;
-            }
-            if (hasActiveStream) {
-                isLive = true;
-            }
+            // Candidate is live ONLY if:
+            // 1. Not terminated and not submitted
+            // 2. AND actively streaming frames OR initiated session in the last 3 minutes
+            boolean isRecentlyStarted = att.getStartedAt() != null &&
+                    Math.abs(java.time.Duration.between(att.getStartedAt(), LocalDateTime.now()).toMinutes()) < 3;
+            boolean isLive = !isTerminated && !isSubmitted && (hasActiveStream || isRecentlyStarted);
 
             // Media connection simulator / state
             // If candidate has strikes >= 2 or critical alert, mark accordingly
@@ -426,7 +421,9 @@ public class VigilanceService {
             Map<String, Object> studentMap = new HashMap<>();
             studentMap.put("attemptId", att.getId());
             studentMap.put("studentId", att.getStudentId());
-            studentMap.put("studentName", att.getStudentName());
+            String rawStudentName = att.getStudentName() != null ? att.getStudentName() : "Candidate";
+            String cleanStudentName = rawStudentName.replaceAll("\\s*\\([^)]*\\)", "").trim();
+            studentMap.put("studentName", cleanStudentName.isEmpty() ? "Candidate" : cleanStudentName);
             studentMap.put("examId", examId);
             studentMap.put("examTitle", exam != null ? exam.getTitle() : "AI & GenAI Proctored Examination");
             studentMap.put("subjectName", exam != null ? exam.getTitle() : "Computer Science");
@@ -505,9 +502,12 @@ public class VigilanceService {
             });
             studentMap.put("timeline", timeline);
 
-            instExamTree.computeIfAbsent(instName, k -> new LinkedHashMap<>())
-                    .computeIfAbsent(examId, k -> new ArrayList<>())
-                    .add(studentMap);
+            // User requirement: "show the student here only if he /she is live if not live don't show .."
+            if (isLive) {
+                instExamTree.computeIfAbsent(instName, k -> new LinkedHashMap<>())
+                        .computeIfAbsent(examId, k -> new ArrayList<>())
+                        .add(studentMap);
+            }
         }
 
         totalActiveInstitutions = instExamTree.size();

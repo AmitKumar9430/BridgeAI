@@ -162,7 +162,7 @@ public class AuthService {
 
             User newStudent = User.builder()
                     .email(email)
-                    .fullName(capitalized + " (Student)")
+                    .fullName(capitalized)
                     .role(Role.ROLE_STUDENT)
                     .password(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
                     .active(true)

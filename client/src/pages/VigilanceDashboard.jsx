@@ -51,6 +51,8 @@ export const VigilanceDashboard = () => {
   const [expandedInstitutions, setExpandedInstitutions] = useState({});
   const [expandedExams, setExpandedExams] = useState({});
 
+  const cleanStudentName = (name) => (!name ? 'Candidate' : String(name).replace(/\s*\([^)]*\)/g, '').trim() || 'Candidate');
+
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('bridgeai_vigilance_sidebar_open');
     return saved !== null ? saved === 'true' : true;
@@ -715,9 +717,10 @@ export const VigilanceDashboard = () => {
     }
   };
 
-  // Filter students based on searchTerm, severityFilter, selectedInstituteFilter, and selectedExamFilter
+  // Filter students: in Live Examination Surveillance, ONLY active live students are shown!
   const filterStudentItem = (student) => {
-    if (severityFilter === 'LIVE_ONLY' && !student.isLive) {
+    // User requirement: "show the student here only if he /she is live if not live don't show .."
+    if (!student.isLive) {
       return false;
     }
     if (severityFilter !== 'ALL' && severityFilter !== 'LIVE_ONLY' && student.alertLevel !== severityFilter) {
@@ -731,8 +734,9 @@ export const VigilanceDashboard = () => {
     }
     if (!searchTerm.trim()) return true;
     const term = searchTerm.toLowerCase();
+    const cleanName = cleanStudentName(student.studentName).toLowerCase();
     return (
-      (student.studentName && student.studentName.toLowerCase().includes(term)) ||
+      cleanName.includes(term) ||
       String(student.studentId).includes(term) ||
       String(student.attemptId).includes(term) ||
       (student.examTitle && student.examTitle.toLowerCase().includes(term)) ||
@@ -1231,6 +1235,7 @@ export const VigilanceDashboard = () => {
                               return Number(b.examId || 0) - Number(a.examId || 0);
                             })
                             .filter(exam => selectedExamFilter === 'ALL' || String(exam.examId) === String(selectedExamFilter))
+                            .filter(exam => (exam.students || []).some(s => s.isLive))
                             .map((exam, examIdx) => {
                             const isExamExpanded = expandedExams[exam.examId] !== false;
                             const visibleStudents = (exam.students || []).filter(filterStudentItem);
@@ -1328,7 +1333,7 @@ export const VigilanceDashboard = () => {
                                                 <div className="absolute inset-0 bg-black/40 flex flex-col justify-between p-2.5 z-10 pointer-events-none">
                                                   <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-1.5">
-                                                      {(st.isLive || st.status === 'IN_PROGRESS') ? (
+                                                      {st.isLive ? (
                                                         <>
                                                           <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
                                                           <span className="text-[10px] font-black uppercase tracking-wider text-rose-400 bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-rose-900/60">
@@ -1499,9 +1504,9 @@ export const VigilanceDashboard = () => {
                                                     )}
                                                   </div>
 
-                                                  <div className="flex items-start justify-between gap-1">
+                                                   <div className="flex items-start justify-between gap-1">
                                                     <h4 className="font-bold text-slate-900 dark:text-white text-sm truncate">
-                                                      {st.studentName}
+                                                      {cleanStudentName(st.studentName)}
                                                     </h4>
                                                   </div>
                                                   <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
@@ -1897,7 +1902,7 @@ export const VigilanceDashboard = () => {
                       </span>
                     </div>
                     <h3 className="text-base font-bold text-white mt-1 flex items-center gap-2">
-                      <span>{selectedStudent.studentName}</span>
+                      <span>{cleanStudentName(selectedStudent.studentName)}</span>
                       <span className="text-xs font-normal text-slate-400">
                         ({selectedStudent.institutionName})
                       </span>
@@ -2838,7 +2843,7 @@ export const VigilanceDashboard = () => {
                     </span>
                   </div>
                   <h2 className="text-sm sm:text-base font-black text-white mt-0.5 flex items-center gap-2">
-                    <span>{selectedStudent.studentName}</span>
+                    <span>{cleanStudentName(selectedStudent.studentName)}</span>
                     <span className="text-xs font-normal text-slate-400">
                       ({selectedStudent.institutionName})
                     </span>
