@@ -37,6 +37,11 @@ public class StoredFile {
     @Column(length = 100)
     private String uploadedByName;
 
+    private Long institutionId;
+
+    @Column(length = 150)
+    private String institutionName;
+
     @Column(nullable = false)
     @Builder.Default
     private LocalDateTime uploadedAt = LocalDateTime.now();

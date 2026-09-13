@@ -15,5 +15,9 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
     List<Exam> findByTrainerId(Long trainerId);
     List<Exam> findByInstitutionId(Long institutionId);
     List<Exam> findByInstitutionNameIgnoreCase(String institutionName);
+    List<Exam> findByInstitutionIdAndActiveTrue(Long institutionId);
+    List<Exam> findByInstitutionNameIgnoreCaseAndActiveTrue(String institutionName);
     List<Exam> findByActiveTrue();
+    long countByInstitutionId(Long institutionId);
+    long countByInstitutionNameIgnoreCase(String institutionName);
 }

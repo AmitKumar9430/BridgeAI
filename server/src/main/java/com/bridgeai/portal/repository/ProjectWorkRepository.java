@@ -13,5 +13,9 @@ public interface ProjectWorkRepository extends JpaRepository<ProjectWork, Long> 
     List<ProjectWork> findByTrainerId(Long trainerId);
     List<ProjectWork> findBySubjectName(String subjectName);
     List<ProjectWork> findByInstitutionName(String institutionName);
+    List<ProjectWork> findByInstitutionId(Long institutionId);
+    List<ProjectWork> findByInstitutionNameIgnoreCase(String institutionName);
     List<ProjectWork> findByAvailableForSelectionTrue();
+    List<ProjectWork> findByInstitutionIdAndAvailableForSelectionTrue(Long institutionId);
+    List<ProjectWork> findByInstitutionNameIgnoreCaseAndAvailableForSelectionTrue(String institutionName);
 }

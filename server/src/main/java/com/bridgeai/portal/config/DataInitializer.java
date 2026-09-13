@@ -90,6 +90,17 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(vigilanceOfficer);
         }
 
+        // 1b. Seed Second Institution Users: National Institute of Tech (NIT)
+        User nitSuperAdmin = seedUser("nit.superadmin@bridgeai.edu", "SuperAdmin@2026", "Prof. K. Ramanathan", "+91-9876500020", Role.ROLE_SUPER_ADMIN, "National Institute of Tech (NIT)", "Institutional Administration");
+        User nitTrainer = seedUser("anita.trainer@bridgeai.edu", "Trainer@2026", "Dr. Anita Deshmukh", "+91-9876500021", Role.ROLE_TRAINER, "National Institute of Tech (NIT)", "Cloud Computing & DevOps");
+        if (nitTrainer.getSuperAdminId() == null) {
+            nitTrainer.setSuperAdminId(nitSuperAdmin.getId());
+            nitTrainer.setSuperAdminName(nitSuperAdmin.getFullName());
+            userRepository.save(nitTrainer);
+        }
+        User nitStudent = seedUser("kavita.student@bridgeai.edu", "Student@2026", "Kavita Nair", "+91-9876500022", Role.ROLE_STUDENT, "National Institute of Tech (NIT)", "Cloud Computing & DevOps");
+        User nitStudent2 = seedUser("rohit.student@bridgeai.edu", "Student@2026", "Rohit Verma", "+91-9876500023", Role.ROLE_STUDENT, "National Institute of Tech (NIT)", "Cloud Computing & DevOps");
+
         // Clean up any remaining bracketed role suffixes from all existing users in the database
         List<User> existingUsersWithBrackets = userRepository.findAll();
         for (User u : existingUsersWithBrackets) {
@@ -580,11 +591,211 @@ public class DataInitializer implements CommandLineRunner {
                     .build());
         }
 
-        // Ensure all existing courses in database are tagged with their institution name
+        // 2b. Seed NIT Course & Modules if not present
+        if (courseRepository.findByInstitutionName("National Institute of Tech (NIT)").isEmpty()) {
+            log.info("Seeding NIT curriculum courses, modules, assessments, assignments, and study materials...");
+            Institution nitInst = institutionRepository.findByName("National Institute of Tech (NIT)").orElse(null);
+            Long nitInstId = nitInst != null ? nitInst.getId() : null;
+
+            Course nitCourse = courseRepository.save(Course.builder()
+                    .title("Cloud Architecture & Kubernetes Microservices")
+                    .description("Comprehensive curriculum on Docker containers, Kubernetes orchestration, Service Mesh, and AWS Cloud Engineering.")
+                    .category("Cloud Computing & DevOps")
+                    .trainerId(nitTrainer.getId())
+                    .trainerName(nitTrainer.getFullName())
+                    .institutionId(nitInstId)
+                    .institutionName("National Institute of Tech (NIT)")
+                    .badgeColor("#2563EB")
+                    .startDate(LocalDate.of(2026, 9, 1))
+                    .endDate(LocalDate.of(2026, 12, 20))
+                    .enrolledCount(85)
+                    .progressPercentage(45)
+                    .build());
+
+            CourseModule nm1 = moduleRepository.save(CourseModule.builder()
+                    .courseId(nitCourse.getId())
+                    .title("Module 1: Docker Containers & Cloud Foundations")
+                    .description("Containerization fundamentals, multi-stage Dockerfiles, and cloud infrastructure.")
+                    .orderIndex(1)
+                    .build());
+
+            CourseModule nm2 = moduleRepository.save(CourseModule.builder()
+                    .courseId(nitCourse.getId())
+                    .title("Module 2: Kubernetes Orchestration & Ingress")
+                    .description("Pods, Deployments, Services, ConfigMaps, and Ingress routing.")
+                    .orderIndex(2)
+                    .build());
+
+            // Global study material (accessible across all institutions)
+            resourceRepository.save(ResourceItem.builder()
+                    .courseId(nitCourse.getId())
+                    .moduleId(nm1.getId())
+                    .title("Global Cloud Native & Vector Embeddings Reference Guide")
+                    .resourceType("ARTICLE")
+                    .visibilityScope("GLOBAL")
+                    .urlOrPath("https://kubernetes.io/docs/concepts/")
+                    .fileSize("3.8 MB")
+                    .orderIndex(1)
+                    .description("Global foundational study material accessible across all partner universities.")
+                    .richContent("### Global Cloud-Native Foundations\n\nThis study guide is published globally across all institutions on BridgeAI.\n\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ai-inference-engine\nspec:\n  replicas: 3\n```")
+                    .build());
+
+            // Institution-specific study material (NIT only)
+            resourceRepository.save(ResourceItem.builder()
+                    .courseId(nitCourse.getId())
+                    .moduleId(nm1.getId())
+                    .title("NIT Cloud Architecture & Distributed Systems Guide")
+                    .resourceType("PDF")
+                    .visibilityScope("INSTITUTION")
+                    .urlOrPath("https://www.nitt.edu/cloud-syllabus.pdf")
+                    .fileSize("5.2 MB")
+                    .orderIndex(2)
+                    .description("Confidential institutional curriculum handout strictly for NIT students and faculty.")
+                    .richContent("### NIT Department of Computer Science & Engineering\n\n**Confidential Institutional Course Material**: For registered NIT students only.")
+                    .build());
+
+            // NIT Assignment
+            assignmentRepository.save(Assignment.builder()
+                    .courseId(nitCourse.getId())
+                    .moduleId(nm2.getId())
+                    .trainerId(nitTrainer.getId())
+                    .trainerName(nitTrainer.getFullName())
+                    .institutionId(nitInstId)
+                    .institutionName("National Institute of Tech (NIT)")
+                    .subjectName("Cloud Computing & DevOps")
+                    .title("Kubernetes Deployment YAML & Ingress Controller")
+                    .description("Develop and test a high-availability Kubernetes Deployment YAML with automated liveness and readiness probes. Submit in PDF format.")
+                    .dueDateTime(LocalDateTime.now().plusDays(7))
+                    .pdfAttachmentUrl("https://example.com/nit-k8s-spec.pdf")
+                    .submissionType("PDF")
+                    .maxScore(100)
+                    .assignedToAll(true)
+                    .allowResubmission(true)
+                    .build());
+
+            // NIT Proctored Exam
+            Exam nitExam = examRepository.save(Exam.builder()
+                    .courseId(nitCourse.getId())
+                    .moduleId(nm1.getId())
+                    .trainerId(nitTrainer.getId())
+                    .trainerName(nitTrainer.getFullName())
+                    .institutionId(nitInstId)
+                    .institutionName("National Institute of Tech (NIT)")
+                    .assessmentType("TRAINER_ASSIGNED")
+                    .allowMultipleAttempts(false)
+                    .title("NIT Midterm Assessment: Cloud & Distributed Systems")
+                    .description("Proctored institutional examination for National Institute of Tech (NIT) students.")
+                    .durationMinutes(30)
+                    .passingPercentage(60)
+                    .maxViolations(3)
+                    .totalMarks(50)
+                    .scheduledStartTime(LocalDateTime.now().minusHours(1))
+                    .scheduledEndTime(LocalDateTime.now().plusDays(10))
+                    .active(true)
+                    .randomizeQuestions(true)
+                    .build());
+
+            questionRepository.save(ExamQuestion.builder()
+                    .examId(nitExam.getId())
+                    .questionText("Which Kubernetes component is responsible for maintaining the desired state of pods across worker nodes?")
+                    .optionA("kube-proxy")
+                    .optionB("kube-controller-manager")
+                    .optionC("kubelet")
+                    .optionD("etcd")
+                    .correctOption("B")
+                    .marks(25)
+                    .explanation("The kube-controller-manager runs controller processes that continuously reconcile current cluster state with the desired state.")
+                    .build());
+
+            questionRepository.save(ExamQuestion.builder()
+                    .examId(nitExam.getId())
+                    .questionText("In Docker, which instruction should be used to define the default command that cannot be easily overridden?")
+                    .optionA("CMD")
+                    .optionB("ENTRYPOINT")
+                    .optionC("RUN")
+                    .optionD("EXPOSE")
+                    .correctOption("B")
+                    .marks(25)
+                    .explanation("ENTRYPOINT configures a container that will run as an executable.")
+                    .build());
+
+            // NIT Project Topic
+            projectRepository.save(ProjectWork.builder()
+                    .courseId(nitCourse.getId())
+                    .trainerId(nitTrainer.getId())
+                    .trainerName(nitTrainer.getFullName())
+                    .institutionId(nitInstId)
+                    .institutionName("National Institute of Tech (NIT)")
+                    .subjectName("Cloud Computing & DevOps")
+                    .title("Scalable Multi-Tenant Microservices on Kubernetes")
+                    .description("Architect and deploy an end-to-end multi-tenant microservices application on Kubernetes with Istio service mesh, Prometheus metrics, and automated canary deployments.")
+                    .requirements("Kubernetes cluster setup, Helm charts, ingress controllers, CI/CD pipeline, and comprehensive monitoring.")
+                    .deadline(LocalDate.now().plusMonths(2))
+                    .minTeamSize(2)
+                    .maxTeamSize(4)
+                    .availableForSelection(true)
+                    .status("AVAILABLE")
+                    .createdAt(LocalDateTime.now())
+                    .build());
+        }
+
+        // Ensure all existing courses in database are tagged with their institution name and ID
         courseRepository.findAll().forEach(c -> {
             if (c.getInstitutionName() == null || c.getInstitutionName().isBlank()) {
                 c.setInstitutionName("Indian Institute of Technology (IIT)");
-                courseRepository.save(c);
+            }
+            if (c.getInstitutionId() == null) {
+                institutionRepository.findByName(c.getInstitutionName())
+                        .ifPresent(inst -> c.setInstitutionId(inst.getId()));
+            }
+            courseRepository.save(c);
+        });
+
+        // Ensure all existing exams have institutionId and institutionName
+        examRepository.findAll().forEach(e -> {
+            if (e.getInstitutionName() == null || e.getInstitutionName().isBlank()) {
+                e.setInstitutionName("Indian Institute of Technology (IIT)");
+            }
+            if (e.getInstitutionId() == null) {
+                institutionRepository.findByName(e.getInstitutionName())
+                        .ifPresent(inst -> e.setInstitutionId(inst.getId()));
+            }
+            examRepository.save(e);
+        });
+
+        // Ensure all existing assignments have institutionId and institutionName
+        assignmentRepository.findAll().forEach(a -> {
+            if (a.getInstitutionName() == null || a.getInstitutionName().isBlank()) {
+                a.setInstitutionName("Indian Institute of Technology (IIT)");
+            }
+            if (a.getInstitutionId() == null) {
+                institutionRepository.findByName(a.getInstitutionName())
+                        .ifPresent(inst -> a.setInstitutionId(inst.getId()));
+            }
+            assignmentRepository.save(a);
+        });
+
+        // Ensure all existing projects have institutionId and institutionName
+        projectRepository.findAll().forEach(p -> {
+            if (p.getInstitutionName() == null || p.getInstitutionName().isBlank()) {
+                p.setInstitutionName("Indian Institute of Technology (IIT)");
+            }
+            if (p.getInstitutionId() == null) {
+                institutionRepository.findByName(p.getInstitutionName())
+                        .ifPresent(inst -> p.setInstitutionId(inst.getId()));
+            }
+            projectRepository.save(p);
+        });
+
+        // Ensure all resources have visibilityScope set
+        resourceRepository.findAll().forEach(r -> {
+            if (r.getVisibilityScope() == null || r.getVisibilityScope().isBlank()) {
+                if (r.getTitle() != null && (r.getTitle().toLowerCase().contains("global") || r.getTitle().toLowerCase().contains("vector"))) {
+                    r.setVisibilityScope("GLOBAL");
+                } else {
+                    r.setVisibilityScope("INSTITUTION");
+                }
+                resourceRepository.save(r);
             }
         });
 

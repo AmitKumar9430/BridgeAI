@@ -14,6 +14,7 @@ import java.util.Optional;
 @Repository
 public interface ProjectTeamRepository extends JpaRepository<ProjectTeam, Long> {
     List<ProjectTeam> findByTopicId(Long topicId);
+    List<ProjectTeam> findByTopicIdAndInstitutionId(Long topicId, Long institutionId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM ProjectTeam t WHERE t.id = :id")

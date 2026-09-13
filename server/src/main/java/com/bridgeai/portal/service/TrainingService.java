@@ -34,6 +34,7 @@ public class TrainingService {
     private final ExamQuestionRepository questionRepository;
     private final InstitutionRepository institutionRepository;
     private final AuditLogService auditLogService;
+    private final com.bridgeai.portal.security.InstitutionSecurityUtils institutionSecurityUtils;
 
     public List<Course> getAllCourses() {
         return courseRepository.findAll();
@@ -253,6 +254,9 @@ public class TrainingService {
 
     public CourseDetailDto getCourseFullDetail(Long courseId, User currentUser) {
         Course rawCourse = getCourseById(courseId);
+        if (currentUser != null && currentUser.getRole() != Role.ROLE_BOSS_ADMIN) {
+            institutionSecurityUtils.assertInstitutionAccess(currentUser, rawCourse.getInstitutionId(), rawCourse.getInstitutionName());
+        }
         boolean isStudent = (currentUser != null && currentUser.getRole() == Role.ROLE_STUDENT);
 
         List<CourseModule> modules = moduleRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
@@ -263,42 +267,34 @@ public class TrainingService {
             List<ResourceItem> filteredRes = new ArrayList<>();
 
             for (ResourceItem r : rawRes) {
+                // Check if user has access to resource (global study material vs institution-specific material)
+                if (!institutionSecurityUtils.canAccessResource(currentUser, r)) {
+                    continue;
+                }
+
                 if (isStudent) {
-                    String scope = r.getVisibilityScope();
-                    boolean allow = false;
-                    if (scope == null || scope.equalsIgnoreCase("GLOBAL") || scope.equalsIgnoreCase("BOTH")) {
-                        allow = true;
-                    } else if (scope.equalsIgnoreCase("INSTITUTION")) {
-                        if (currentUser.getInstitutionId() != null && r.getInstitutionId() != null) {
-                            allow = currentUser.getInstitutionId().equals(r.getInstitutionId());
-                        } else if (currentUser.getInstitutionName() != null && r.getInstitutionName() != null) {
-                            allow = currentUser.getInstitutionName().equalsIgnoreCase(r.getInstitutionName().trim());
-                        }
-                    }
-                    if (allow) {
-                        // Create sanitized copy without trainer details
-                        ResourceItem sanitized = ResourceItem.builder()
-                                .id(r.getId())
-                                .courseId(r.getCourseId())
-                                .moduleId(r.getModuleId())
-                                .title(r.getTitle())
-                                .resourceType(r.getResourceType())
-                                .urlOrPath(r.getUrlOrPath())
-                                .fileSize(r.getFileSize())
-                                .description(r.getDescription())
-                                .richContent(r.getRichContent())
-                                .videoEmbedUrl(r.getVideoEmbedUrl())
-                                .imageUrls(r.getImageUrls())
-                                .orderIndex(r.getOrderIndex())
-                                .visibilityScope(r.getVisibilityScope())
-                                .institutionId(r.getInstitutionId())
-                                .institutionName(r.getInstitutionName())
-                                .uploaderTrainerId(null) // Redacted
-                                .uploaderTrainerName(null) // Redacted
-                                .createdAt(r.getCreatedAt())
-                                .build();
-                        filteredRes.add(sanitized);
-                    }
+                    // Create sanitized copy without trainer details
+                    ResourceItem sanitized = ResourceItem.builder()
+                            .id(r.getId())
+                            .courseId(r.getCourseId())
+                            .moduleId(r.getModuleId())
+                            .title(r.getTitle())
+                            .resourceType(r.getResourceType())
+                            .urlOrPath(r.getUrlOrPath())
+                            .fileSize(r.getFileSize())
+                            .description(r.getDescription())
+                            .richContent(r.getRichContent())
+                            .videoEmbedUrl(r.getVideoEmbedUrl())
+                            .imageUrls(r.getImageUrls())
+                            .orderIndex(r.getOrderIndex())
+                            .visibilityScope(r.getVisibilityScope())
+                            .institutionId(r.getInstitutionId())
+                            .institutionName(r.getInstitutionName())
+                            .uploaderTrainerId(null) // Redacted
+                            .uploaderTrainerName(null) // Redacted
+                            .createdAt(r.getCreatedAt())
+                            .build();
+                    filteredRes.add(sanitized);
                 } else {
                     filteredRes.add(r);
                 }

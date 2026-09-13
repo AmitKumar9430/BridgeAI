@@ -26,6 +26,11 @@ public class AssignmentSubmission {
     @Column(length = 100)
     private String studentName;
 
+    private Long institutionId;
+
+    @Column(length = 150)
+    private String institutionName;
+
     @Column(length = 30)
     private String submissionType; // FILE_UPLOAD, GITHUB_LINK, TEXT_RESPONSE
 

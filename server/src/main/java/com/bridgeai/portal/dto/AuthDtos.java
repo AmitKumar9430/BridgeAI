@@ -173,6 +173,8 @@ public class AuthDtos {
 
         private String details;
 
+        private Long institutionId;
+
         private String institutionName;
 
         private String assignedSubject;

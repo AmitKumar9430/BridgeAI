@@ -22,9 +22,23 @@ public class AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final AssignmentSubmissionRepository submissionRepository;
     private final AssignmentAuditLogRepository auditLogRepository;
+    private final com.bridgeai.portal.security.InstitutionSecurityUtils institutionSecurityUtils;
 
     public List<Assignment> getAllAssignments() {
-        return assignmentRepository.findAll();
+        return getAllAssignments(null);
+    }
+
+    public List<Assignment> getAllAssignments(com.bridgeai.portal.model.User user) {
+        if (user == null || user.getRole() == com.bridgeai.portal.model.Role.ROLE_BOSS_ADMIN) {
+            return assignmentRepository.findAllByOrderByCreatedAtDesc();
+        }
+        if (user.getInstitutionId() != null) {
+            return assignmentRepository.findByInstitutionIdOrderByCreatedAtDesc(user.getInstitutionId());
+        }
+        if (user.getInstitutionName() != null && !user.getInstitutionName().isBlank()) {
+            return assignmentRepository.findByInstitutionNameOrderByCreatedAtDesc(user.getInstitutionName());
+        }
+        return java.util.Collections.emptyList();
     }
 
     public List<Assignment> getAssignmentsByCourse(Long courseId) {
@@ -36,9 +50,24 @@ public class AssignmentService {
     }
 
     public List<AssignmentWithSubmissionDto> getAssignmentsForStudent(Long courseId, Long studentId) {
-        List<Assignment> assignments = courseId != null && courseId > 0 
-                ? assignmentRepository.findByCourseId(courseId) 
-                : assignmentRepository.findAll();
+        return getAssignmentsForStudent(courseId, studentId, null);
+    }
+
+    public List<AssignmentWithSubmissionDto> getAssignmentsForStudent(Long courseId, Long studentId, com.bridgeai.portal.model.User student) {
+        List<Assignment> assignments;
+        if (student == null || student.getRole() == com.bridgeai.portal.model.Role.ROLE_BOSS_ADMIN) {
+            assignments = courseId != null && courseId > 0 
+                    ? assignmentRepository.findByCourseId(courseId) 
+                    : assignmentRepository.findAllByOrderByCreatedAtDesc();
+        } else if (student.getInstitutionId() != null) {
+            assignments = courseId != null && courseId > 0
+                    ? assignmentRepository.findByCourseIdAndInstitutionId(courseId, student.getInstitutionId())
+                    : assignmentRepository.findByInstitutionIdOrderByCreatedAtDesc(student.getInstitutionId());
+        } else if (student.getInstitutionName() != null && !student.getInstitutionName().isBlank()) {
+            assignments = assignmentRepository.findByInstitutionNameOrderByCreatedAtDesc(student.getInstitutionName());
+        } else {
+            assignments = java.util.Collections.emptyList();
+        }
         List<AssignmentWithSubmissionDto> dtos = new ArrayList<>();
 
         for (Assignment a : assignments) {
@@ -81,10 +110,17 @@ public class AssignmentService {
 
     @Transactional
     public Assignment createAssignment(CreateAssignmentRequest req, Long trainerId, String trainerName) {
+        return createAssignment(req, trainerId, trainerName, null, null);
+    }
+
+    @Transactional
+    public Assignment createAssignment(CreateAssignmentRequest req, Long trainerId, String trainerName, Long institutionId, String institutionName) {
         Assignment assignment = Assignment.builder()
                 .courseId(req.getCourseId() != null ? req.getCourseId() : 1L)
                 .trainerId(trainerId)
                 .trainerName(trainerName)
+                .institutionId(institutionId)
+                .institutionName(institutionName)
                 .subjectName(req.getSubjectName() != null ? req.getSubjectName() : "General Computer Science")
                 .title(req.getTitle())
                 .description(req.getDescription())
@@ -120,10 +156,14 @@ public class AssignmentService {
                     .assignmentId(req.getAssignmentId())
                     .studentId(studentId)
                     .studentName(studentName)
+                    .institutionId(assignment.getInstitutionId())
+                    .institutionName(assignment.getInstitutionName())
                     .canEdit(assignment.isAllowResubmission())
                     .build();
         }
 
+        submission.setInstitutionId(assignment.getInstitutionId());
+        submission.setInstitutionName(assignment.getInstitutionName());
         submission.setSubmissionType(req.getSubmissionType() != null ? req.getSubmissionType() : "PDF");
         submission.setSubmissionContent(req.getSubmissionContent());
         submission.setPdfSubmissionUrl(req.getPdfSubmissionUrl());

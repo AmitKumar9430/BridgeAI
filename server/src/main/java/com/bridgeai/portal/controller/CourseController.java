@@ -31,6 +31,7 @@ public class CourseController {
     private final TrainingService trainingService;
     private final ExamService examService;
     private final UserRepository userRepository;
+    private final com.bridgeai.portal.security.InstitutionSecurityUtils institutionSecurityUtils;
 
     @GetMapping
     public ResponseEntity<List<Course>> getAllCourses(
@@ -40,9 +41,12 @@ public class CourseController {
         if (auth != null) {
             user = userRepository.findByEmail(auth.getName()).orElse(null);
         }
-        if (user != null && user.getRole() == Role.ROLE_STUDENT) {
-            String instName = (institutionName != null && !institutionName.isBlank()) ? institutionName : user.getInstitutionName();
-            return ResponseEntity.ok(trainingService.getCoursesForStudent(instName, user));
+        if (user != null) {
+            if (user.getRole() == Role.ROLE_STUDENT) {
+                return ResponseEntity.ok(trainingService.getCoursesForStudent(user.getInstitutionName(), user));
+            } else if (user.getRole() == Role.ROLE_SUPER_ADMIN || user.getRole() == Role.ROLE_TRAINER) {
+                return ResponseEntity.ok(trainingService.getCoursesByInstitution(user.getInstitutionName()));
+            }
         }
         if (institutionName != null && !institutionName.isBlank()) {
             return ResponseEntity.ok(trainingService.getCoursesByInstitution(institutionName.trim()));
@@ -60,9 +64,14 @@ public class CourseController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // If Boss Admin or Super Admin, return all courses
-        if (user.getRole() == Role.ROLE_BOSS_ADMIN || user.getRole() == Role.ROLE_SUPER_ADMIN) {
+        // If Boss Admin, return all courses across the portal
+        if (user.getRole() == Role.ROLE_BOSS_ADMIN) {
             return ResponseEntity.ok(trainingService.getAllCourses());
+        }
+
+        // If Super Admin, strictly return courses belonging to their own institution
+        if (user.getRole() == Role.ROLE_SUPER_ADMIN) {
+            return ResponseEntity.ok(trainingService.getCoursesByInstitution(user.getInstitutionName()));
         }
 
         // If Trainer, strictly return only courses assigned to this trainer!
@@ -70,7 +79,7 @@ public class CourseController {
             return ResponseEntity.ok(trainingService.getCoursesForTrainer(user.getId()));
         }
 
-        return ResponseEntity.ok(trainingService.getAllCourses());
+        return ResponseEntity.ok(trainingService.getCoursesForStudent(user.getInstitutionName(), user));
     }
 
     @GetMapping("/{id}")
@@ -114,9 +123,15 @@ public class CourseController {
     public ResponseEntity<Course> createCourse(@RequestBody Course course, Authentication auth) {
         if (auth != null) {
             User user = userRepository.findByEmail(auth.getName()).orElse(null);
-            if (user != null && course.getTrainerId() == null) {
-                course.setTrainerId(user.getId());
-                course.setTrainerName(user.getFullName());
+            if (user != null) {
+                if (user.getRole() != Role.ROLE_BOSS_ADMIN) {
+                    course.setInstitutionId(user.getInstitutionId());
+                    course.setInstitutionName(user.getInstitutionName());
+                }
+                if (course.getTrainerId() == null) {
+                    course.setTrainerId(user.getId());
+                    course.setTrainerName(user.getFullName());
+                }
             }
         }
         return ResponseEntity.ok(trainingService.createCourse(course));
@@ -128,15 +143,18 @@ public class CourseController {
         Course course = trainingService.getCourseById(courseId);
         if (auth != null) {
             User user = userRepository.findByEmail(auth.getName()).orElse(null);
-            if (user != null && user.getRole() == Role.ROLE_TRAINER) {
-                boolean isConcernedFaculty = trainingService.isTrainerAssignedToCourse(courseId, user.getId())
-                        || (course.getTrainerName() != null && course.getTrainerName().equalsIgnoreCase(user.getFullName()));
-                if (!isConcernedFaculty) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
-                            "success", false,
-                            "error", "Access Denied",
-                            "message", "Unauthorized: Modules for subject '" + course.getTitle() + "' can only be created by the concerned faculty (" + (course.getTrainerName() != null ? course.getTrainerName() : "Assigned Trainer") + ")."
-                    ));
+            if (user != null) {
+                institutionSecurityUtils.assertInstitutionAccess(user, course.getInstitutionId(), course.getInstitutionName());
+                if (user.getRole() == Role.ROLE_TRAINER) {
+                    boolean isConcernedFaculty = trainingService.isTrainerAssignedToCourse(courseId, user.getId())
+                            || (course.getTrainerName() != null && course.getTrainerName().equalsIgnoreCase(user.getFullName()));
+                    if (!isConcernedFaculty) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                                "success", false,
+                                "error", "Access Denied",
+                                "message", "Unauthorized: Modules for subject '" + course.getTitle() + "' can only be created by the concerned faculty (" + (course.getTrainerName() != null ? course.getTrainerName() : "Assigned Trainer") + ")."
+                        ));
+                    }
                 }
             }
         }
@@ -158,8 +176,13 @@ public class CourseController {
         if (auth != null) {
             User user = userRepository.findByEmail(auth.getName()).orElse(null);
             if (user != null) {
+                institutionSecurityUtils.assertInstitutionAccess(user, course.getInstitutionId(), course.getInstitutionName());
                 trainerId = user.getId();
                 trainerName = user.getFullName();
+                if (user.getRole() != Role.ROLE_BOSS_ADMIN) {
+                    dto.setInstitutionId(user.getInstitutionId());
+                    dto.setInstitutionName(user.getInstitutionName());
+                }
                 if (user.getRole() == Role.ROLE_TRAINER) {
                     boolean isConcernedFaculty = trainingService.isTrainerAssignedToCourse(courseId, user.getId())
                             || (course.getTrainerName() != null && course.getTrainerName().equalsIgnoreCase(user.getFullName()));
@@ -195,8 +218,13 @@ public class CourseController {
         if (auth != null) {
             User user = userRepository.findByEmail(auth.getName()).orElse(null);
             if (user != null) {
+                institutionSecurityUtils.assertInstitutionAccess(user, course.getInstitutionId(), course.getInstitutionName());
                 trainerId = user.getId();
                 trainerName = user.getFullName();
+                if (user.getRole() != Role.ROLE_BOSS_ADMIN) {
+                    examReq.setInstitutionId(user.getInstitutionId());
+                    examReq.setInstitutionName(user.getInstitutionName());
+                }
                 if (user.getRole() == Role.ROLE_TRAINER) {
                     boolean isConcernedFaculty = trainingService.isTrainerAssignedToCourse(courseId, user.getId())
                             || (course.getTrainerName() != null && course.getTrainerName().equalsIgnoreCase(user.getFullName()));
@@ -219,13 +247,23 @@ public class CourseController {
 
     @PutMapping("/{courseId}")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN')")
-    public ResponseEntity<Course> updateCourse(@PathVariable Long courseId, @RequestBody Course course) {
+    public ResponseEntity<Course> updateCourse(@PathVariable Long courseId, @RequestBody Course course, Authentication auth) {
+        if (auth != null) {
+            User user = userRepository.findByEmail(auth.getName()).orElse(null);
+            Course existing = trainingService.getCourseById(courseId);
+            institutionSecurityUtils.assertInstitutionAccess(user, existing.getInstitutionId(), existing.getInstitutionName());
+        }
         return ResponseEntity.ok(trainingService.updateCourse(courseId, course));
     }
 
     @DeleteMapping("/{courseId}")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN')")
-    public ResponseEntity<Void> deleteCourse(@PathVariable Long courseId) {
+    public ResponseEntity<Void> deleteCourse(@PathVariable Long courseId, Authentication auth) {
+        if (auth != null) {
+            User user = userRepository.findByEmail(auth.getName()).orElse(null);
+            Course existing = trainingService.getCourseById(courseId);
+            institutionSecurityUtils.assertInstitutionAccess(user, existing.getInstitutionId(), existing.getInstitutionName());
+        }
         trainingService.deleteCourse(courseId);
         return ResponseEntity.noContent().build();
     }

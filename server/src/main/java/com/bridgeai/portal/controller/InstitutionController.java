@@ -46,8 +46,8 @@ public class InstitutionController {
     // Get multi-tier organizational tree: Institution -> Super Admins -> Trainers -> Subjects
     @GetMapping("/hierarchy")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN')")
-    public ResponseEntity<List<HierarchyInstitutionNode>> getHierarchyTree() {
-        return ResponseEntity.ok(institutionService.getHierarchyTree());
+    public ResponseEntity<List<HierarchyInstitutionNode>> getHierarchyTree(Authentication auth) {
+        return ResponseEntity.ok(institutionService.getHierarchyTree(auth));
     }
 
     // Get comprehensive profile of any user (Super Admin, Trainer, Student)

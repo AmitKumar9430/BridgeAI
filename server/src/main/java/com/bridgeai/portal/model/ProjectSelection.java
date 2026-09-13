@@ -30,6 +30,8 @@ public class ProjectSelection {
     @Column(length = 150)
     private String studentEmail;
 
+    private Long institutionId;
+
     @Column(length = 150)
     private String institutionName;
 

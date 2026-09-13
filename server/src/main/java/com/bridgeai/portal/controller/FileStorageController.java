@@ -36,15 +36,19 @@ public class FileStorageController {
         try {
             Long userId = null;
             String userName = "Anonymous";
+            Long institutionId = null;
+            String institutionName = null;
             if (auth != null && auth.getName() != null) {
                 User user = userRepository.findByEmail(auth.getName()).orElse(null);
                 if (user != null) {
                     userId = user.getId();
                     userName = user.getFullName();
+                    institutionId = user.getInstitutionId();
+                    institutionName = user.getInstitutionName();
                 }
             }
 
-            StoredFile stored = fileStorageService.storeFile(file, category, userId, userName);
+            StoredFile stored = fileStorageService.storeFile(file, category, userId, userName, institutionId, institutionName);
 
             Map<String, Object> resp = new HashMap<>();
             resp.put("success", true);

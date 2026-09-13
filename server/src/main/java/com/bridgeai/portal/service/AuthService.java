@@ -26,6 +26,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final AuditLogService auditLogService;
+    private final com.bridgeai.portal.security.InstitutionSecurityUtils institutionSecurityUtils;
 
     public List<java.util.Map<String, Object>> getPublicInstitutions() {
         return institutionRepository.findAll().stream()
@@ -306,7 +307,10 @@ public class AuthService {
         }
 
         String inst = request.getInstitutionName() != null ? request.getInstitutionName().trim() : null;
-        // One institution can be provided with multiple Super Admins as per requirements by Boss Admin
+        Long instId = request.getInstitutionId();
+        if (instId == null && inst != null && !inst.isBlank()) {
+            instId = institutionRepository.findByName(inst).map(Institution::getId).orElse(null);
+        }
 
         String rawPassword = request.getPassword() != null && !request.getPassword().isBlank() 
                 ? request.getPassword() : "SuperAdmin@2026";
@@ -317,6 +321,7 @@ public class AuthService {
                 .fullName(request.getFullName())
                 .phone(request.getPhone())
                 .role(Role.ROLE_SUPER_ADMIN)
+                .institutionId(instId)
                 .institutionName(inst)
                 .active(true)
                 .createdAt(LocalDateTime.now())
@@ -326,9 +331,8 @@ public class AuthService {
         auditLogService.log(createdByEmail, "ROLE_BOSS_ADMIN", "SUPER_ADMIN_CREATED", "User", user.getId(), 
                 "Boss Admin created Super Admin: " + user.getFullName() + " for Institute: " + inst, ip);
         return toDto(user);
-    
-
     }
+
     @Transactional
     public UserDto createTrainer(CreateUserRequest request, String createdByEmail, String createdByRole, String ip) {
         String email = request.getEmail().trim().toLowerCase();
@@ -337,10 +341,15 @@ public class AuthService {
         }
 
         String instName = request.getInstitutionName();
-        // Super Admin creates trainer under their own institution
+        Long instId = request.getInstitutionId();
+
+        // Super Admin strictly creates trainer under their own institution
         User creator = userRepository.findByEmail(createdByEmail).orElse(null);
-        if (creator != null && creator.getRole() == Role.ROLE_SUPER_ADMIN && creator.getInstitutionName() != null) {
+        if (creator != null && creator.getRole() == Role.ROLE_SUPER_ADMIN) {
             instName = creator.getInstitutionName();
+            instId = creator.getInstitutionId();
+        } else if (instId == null && instName != null && !instName.isBlank()) {
+            instId = institutionRepository.findByName(instName).map(Institution::getId).orElse(null);
         }
 
         Long superAdminId = (creator != null && creator.getRole() == Role.ROLE_SUPER_ADMIN) ? creator.getId() : request.getSuperAdminId();
@@ -355,6 +364,7 @@ public class AuthService {
                 .fullName(request.getFullName())
                 .phone(request.getPhone())
                 .role(Role.ROLE_TRAINER)
+                .institutionId(instId)
                 .institutionName(instName)
                 .assignedSubject(request.getAssignedSubject())
                 .superAdminId(superAdminId)
@@ -464,6 +474,10 @@ public class AuthService {
     public UserDto updateUser(Long userId, CreateUserRequest req, String actor, String ip) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        User actorUser = userRepository.findByEmail(actor).orElse(null);
+        institutionSecurityUtils.assertInstitutionAccess(actorUser, user.getInstitutionId(), user.getInstitutionName());
+
         if (req.getFullName() != null && !req.getFullName().isBlank()) {
             user.setFullName(req.getFullName().trim());
         }
@@ -477,9 +491,8 @@ public class AuthService {
         auditLogService.log(actor, "ADMIN", "USER_UPDATED", "User", user.getId(),
                 "Updated user details for: " + user.getFullName() + " (" + user.getEmail() + ")", ip);
         return toDto(user);
-    
-
     }
+
     @Transactional
     public void deleteTrainer(Long userId, String actor, String ip) {
         User user = userRepository.findById(userId)
@@ -487,13 +500,16 @@ public class AuthService {
         if (user.getRole() != Role.ROLE_TRAINER) {
             throw new IllegalArgumentException("User is not a trainer");
         }
+
+        User actorUser = userRepository.findByEmail(actor).orElse(null);
+        institutionSecurityUtils.assertInstitutionAccess(actorUser, user.getInstitutionId(), user.getInstitutionName());
+
         String name = user.getFullName();
         userRepository.delete(user);
         auditLogService.log(actor, "ADMIN", "TRAINER_DELETED", "User", userId,
                 "Trainer deleted: " + name, ip);
-    
-
     }
+
     @Transactional
     public void deleteStudent(Long userId, String actor, String ip) {
         User user = userRepository.findById(userId)
@@ -501,6 +517,10 @@ public class AuthService {
         if (user.getRole() != Role.ROLE_STUDENT) {
             throw new IllegalArgumentException("User is not a student");
         }
+
+        User actorUser = userRepository.findByEmail(actor).orElse(null);
+        institutionSecurityUtils.assertInstitutionAccess(actorUser, user.getInstitutionId(), user.getInstitutionName());
+
         String name = user.getFullName();
         userRepository.delete(user);
         auditLogService.log(actor, "ADMIN", "STUDENT_DELETED", "User", userId,

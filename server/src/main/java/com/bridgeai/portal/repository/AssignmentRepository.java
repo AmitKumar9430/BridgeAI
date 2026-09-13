@@ -11,4 +11,8 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     List<Assignment> findByCourseId(Long courseId);
     List<Assignment> findByTrainerId(Long trainerId);
     List<Assignment> findBySubjectName(String subjectName);
+    List<Assignment> findByInstitutionIdOrderByCreatedAtDesc(Long institutionId);
+    List<Assignment> findByInstitutionNameOrderByCreatedAtDesc(String institutionName);
+    List<Assignment> findByCourseIdAndInstitutionId(Long courseId, Long institutionId);
+    List<Assignment> findAllByOrderByCreatedAtDesc();
 }

@@ -29,6 +29,11 @@ public class ProjectTeam {
     @Column(length = 100)
     private String leaderName;
 
+    private Long institutionId;
+
+    @Column(length = 150)
+    private String institutionName;
+
     @Column(length = 500)
     private String zipFileUrl;
 

@@ -32,7 +32,33 @@ public class ProjectService {
         return projectRepository.findAll();
     }
 
+    public List<ProjectWork> getAllProjects(User user) {
+        if (user == null || user.getRole() == Role.ROLE_BOSS_ADMIN) {
+            return projectRepository.findAll();
+        }
+        if (user.getInstitutionId() != null) {
+            return projectRepository.findByInstitutionId(user.getInstitutionId());
+        }
+        if (user.getInstitutionName() != null && !user.getInstitutionName().isBlank()) {
+            return projectRepository.findByInstitutionNameIgnoreCase(user.getInstitutionName());
+        }
+        return projectRepository.findAll();
+    }
+
     public List<ProjectWork> getAvailableTopics() {
+        return projectRepository.findByAvailableForSelectionTrue();
+    }
+
+    public List<ProjectWork> getAvailableTopics(User user) {
+        if (user == null || user.getRole() == Role.ROLE_BOSS_ADMIN) {
+            return projectRepository.findByAvailableForSelectionTrue();
+        }
+        if (user.getInstitutionId() != null) {
+            return projectRepository.findByInstitutionIdAndAvailableForSelectionTrue(user.getInstitutionId());
+        }
+        if (user.getInstitutionName() != null && !user.getInstitutionName().isBlank()) {
+            return projectRepository.findByInstitutionNameIgnoreCaseAndAvailableForSelectionTrue(user.getInstitutionName());
+        }
         return projectRepository.findByAvailableForSelectionTrue();
     }
 
@@ -45,7 +71,7 @@ public class ProjectService {
     }
 
     @Transactional
-    public ProjectWork createProjectTopic(CreateProjectRequest req, Long trainerId, String trainerName, String institutionName) {
+    public ProjectWork createProjectTopic(CreateProjectRequest req, Long trainerId, String trainerName, String institutionName, Long institutionId) {
         LocalDate deadlineDate = req.getDeadline() != null ? req.getDeadline().toLocalDate() : LocalDate.now().plusMonths(1);
         int minSize = (req.getMinTeamSize() != null && req.getMinTeamSize() > 0) ? req.getMinTeamSize() : 2;
         int maxSize = (req.getMaxTeamSize() != null && req.getMaxTeamSize() >= minSize) ? req.getMaxTeamSize() : Math.max(minSize, 4);
@@ -55,6 +81,7 @@ public class ProjectService {
                 .trainerId(trainerId)
                 .trainerName(trainerName)
                 .institutionName(institutionName)
+                .institutionId(institutionId)
                 .subjectName(req.getSubjectName() != null ? req.getSubjectName() : "Computer Science & AI")
                 .title(req.getTitle())
                 .description(req.getDescription())
@@ -67,13 +94,24 @@ public class ProjectService {
                 .createdAt(LocalDateTime.now())
                 .build();
         return projectRepository.save(project);
-    
-
     }
+
     @Transactional
     public ProjectSelection selectTopic(Long topicId, Long studentId, String studentName, String studentEmail, String instName) {
         ProjectWork topic = projectRepository.findById(topicId)
                 .orElseThrow(() -> new IllegalArgumentException("Project Topic not found: " + topicId));
+
+        User student = userRepository.findById(studentId).orElse(null);
+        Long resolvedInstId = student != null ? student.getInstitutionId() : null;
+        String resolvedInstName = (student != null && student.getInstitutionName() != null) ? student.getInstitutionName() : instName;
+
+        // Verify that student belongs to the topic's institution (if topic is institution-specific)
+        if (topic.getInstitutionId() != null && resolvedInstId != null && !topic.getInstitutionId().equals(resolvedInstId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied: You cannot select a project from another institution.");
+        } else if (topic.getInstitutionName() != null && resolvedInstName != null &&
+                !topic.getInstitutionName().equalsIgnoreCase(resolvedInstName)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied: You cannot select a project from another institution.");
+        }
 
         // 1. Record topic selection idempotently
         ProjectSelection selection = selectionRepository.findByTopicIdAndStudentId(topicId, studentId)
@@ -85,7 +123,8 @@ public class ProjectService {
                     .studentId(studentId)
                     .studentName(studentName)
                     .studentEmail(studentEmail)
-                    .institutionName(instName != null ? instName : "Indian Institute of Technology (IIT)")
+                    .institutionId(resolvedInstId)
+                    .institutionName(resolvedInstName != null ? resolvedInstName : "Indian Institute of Technology (IIT)")
                     .selectedAt(LocalDateTime.now())
                     .build();
             selection = selectionRepository.save(selection);
@@ -100,6 +139,8 @@ public class ProjectService {
                     .teamName(initialTeamName)
                     .leaderId(studentId)
                     .leaderName(studentName)
+                    .institutionId(resolvedInstId)
+                    .institutionName(resolvedInstName != null ? resolvedInstName : "Indian Institute of Technology (IIT)")
                     .status("FORMING")
                     .createdAt(LocalDateTime.now())
                     .build();
@@ -124,6 +165,10 @@ public class ProjectService {
         ProjectWork topic = projectRepository.findById(topicId).orElse(null);
         int effectiveMaxSize = (topic != null && topic.getMaxTeamSize() > 0) ? topic.getMaxTeamSize() : 4;
 
+        User currentStudent = userRepository.findById(currentStudentId).orElse(null);
+        Long myInstId = currentStudent != null ? currentStudent.getInstitutionId() : null;
+        String myInstName = currentStudent != null ? currentStudent.getInstitutionName() : null;
+
         List<ProjectSelection> selections = selectionRepository.findByTopicId(topicId);
         List<StudentPeerDto> peers = new ArrayList<>();
 
@@ -140,6 +185,13 @@ public class ProjectService {
 
         for (ProjectSelection sel : selections) {
             if (sel.getStudentId().equals(currentStudentId)) {
+                continue;
+            }
+
+            // Enforce multi-tenant isolation: peer must belong to the same institution
+            if (myInstId != null && sel.getInstitutionId() != null && !myInstId.equals(sel.getInstitutionId())) {
+                continue;
+            } else if (myInstName != null && sel.getInstitutionName() != null && !myInstName.equalsIgnoreCase(sel.getInstitutionName())) {
                 continue;
             }
 
@@ -302,6 +354,18 @@ public class ProjectService {
 
         User recipientUser = userRepository.findById(recipientStudentId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipient student not found: " + recipientStudentId));
+        User senderUser = userRepository.findById(senderId).orElse(null);
+
+        // Enforce multi-tenant isolation: sender and recipient must belong to the same institution
+        if (senderUser != null) {
+            if (senderUser.getInstitutionId() != null && recipientUser.getInstitutionId() != null &&
+                    !senderUser.getInstitutionId().equals(recipientUser.getInstitutionId())) {
+                throw new org.springframework.security.access.AccessDeniedException("Cross-institution team invitation is strictly prohibited.");
+            } else if (senderUser.getInstitutionName() != null && recipientUser.getInstitutionName() != null &&
+                    !senderUser.getInstitutionName().equalsIgnoreCase(recipientUser.getInstitutionName())) {
+                throw new org.springframework.security.access.AccessDeniedException("Cross-institution team invitation is strictly prohibited.");
+            }
+        }
 
         ProjectInvite invite = ProjectInvite.builder()
                 .teamId(teamId)
@@ -537,6 +601,17 @@ public class ProjectService {
     public ProjectTeam joinTeam(Long teamId, Long studentId, String studentName, String studentEmail) {
         ProjectTeam team = teamRepository.findByIdForUpdate(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamId));
+
+        User joiningUser = userRepository.findById(studentId).orElse(null);
+        if (joiningUser != null) {
+            if (team.getInstitutionId() != null && joiningUser.getInstitutionId() != null &&
+                    !team.getInstitutionId().equals(joiningUser.getInstitutionId())) {
+                throw new org.springframework.security.access.AccessDeniedException("Cross-institution team joining is strictly prohibited.");
+            } else if (team.getInstitutionName() != null && joiningUser.getInstitutionName() != null &&
+                    !team.getInstitutionName().equalsIgnoreCase(joiningUser.getInstitutionName())) {
+                throw new org.springframework.security.access.AccessDeniedException("Cross-institution team joining is strictly prohibited.");
+            }
+        }
 
         if ("SUBMITTED".equalsIgnoreCase(team.getStatus()) || "EVALUATED".equalsIgnoreCase(team.getStatus()) || "DISSOLVED".equalsIgnoreCase(team.getStatus())) {
             throw new IllegalStateException("Cannot join team: Team is " + team.getStatus());

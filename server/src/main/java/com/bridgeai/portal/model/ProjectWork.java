@@ -37,6 +37,8 @@ public class ProjectWork {
     @Column(length = 150)
     private String institutionName;
 
+    private Long institutionId;
+
     @Column(nullable = false, length = 150)
     private String title;
 

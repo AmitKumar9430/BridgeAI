@@ -2,7 +2,9 @@ package com.bridgeai.portal.controller;
 
 import com.bridgeai.portal.dto.ProjectDtos.*;
 import com.bridgeai.portal.model.*;
+import com.bridgeai.portal.repository.ProjectWorkRepository;
 import com.bridgeai.portal.repository.UserRepository;
+import com.bridgeai.portal.security.InstitutionSecurityUtils;
 import com.bridgeai.portal.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,8 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final UserRepository userRepository;
+    private final ProjectWorkRepository projectWorkRepository;
+    private final InstitutionSecurityUtils institutionSecurityUtils;
 
     private User resolveUser(Authentication auth) {
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
@@ -37,13 +41,15 @@ public class ProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProjectWork>> getAllProjects() {
-        return ResponseEntity.ok(projectService.getAllProjects());
+    public ResponseEntity<List<ProjectWork>> getAllProjects(Authentication auth) {
+        User user = resolveUser(auth);
+        return ResponseEntity.ok(projectService.getAllProjects(user));
     }
 
     @GetMapping("/topics")
-    public ResponseEntity<List<ProjectWork>> getAvailableTopics() {
-        return ResponseEntity.ok(projectService.getAvailableTopics());
+    public ResponseEntity<List<ProjectWork>> getAvailableTopics(Authentication auth) {
+        User user = resolveUser(auth);
+        return ResponseEntity.ok(projectService.getAvailableTopics(user));
     }
 
     @GetMapping("/my-projects")
@@ -63,7 +69,7 @@ public class ProjectController {
         User user = requireUser(auth);
         String trainerName = user.getFullName() != null ? user.getFullName() : "Trainer";
         String instName = user.getInstitutionName() != null ? user.getInstitutionName() : "Main Institute";
-        return ResponseEntity.ok(projectService.createProjectTopic(req, user.getId(), trainerName, instName));
+        return ResponseEntity.ok(projectService.createProjectTopic(req, user.getId(), trainerName, instName, user.getInstitutionId()));
     }
 
     // 1. Topic selection
@@ -165,7 +171,12 @@ public class ProjectController {
     // 11. Trainer gets all teams for a topic
     @GetMapping("/topics/{topicId}/teams")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
-    public ResponseEntity<List<TeamDetailsDto>> getTeamsForTopic(@PathVariable Long topicId) {
+    public ResponseEntity<List<TeamDetailsDto>> getTeamsForTopic(@PathVariable Long topicId, Authentication auth) {
+        User user = requireUser(auth);
+        ProjectWork topic = projectWorkRepository.findById(topicId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Topic not found"));
+        institutionSecurityUtils.assertInstitutionAccess(user, topic.getInstitutionId(), topic.getInstitutionName());
         return ResponseEntity.ok(projectService.getTeamsForTopic(topicId));
     }
 
@@ -194,6 +205,10 @@ public class ProjectController {
             @RequestBody GradeProjectRequest req,
             Authentication auth) {
         User user = requireUser(auth);
+        ProjectWork project = projectWorkRepository.findById(projectId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Project not found"));
+        institutionSecurityUtils.assertInstitutionAccess(user, project.getInstitutionId(), project.getInstitutionName());
         return ResponseEntity.ok(projectService.gradeProject(projectId, req, user.getId()));
     }
 
@@ -201,13 +216,24 @@ public class ProjectController {
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
     public ResponseEntity<ProjectWork> updateProjectTopic(
             @PathVariable Long topicId,
-            @RequestBody CreateProjectRequest req) {
+            @RequestBody CreateProjectRequest req,
+            Authentication auth) {
+        User user = requireUser(auth);
+        ProjectWork topic = projectWorkRepository.findById(topicId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Topic not found"));
+        institutionSecurityUtils.assertInstitutionAccess(user, topic.getInstitutionId(), topic.getInstitutionName());
         return ResponseEntity.ok(projectService.updateProjectTopic(topicId, req));
     }
 
     @DeleteMapping("/topics/{topicId}")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
-    public ResponseEntity<Void> deleteProjectTopic(@PathVariable Long topicId) {
+    public ResponseEntity<Void> deleteProjectTopic(@PathVariable Long topicId, Authentication auth) {
+        User user = requireUser(auth);
+        ProjectWork topic = projectWorkRepository.findById(topicId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Topic not found"));
+        institutionSecurityUtils.assertInstitutionAccess(user, topic.getInstitutionId(), topic.getInstitutionName());
         projectService.deleteProjectTopic(topicId);
         return ResponseEntity.noContent().build();
     }

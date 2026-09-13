@@ -23,6 +23,11 @@ public class AuditLog {
     @Column(length = 40)
     private String performedByRole;
 
+    private Long institutionId;
+
+    @Column(length = 150)
+    private String institutionName;
+
     @Column(nullable = false, length = 80)
     private String action; // USER_REGISTERED, OTP_SENT, LOGIN_OTP_SUCCESS, EXAM_STARTED, EXAM_VIOLATION, EXAM_SUBMITTED, COURSE_CREATED
 

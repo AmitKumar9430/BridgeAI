@@ -23,6 +23,11 @@ public class FileStorageService {
 
     @Transactional
     public StoredFile storeFile(MultipartFile file, String category, Long userId, String userName) throws IOException {
+        return storeFile(file, category, userId, userName, null, null);
+    }
+
+    @Transactional
+    public StoredFile storeFile(MultipartFile file, String category, Long userId, String userName, Long institutionId, String institutionName) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Cannot upload an empty file");
         }
@@ -45,12 +50,14 @@ public class FileStorageService {
                 .category(category != null && !category.isBlank() ? category.trim() : "GENERAL")
                 .uploadedById(userId)
                 .uploadedByName(userName)
+                .institutionId(institutionId)
+                .institutionName(institutionName)
                 .uploadedAt(LocalDateTime.now())
                 .build();
 
         StoredFile saved = storedFileRepository.save(storedFile);
-        log.info("Persisted file to Aiven MySQL: id={}, name={}, size={} bytes, category={}", 
-                saved.getId(), saved.getFileName(), saved.getFileSize(), saved.getCategory());
+        log.info("Persisted file to Aiven MySQL: id={}, name={}, size={} bytes, category={}, institution={}", 
+                saved.getId(), saved.getFileName(), saved.getFileSize(), saved.getCategory(), saved.getInstitutionName());
         return saved;
     }
 

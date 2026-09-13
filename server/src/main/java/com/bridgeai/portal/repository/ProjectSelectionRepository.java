@@ -12,4 +12,6 @@ public interface ProjectSelectionRepository extends JpaRepository<ProjectSelecti
     List<ProjectSelection> findByTopicId(Long topicId);
     Optional<ProjectSelection> findByTopicIdAndStudentId(Long topicId, Long studentId);
     List<ProjectSelection> findByStudentId(Long studentId);
+    List<ProjectSelection> findByTopicIdAndInstitutionId(Long topicId, Long institutionId);
+    List<ProjectSelection> findByTopicIdAndInstitutionNameIgnoreCase(Long topicId, String institutionName);
 }

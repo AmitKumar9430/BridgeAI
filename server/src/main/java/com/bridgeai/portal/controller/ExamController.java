@@ -26,10 +26,14 @@ public class ExamController {
     private final ExamService examService;
     private final ProctoringService proctoringService;
     private final UserRepository userRepository;
+    private final com.bridgeai.portal.repository.ExamAttemptRepository attemptRepository;
+    private final com.bridgeai.portal.security.InstitutionSecurityUtils institutionSecurityUtils;
 
     @GetMapping
-    public ResponseEntity<List<Exam>> getExams() {
-        return ResponseEntity.ok(examService.getAvailableExams());
+    public ResponseEntity<List<Exam>> getExams(Authentication auth) {
+        User user = (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser"))
+                ? userRepository.findByEmail(auth.getName()).orElse(null) : null;
+        return ResponseEntity.ok(examService.getAvailableExams(user));
     }
 
     private User resolveCandidate(Authentication auth) {
@@ -46,6 +50,8 @@ public class ExamController {
             Authentication auth,
             HttpServletRequest req) {
         User user = resolveCandidate(auth);
+        Exam exam = examService.getExamById(examId);
+        institutionSecurityUtils.assertInstitutionAccess(user, exam.getInstitutionId(), exam.getInstitutionName());
         String ip = req.getRemoteAddr();
         return ResponseEntity.ok(examService.startExam(examId, user.getId(), user.getFullName(), ip));
     }
@@ -67,7 +73,17 @@ public class ExamController {
     }
 
     @GetMapping("/attempts/{attemptId}/result")
-    public ResponseEntity<ExamResultResponse> getAttemptResult(@PathVariable Long attemptId) {
+    public ResponseEntity<ExamResultResponse> getAttemptResult(@PathVariable Long attemptId, Authentication auth) {
+        User caller = resolveCandidate(auth);
+        ExamAttempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new IllegalArgumentException("Attempt not found: " + attemptId));
+        if (caller.getRole() == com.bridgeai.portal.model.Role.ROLE_STUDENT) {
+            if (!attempt.getStudentId().equals(caller.getId())) {
+                throw new org.springframework.security.access.AccessDeniedException("Access Denied: You cannot view another student's exam result.");
+            }
+        } else {
+            institutionSecurityUtils.assertInstitutionAccess(caller, attempt.getInstitutionId(), attempt.getInstitutionName());
+        }
         return ResponseEntity.ok(examService.getAttemptResult(attemptId));
     }
 
@@ -79,14 +95,16 @@ public class ExamController {
 
     @GetMapping("/all")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
-    public ResponseEntity<List<Exam>> getAllExams() {
-        return ResponseEntity.ok(examService.getAllExams());
+    public ResponseEntity<List<Exam>> getAllExams(Authentication auth) {
+        User user = (auth != null) ? userRepository.findByEmail(auth.getName()).orElse(null) : null;
+        return ResponseEntity.ok(examService.getAllExams(user));
     }
 
     @GetMapping("/all-attempts")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
-    public ResponseEntity<List<ExamAttempt>> getAllAttempts() {
-        return ResponseEntity.ok(examService.getAllAttempts());
+    public ResponseEntity<List<ExamAttempt>> getAllAttempts(Authentication auth) {
+        User user = (auth != null) ? userRepository.findByEmail(auth.getName()).orElse(null) : null;
+        return ResponseEntity.ok(examService.getAllAttempts(user));
     }
 
     @PostMapping("/violation")
@@ -123,7 +141,7 @@ public class ExamController {
         String trainerName = (trainer != null && trainer.getFullName() != null)
                 ? trainer.getFullName()
                 : (request.getTrainerName() != null ? request.getTrainerName() : "Bharat Sharma");
-        if (request.getInstitutionId() == null && trainer != null) {
+        if (trainer != null && trainer.getRole() != com.bridgeai.portal.model.Role.ROLE_BOSS_ADMIN) {
             request.setInstitutionId(trainer.getInstitutionId());
             request.setInstitutionName(trainer.getInstitutionName());
         }
@@ -145,7 +163,14 @@ public class ExamController {
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
     public ResponseEntity<ExamAttempt> toggleReattempt(
             @PathVariable Long attemptId,
-            @RequestParam(defaultValue = "true") boolean allow) {
+            @RequestParam(defaultValue = "true") boolean allow,
+            Authentication auth) {
+        if (auth != null) {
+            User user = userRepository.findByEmail(auth.getName()).orElse(null);
+            ExamAttempt attempt = attemptRepository.findById(attemptId)
+                    .orElseThrow(() -> new IllegalArgumentException("Attempt not found: " + attemptId));
+            institutionSecurityUtils.assertInstitutionAccess(user, attempt.getInstitutionId(), attempt.getInstitutionName());
+        }
         return ResponseEntity.ok(examService.toggleReattempt(attemptId, allow));
     }
 
@@ -154,20 +179,32 @@ public class ExamController {
         User user = resolveCandidate(auth);
         Long studentId = user != null ? user.getId() : null;
         Long studentInstId = user != null ? user.getInstitutionId() : null;
-        return ResponseEntity.ok(examService.getStudentExamsWithStatus(studentId, studentInstId));
+        String studentInstName = user != null ? user.getInstitutionName() : null;
+        return ResponseEntity.ok(examService.getStudentExamsWithStatus(studentId, studentInstId, studentInstName));
     }
 
     @PutMapping("/{examId}")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
     public ResponseEntity<Exam> updateExam(
             @PathVariable Long examId,
-            @RequestBody ScheduleExamRequest request) {
+            @RequestBody ScheduleExamRequest request,
+            Authentication auth) {
+        if (auth != null) {
+            User user = userRepository.findByEmail(auth.getName()).orElse(null);
+            Exam exam = examService.getExamById(examId);
+            institutionSecurityUtils.assertInstitutionAccess(user, exam.getInstitutionId(), exam.getInstitutionName());
+        }
         return ResponseEntity.ok(examService.updateExam(examId, request));
     }
 
     @DeleteMapping("/{examId}")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
-    public ResponseEntity<Void> deleteExam(@PathVariable Long examId) {
+    public ResponseEntity<Void> deleteExam(@PathVariable Long examId, Authentication auth) {
+        if (auth != null) {
+            User user = userRepository.findByEmail(auth.getName()).orElse(null);
+            Exam exam = examService.getExamById(examId);
+            institutionSecurityUtils.assertInstitutionAccess(user, exam.getInstitutionId(), exam.getInstitutionName());
+        }
         examService.deleteExam(examId);
         return ResponseEntity.noContent().build();
     }

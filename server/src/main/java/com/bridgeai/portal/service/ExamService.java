@@ -28,10 +28,25 @@ public class ExamService {
     private final UserRepository userRepository;
     private final InstitutionRepository institutionRepository;
     private final CodeExecutionService codeExecutionService;
+    private final com.bridgeai.portal.security.InstitutionSecurityUtils institutionSecurityUtils;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public List<Exam> getAvailableExams() {
-        List<Exam> list = examRepository.findByActiveTrue();
+        return getAvailableExams(null);
+    }
+
+    public List<Exam> getAvailableExams(User user) {
+        List<Exam> list;
+        if (user == null || user.getRole() == Role.ROLE_BOSS_ADMIN) {
+            list = examRepository.findByActiveTrue();
+        } else if (user.getInstitutionId() != null) {
+            list = examRepository.findByInstitutionIdAndActiveTrue(user.getInstitutionId());
+        } else if (user.getInstitutionName() != null && !user.getInstitutionName().isBlank()) {
+            list = examRepository.findByInstitutionNameIgnoreCaseAndActiveTrue(user.getInstitutionName());
+        } else {
+            list = Collections.emptyList();
+        }
+        list = new ArrayList<>(list);
         list.sort((e1, e2) -> {
             if (e1.getCreatedAt() != null && e2.getCreatedAt() != null) {
                 int cmp = e2.getCreatedAt().compareTo(e1.getCreatedAt());
@@ -60,14 +75,10 @@ public class ExamService {
             throw new IllegalStateException("Assessment deadline has expired. This exam is closed and marked as MISSED (0 marks).");
         }
 
-        // Institutional access restriction for TRAINER_ASSIGNED assessments
-        if ("TRAINER_ASSIGNED".equalsIgnoreCase(exam.getAssessmentType()) && exam.getInstitutionId() != null) {
-            User student = userRepository.findById(studentId).orElse(null);
-            if (student != null && student.getRole() == Role.ROLE_STUDENT) {
-                if (student.getInstitutionId() != null && !student.getInstitutionId().equals(exam.getInstitutionId())) {
-                    throw new IllegalStateException("Access Denied: This trainer-assigned assessment is strictly restricted to students of " + (exam.getInstitutionName() != null ? exam.getInstitutionName() : "the assigning institution") + ".");
-                }
-            }
+        // Institutional access restriction
+        User student = userRepository.findById(studentId).orElse(null);
+        if (student != null && student.getRole() != Role.ROLE_BOSS_ADMIN) {
+            institutionSecurityUtils.assertInstitutionAccess(student, exam.getInstitutionId(), exam.getInstitutionName());
         }
 
         // Check existing attempt (fetch the latest attempt for this student and exam)
@@ -91,6 +102,8 @@ public class ExamService {
                     .examId(examId)
                     .studentId(studentId)
                     .studentName(studentName)
+                    .institutionId(exam.getInstitutionId() != null ? exam.getInstitutionId() : (student != null ? student.getInstitutionId() : null))
+                    .institutionName(exam.getInstitutionName() != null ? exam.getInstitutionName() : (student != null ? student.getInstitutionName() : null))
                     .startedAt(LocalDateTime.now())
                     .status("IN_PROGRESS")
                     .violationCount(0)
@@ -110,6 +123,8 @@ public class ExamService {
                 .examId(examId)
                 .studentId(studentId)
                 .studentName(studentName)
+                .institutionId(exam.getInstitutionId() != null ? exam.getInstitutionId() : (student != null ? student.getInstitutionId() : null))
+                .institutionName(exam.getInstitutionName() != null ? exam.getInstitutionName() : (student != null ? student.getInstitutionName() : null))
                 .startedAt(LocalDateTime.now())
                 .status("IN_PROGRESS")
                 .violationCount(0)
@@ -505,10 +520,22 @@ public class ExamService {
     }
 
     public List<ExamAttempt> getAllAttempts() {
-        return attemptRepository.findAllByOrderByStartedAtDesc();
-    
-
+        return getAllAttempts(null);
     }
+
+    public List<ExamAttempt> getAllAttempts(User user) {
+        if (user == null || user.getRole() == Role.ROLE_BOSS_ADMIN) {
+            return attemptRepository.findAllByOrderByStartedAtDesc();
+        }
+        if (user.getInstitutionId() != null) {
+            return attemptRepository.findByInstitutionIdOrderByStartedAtDesc(user.getInstitutionId());
+        }
+        if (user.getInstitutionName() != null && !user.getInstitutionName().isBlank()) {
+            return attemptRepository.findByInstitutionNameOrderByStartedAtDesc(user.getInstitutionName());
+        }
+        return Collections.emptyList();
+    }
+
     @Transactional
     public Exam createExamWithQuestions(Exam exam, List<ExamQuestion> questions) {
         exam.setCreatedAt(LocalDateTime.now());
@@ -671,7 +698,21 @@ public class ExamService {
     }
 
     public List<Exam> getAllExams() {
-        List<Exam> list = examRepository.findAll();
+        return getAllExams(null);
+    }
+
+    public List<Exam> getAllExams(User user) {
+        List<Exam> list;
+        if (user == null || user.getRole() == Role.ROLE_BOSS_ADMIN) {
+            list = examRepository.findAll();
+        } else if (user.getInstitutionId() != null) {
+            list = examRepository.findByInstitutionId(user.getInstitutionId());
+        } else if (user.getInstitutionName() != null && !user.getInstitutionName().isBlank()) {
+            list = examRepository.findByInstitutionNameIgnoreCase(user.getInstitutionName());
+        } else {
+            list = Collections.emptyList();
+        }
+        list = new ArrayList<>(list);
         list.sort((e1, e2) -> {
             if (e1.getCreatedAt() != null && e2.getCreatedAt() != null) {
                 int cmp = e2.getCreatedAt().compareTo(e1.getCreatedAt());
@@ -686,9 +727,8 @@ public class ExamService {
 
     public List<ExamQuestion> getQuestionsForExam(Long examId) {
         return questionRepository.findByExamId(examId);
-    
-
     }
+
     @Transactional
     public ExamAttempt toggleReattempt(Long attemptId, boolean allow) {
         ExamAttempt attempt = attemptRepository.findById(attemptId)
@@ -698,11 +738,16 @@ public class ExamService {
     }
 
     public List<Map<String, Object>> getStudentExamsWithStatus(Long studentId) {
-        return getStudentExamsWithStatus(studentId, null);
+        return getStudentExamsWithStatus(studentId, null, null);
     }
 
     public List<Map<String, Object>> getStudentExamsWithStatus(Long studentId, Long studentInstitutionId) {
+        return getStudentExamsWithStatus(studentId, studentInstitutionId, null);
+    }
+
+    public List<Map<String, Object>> getStudentExamsWithStatus(Long studentId, Long studentInstitutionId, String studentInstitutionName) {
         List<Exam> exams = examRepository.findByActiveTrue();
+        exams = new ArrayList<>(exams);
         exams.sort((e1, e2) -> {
             if (e1.getCreatedAt() != null && e2.getCreatedAt() != null) {
                 int cmp = e2.getCreatedAt().compareTo(e1.getCreatedAt());
@@ -721,9 +766,15 @@ public class ExamService {
         LocalDateTime now = LocalDateTime.now();
 
         for (Exam exam : exams) {
-            // If Trainer-Assigned Assessment has an institutionId, only students of that institution can see it
-            if ("TRAINER_ASSIGNED".equalsIgnoreCase(exam.getAssessmentType()) && exam.getInstitutionId() != null) {
-                if (studentInstitutionId == null || !studentInstitutionId.equals(exam.getInstitutionId())) {
+            // Strict institutional boundary: If exam belongs to an institution, student must belong to it
+            if (exam.getInstitutionId() != null || (exam.getInstitutionName() != null && !exam.getInstitutionName().isBlank())) {
+                boolean match = false;
+                if (studentInstitutionId != null && exam.getInstitutionId() != null) {
+                    match = studentInstitutionId.equals(exam.getInstitutionId());
+                } else if (studentInstitutionName != null && exam.getInstitutionName() != null) {
+                    match = studentInstitutionName.trim().equalsIgnoreCase(exam.getInstitutionName().trim());
+                }
+                if (!match) {
                     continue;
                 }
             }

@@ -37,6 +37,11 @@ public class Assignment {
     @Column(length = 150)
     private String subjectName;
 
+    private Long institutionId;
+
+    @Column(length = 150)
+    private String institutionName;
+
     private LocalDate dueDate;
 
     private LocalDateTime dueDateTime;

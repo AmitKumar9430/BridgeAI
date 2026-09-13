@@ -4,6 +4,7 @@ import com.bridgeai.portal.dto.AssignmentDtos.*;
 import com.bridgeai.portal.model.Assignment;
 import com.bridgeai.portal.model.AssignmentSubmission;
 import com.bridgeai.portal.model.User;
+import com.bridgeai.portal.repository.AssignmentRepository;
 import com.bridgeai.portal.repository.UserRepository;
 import com.bridgeai.portal.service.AssignmentService;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +22,14 @@ public class AssignmentController {
 
     private final AssignmentService assignmentService;
     private final UserRepository userRepository;
+    private final AssignmentRepository assignmentRepository;
+    private final com.bridgeai.portal.repository.AssignmentSubmissionRepository submissionRepository;
+    private final com.bridgeai.portal.security.InstitutionSecurityUtils institutionSecurityUtils;
 
     @GetMapping
-    public ResponseEntity<List<Assignment>> getAllAssignments() {
-        return ResponseEntity.ok(assignmentService.getAllAssignments());
+    public ResponseEntity<List<Assignment>> getAllAssignments(Authentication auth) {
+        User user = (auth != null) ? userRepository.findByEmail(auth.getName()).orElse(null) : null;
+        return ResponseEntity.ok(assignmentService.getAllAssignments(user));
     }
 
     @GetMapping("/course/{courseId}")
@@ -37,7 +42,7 @@ public class AssignmentController {
             @RequestParam(required = false) Long courseId, Authentication auth) {
         User user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return ResponseEntity.ok(assignmentService.getAssignmentsForStudent(courseId, user.getId()));
+        return ResponseEntity.ok(assignmentService.getAssignmentsForStudent(courseId, user.getId(), user));
     }
 
     @GetMapping("/course/{courseId}/student")
@@ -45,7 +50,7 @@ public class AssignmentController {
             @PathVariable Long courseId, Authentication auth) {
         User user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return ResponseEntity.ok(assignmentService.getAssignmentsForStudent(courseId, user.getId()));
+        return ResponseEntity.ok(assignmentService.getAssignmentsForStudent(courseId, user.getId(), user));
     }
 
     @PostMapping
@@ -54,14 +59,23 @@ public class AssignmentController {
         User user = userRepository.findByEmail(auth.getName()).orElse(null);
         Long trainerId = user != null ? user.getId() : 1L;
         String trainerName = user != null ? user.getFullName() : "Trainer";
-        return ResponseEntity.ok(assignmentService.createAssignment(req, trainerId, trainerName));
+        Long instId = (user != null && user.getRole() != com.bridgeai.portal.model.Role.ROLE_BOSS_ADMIN) ? user.getInstitutionId() : null;
+        String instName = (user != null && user.getRole() != com.bridgeai.portal.model.Role.ROLE_BOSS_ADMIN) ? user.getInstitutionName() : null;
+        return ResponseEntity.ok(assignmentService.createAssignment(req, trainerId, trainerName, instId, instName));
     }
 
     @PutMapping("/{assignmentId}/deadline")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
     public ResponseEntity<Assignment> updateDeadline(
             @PathVariable Long assignmentId,
-            @RequestBody UpdateDeadlineRequest req) {
+            @RequestBody UpdateDeadlineRequest req,
+            Authentication auth) {
+        if (auth != null) {
+            User user = userRepository.findByEmail(auth.getName()).orElse(null);
+            Assignment a = assignmentRepository.findById(assignmentId)
+                    .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + assignmentId));
+            institutionSecurityUtils.assertInstitutionAccess(user, a.getInstitutionId(), a.getInstitutionName());
+        }
         return ResponseEntity.ok(assignmentService.updateDeadline(assignmentId, req.getDueDateTime()));
     }
 
@@ -78,6 +92,9 @@ public class AssignmentController {
             if (user != null) {
                 trainerId = user.getId();
                 trainerName = user.getFullName();
+                Assignment a = assignmentRepository.findById(assignmentId)
+                        .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + assignmentId));
+                institutionSecurityUtils.assertInstitutionAccess(user, a.getInstitutionId(), a.getInstitutionName());
             }
         }
         return ResponseEntity.ok(assignmentService.toggleResubmission(assignmentId, allow, trainerId, trainerName));
@@ -88,19 +105,34 @@ public class AssignmentController {
             @RequestBody SubmitAssignmentRequest req, Authentication auth) {
         User user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Assignment a = assignmentRepository.findById(req.getAssignmentId())
+                .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + req.getAssignmentId()));
+        institutionSecurityUtils.assertInstitutionAccess(user, a.getInstitutionId(), a.getInstitutionName());
         return ResponseEntity.ok(assignmentService.submitAssignment(req, user.getId(), user.getFullName()));
     }
 
     @GetMapping("/{assignmentId}/submissions")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
-    public ResponseEntity<List<AssignmentSubmission>> getSubmissions(@PathVariable Long assignmentId) {
+    public ResponseEntity<List<AssignmentSubmission>> getSubmissions(@PathVariable Long assignmentId, Authentication auth) {
+        if (auth != null) {
+            User user = userRepository.findByEmail(auth.getName()).orElse(null);
+            Assignment a = assignmentRepository.findById(assignmentId)
+                    .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + assignmentId));
+            institutionSecurityUtils.assertInstitutionAccess(user, a.getInstitutionId(), a.getInstitutionName());
+        }
         return ResponseEntity.ok(assignmentService.getSubmissionsForAssignment(assignmentId));
     }
 
     // Status transitions to UNDER_REVIEW when trainer views
     @GetMapping("/submissions/{submissionId}/review")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
-    public ResponseEntity<AssignmentSubmission> reviewSubmission(@PathVariable Long submissionId) {
+    public ResponseEntity<AssignmentSubmission> reviewSubmission(@PathVariable Long submissionId, Authentication auth) {
+        if (auth != null) {
+            User user = userRepository.findByEmail(auth.getName()).orElse(null);
+            AssignmentSubmission s = submissionRepository.findById(submissionId)
+                    .orElseThrow(() -> new IllegalArgumentException("Submission not found: " + submissionId));
+            institutionSecurityUtils.assertInstitutionAccess(user, s.getInstitutionId(), s.getInstitutionName());
+        }
         return ResponseEntity.ok(assignmentService.reviewSubmission(submissionId));
     }
 
@@ -113,6 +145,9 @@ public class AssignmentController {
             Authentication auth) {
         User user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        AssignmentSubmission s = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new IllegalArgumentException("Submission not found: " + submissionId));
+        institutionSecurityUtils.assertInstitutionAccess(user, s.getInstitutionId(), s.getInstitutionName());
         return ResponseEntity.ok(assignmentService.evaluateSubmission(submissionId, req, user.getId()));
     }
 
@@ -129,6 +164,9 @@ public class AssignmentController {
             if (user != null) {
                 trainerId = user.getId();
                 trainerName = user.getFullName();
+                AssignmentSubmission s = submissionRepository.findById(submissionId)
+                        .orElseThrow(() -> new IllegalArgumentException("Submission not found: " + submissionId));
+                institutionSecurityUtils.assertInstitutionAccess(user, s.getInstitutionId(), s.getInstitutionName());
             }
         }
         return ResponseEntity.ok(assignmentService.toggleStudentCanEdit(submissionId, allow, trainerId, trainerName));

@@ -26,6 +26,11 @@ public class ExamAttempt {
     @Column(length = 100)
     private String studentName;
 
+    private Long institutionId;
+
+    @Column(length = 150)
+    private String institutionName;
+
     @Column(nullable = false)
     @Builder.Default
     private LocalDateTime startedAt = LocalDateTime.now();

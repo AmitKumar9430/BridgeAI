@@ -40,7 +40,7 @@ public class AdminController {
             @RequestParam(required = false) String institutionName,
             Authentication auth) {
         String targetInst = institutionName;
-        if (targetInst == null && auth != null) {
+        if (auth != null) {
             var user = authService.findEntityByEmail(auth.getName());
             if (user != null && user.getRole() == Role.ROLE_SUPER_ADMIN) {
                 targetInst = user.getInstitutionName();
@@ -97,29 +97,29 @@ public class AdminController {
         return ResponseEntity.ok(authService.getDistinctInstitutions());
     }
 
-    // List Trainers (filtered by institution if specified or scoped to Super Admin)
+    // List Trainers (filtered by institution if specified or strictly scoped to Super Admin/Trainer)
     @GetMapping("/trainers")
     public ResponseEntity<List<UserDto>> getTrainers(
             @RequestParam(required = false) String institutionName,
             Authentication auth) {
         String targetInst = institutionName;
-        if (targetInst == null && auth != null) {
+        if (auth != null) {
             var user = authService.findEntityByEmail(auth.getName());
-            if (user != null && user.getRole() == Role.ROLE_SUPER_ADMIN) {
+            if (user != null && (user.getRole() == Role.ROLE_SUPER_ADMIN || user.getRole() == Role.ROLE_TRAINER)) {
                 targetInst = user.getInstitutionName();
             }
         }
         return ResponseEntity.ok(authService.getUsersByRoleAndInstitution(Role.ROLE_TRAINER, targetInst));
     }
 
-    // List Students (filtered by institution if specified or scoped to Super Admin/Trainer)
+    // List Students (filtered by institution if specified or strictly scoped to Super Admin/Trainer)
     @GetMapping("/students")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_TRAINER')")
     public ResponseEntity<List<UserDto>> getStudents(
             @RequestParam(required = false) String institutionName,
             Authentication auth) {
         String targetInst = institutionName;
-        if (targetInst == null && auth != null) {
+        if (auth != null) {
             var user = authService.findEntityByEmail(auth.getName());
             if (user != null && (user.getRole() == Role.ROLE_SUPER_ADMIN || user.getRole() == Role.ROLE_TRAINER)) {
                 targetInst = user.getInstitutionName();

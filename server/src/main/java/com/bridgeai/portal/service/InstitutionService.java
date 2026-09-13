@@ -31,6 +31,7 @@ public class InstitutionService {
     private final ExamRepository examRepository;
     private final AuthService authService;
     private final AuditLogService auditLogService;
+    private final com.bridgeai.portal.security.InstitutionSecurityUtils institutionSecurityUtils;
 
     @Transactional
     public InstitutionDto enrollInstitution(EnrollInstitutionRequest req, String actor, String ip) {
@@ -87,6 +88,7 @@ public class InstitutionService {
                             .title(sub.getTitle().trim())
                             .category(sub.getCategory() != null && !sub.getCategory().isBlank() ? sub.getCategory().trim() : "Computer Science & Engineering")
                             .description(sub.getDescription() != null && !sub.getDescription().isBlank() ? sub.getDescription().trim() : "Core curriculum subject running under " + name)
+                            .institutionId(institution.getId())
                             .institutionName(name)
                             .badgeColor(defaultColors[colorIdx % defaultColors.length])
                             .startDate(java.time.LocalDate.now())
@@ -134,7 +136,28 @@ public class InstitutionService {
     }
 
     public List<HierarchyInstitutionNode> getHierarchyTree() {
-        List<Institution> institutions = institutionRepository.findAll();
+        return getHierarchyTree(null);
+    }
+
+    public List<HierarchyInstitutionNode> getHierarchyTree(Authentication auth) {
+        User caller = null;
+        if (auth != null && auth.getName() != null) {
+            caller = userRepository.findByEmail(auth.getName()).orElse(null);
+        }
+
+        List<Institution> institutions;
+        if (caller != null && !"ROLE_BOSS_ADMIN".equalsIgnoreCase(caller.getRole().name())) {
+            if (caller.getInstitutionId() != null) {
+                institutions = institutionRepository.findById(caller.getInstitutionId()).map(List::of).orElse(List.of());
+            } else if (caller.getInstitutionName() != null && !caller.getInstitutionName().isBlank()) {
+                institutions = institutionRepository.findByName(caller.getInstitutionName()).map(List::of).orElse(List.of());
+            } else {
+                institutions = List.of();
+            }
+        } else {
+            institutions = institutionRepository.findAll();
+        }
+
         List<HierarchyInstitutionNode> nodes = new ArrayList<>();
 
         for (Institution inst : institutions) {
@@ -262,6 +285,13 @@ public class InstitutionService {
     public UserFullProfileDto getUserFullProfile(Long userId, Authentication auth) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        if (auth != null && auth.getName() != null) {
+            User caller = userRepository.findByEmail(auth.getName()).orElse(null);
+            if (caller != null && !"ROLE_BOSS_ADMIN".equalsIgnoreCase(caller.getRole().name())) {
+                institutionSecurityUtils.assertInstitutionAccess(caller, user.getInstitutionId(), user.getInstitutionName());
+            }
+        }
 
         Map<String, Object> meta = new HashMap<>();
         List<Map<String, Object>> related = new ArrayList<>();
