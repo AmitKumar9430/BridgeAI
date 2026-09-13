@@ -559,6 +559,17 @@ public class VigilanceService {
                 examHierarchyList.add(examObj);
             }
 
+            // Sort exams under this institution: live exams appear first at the top
+            examHierarchyList.sort((a, b) -> {
+                int liveA = (int) a.getOrDefault("liveStudentsCount", 0);
+                int liveB = (int) b.getOrDefault("liveStudentsCount", 0);
+                if (liveA != liveB) return Integer.compare(liveB, liveA);
+                int critA = (int) a.getOrDefault("criticalCount", 0);
+                int critB = (int) b.getOrDefault("criticalCount", 0);
+                if (critA != critB) return Integer.compare(critB, critA);
+                return Long.compare((Long) b.get("examId"), (Long) a.get("examId"));
+            });
+
             Map<String, Object> instObj = new HashMap<>();
             instObj.put("institutionName", instName);
             instObj.put("code", instCodeMap.getOrDefault(instName.trim().toLowerCase(), "INST"));
@@ -570,6 +581,17 @@ public class VigilanceService {
             instObj.put("exams", examHierarchyList);
             institutionsList.add(instObj);
         }
+
+        // Sort institutions: institutions with live candidates appear first at the top
+        institutionsList.sort((a, b) -> {
+            int liveA = (int) a.getOrDefault("liveStudentsCount", 0);
+            int liveB = (int) b.getOrDefault("liveStudentsCount", 0);
+            if (liveA != liveB) return Integer.compare(liveB, liveA);
+            int critA = (int) a.getOrDefault("criticalCount", 0);
+            int critB = (int) b.getOrDefault("criticalCount", 0);
+            if (critA != critB) return Integer.compare(critB, critA);
+            return String.valueOf(a.get("institutionName")).compareTo(String.valueOf(b.get("institutionName")));
+        });
 
         Map<String, Object> response = new HashMap<>();
         response.put("activeInstitutions", totalActiveInstitutions);

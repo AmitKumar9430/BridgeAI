@@ -982,9 +982,15 @@ export const VigilanceDashboard = () => {
                     {(surveillanceData.institutions || [])
                       .filter(inst => selectedInstituteFilter === 'ALL' || inst.institutionName === selectedInstituteFilter)
                       .flatMap(inst => inst.exams || [])
+                      .sort((a, b) => {
+                        const liveA = Number(a.liveStudentsCount || 0);
+                        const liveB = Number(b.liveStudentsCount || 0);
+                        if (liveA !== liveB) return liveB - liveA;
+                        return Number(b.examId || 0) - Number(a.examId || 0);
+                      })
                       .map((ex, i) => (
                         <option key={i} value={String(ex.examId)}>
-                          {ex.examTitle} (Exam #{ex.examId})
+                          {ex.liveStudentsCount > 0 ? `🔴 LIVE (${ex.liveStudentsCount}) - ` : ''}{ex.examTitle} (Exam #{ex.examId})
                         </option>
                       ))}
                   </select>
@@ -1016,7 +1022,16 @@ export const VigilanceDashboard = () => {
               </div>
             ) : (
               <div className="space-y-5">
-                {surveillanceData.institutions
+                {[...(surveillanceData.institutions || [])]
+                  .sort((a, b) => {
+                    const liveA = Number(a.liveStudentsCount || 0);
+                    const liveB = Number(b.liveStudentsCount || 0);
+                    if (liveA !== liveB) return liveB - liveA; // Live institutions appear first at top
+                    const critA = Number(a.criticalCount || 0);
+                    const critB = Number(b.criticalCount || 0);
+                    if (critA !== critB) return critB - critA;
+                    return (b.activeExamsCount || 0) - (a.activeExamsCount || 0);
+                  })
                   .filter(inst => selectedInstituteFilter === 'ALL' || inst.institutionName === selectedInstituteFilter)
                   .map((inst, instIdx) => {
                   const isExpanded = expandedInstitutions[inst.institutionName] !== undefined
@@ -1081,7 +1096,16 @@ export const VigilanceDashboard = () => {
                       {/* LEVEL 2 & 3: ACTIVE EXAMS UNDER THIS INSTITUTION */}
                       {isExpanded && (
                         <div className="p-5 space-y-6">
-                          {inst.exams && inst.exams
+                          {[...(inst.exams || [])]
+                            .sort((a, b) => {
+                              const liveA = Number(a.liveStudentsCount || 0);
+                              const liveB = Number(b.liveStudentsCount || 0);
+                              if (liveA !== liveB) return liveB - liveA; // Live exams appear first at the top
+                              const critA = Number(a.criticalCount || 0);
+                              const critB = Number(b.criticalCount || 0);
+                              if (critA !== critB) return critB - critA;
+                              return Number(b.examId || 0) - Number(a.examId || 0);
+                            })
                             .filter(exam => selectedExamFilter === 'ALL' || String(exam.examId) === String(selectedExamFilter))
                             .map((exam, examIdx) => {
                             const isExamExpanded = expandedExams[exam.examId] !== false;
@@ -1090,23 +1114,48 @@ export const VigilanceDashboard = () => {
                             return (
                               <div
                                 key={examIdx}
-                                className="border border-slate-200 dark:border-slate-800/80 rounded-xl overflow-hidden bg-slate-50/40 dark:bg-slate-900/40"
+                                className={`border rounded-xl overflow-hidden transition-all ${
+                                  exam.liveStudentsCount > 0
+                                    ? 'border-emerald-500/60 dark:border-emerald-500/40 bg-emerald-50/10 dark:bg-emerald-950/10 shadow-xs'
+                                    : 'border-slate-200 dark:border-slate-800/80 bg-slate-50/40 dark:bg-slate-900/40'
+                                }`}
                               >
                                 {/* Examination Sub-Header */}
                                 <div className="p-3.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                                   <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold ${
+                                      exam.liveStudentsCount > 0
+                                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/20'
+                                        : 'bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400'
+                                    }`}>
                                       <FileText className="w-4 h-4" />
                                     </div>
                                     <div>
-                                      <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                      <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
                                         <span>{exam.examTitle}</span>
                                         <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                                           Exam #{exam.examId} · {exam.durationMinutes} Mins
                                         </span>
+                                        {exam.liveStudentsCount > 0 && (
+                                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-600 text-white animate-pulse flex items-center gap-1 shadow-xs border border-emerald-400">
+                                            <Radio className="w-3 h-3 text-white" />
+                                            LIVE NOW ({exam.liveStudentsCount})
+                                          </span>
+                                        )}
+                                        {exam.criticalCount > 0 && (
+                                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-200 dark:border-rose-800 flex items-center gap-1">
+                                            <AlertOctagon className="w-3 h-3 text-rose-500" />
+                                            {exam.criticalCount} Critical
+                                          </span>
+                                        )}
                                       </div>
                                       <div className="text-[11px] text-slate-500">
                                         Showing {visibleStudents.length} candidate{visibleStudents.length !== 1 ? 's' : ''} in live grid
+                                        {exam.liveStudentsCount > 0 && (
+                                          <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                                            · {exam.liveStudentsCount} currently taking this assessment
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
                                   </div>
