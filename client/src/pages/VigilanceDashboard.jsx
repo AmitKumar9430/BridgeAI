@@ -1671,24 +1671,25 @@ export const VigilanceDashboard = () => {
             LEVEL 4: INDIVIDUAL STUDENT MONITORING COMMAND CENTER (MODAL)
            ========================================================================= */}
         {selectedStudent && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fadeIn overflow-y-auto">
-            <div className="bg-slate-900 border-2 border-slate-700 rounded-3xl max-w-6xl w-full text-white shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn overflow-y-auto">
+            <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-6xl w-full text-white shadow-2xl overflow-hidden flex flex-col max-h-[92vh] ring-1 ring-white/10">
               {/* Modal Top Command Header */}
-              <div className="p-4 sm:p-5 bg-slate-950 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md">
-                    <Radio className="w-6 h-6 animate-pulse" />
+              <div className="px-5 py-4 bg-slate-950 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 border border-blue-500/30 flex items-center justify-center font-bold text-white shadow-md shrink-0">
+                    <Radio className="w-5 h-5 animate-pulse text-white" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-700">
-                        Live Surveillance Console
+                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-blue-950/80 text-blue-300 border border-blue-800/80 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                        LIVE SURVEILLANCE CONSOLE
                       </span>
-                      <span className="text-[10px] font-mono text-slate-400">
+                      <span className="text-[11px] font-mono text-slate-400">
                         Attempt #{selectedStudent.attemptId} · Student ID: #{selectedStudent.studentId}
                       </span>
                     </div>
-                    <h3 className="text-lg font-black text-white mt-0.5 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-white mt-1 flex items-center gap-2">
                       <span>{selectedStudent.studentName}</span>
                       <span className="text-xs font-normal text-slate-400">
                         ({selectedStudent.institutionName})
@@ -1698,10 +1699,10 @@ export const VigilanceDashboard = () => {
                 </div>
 
                 {/* Status & Close Button */}
-                <div className="flex items-center gap-3 self-end md:self-center">
+                <div className="flex items-center gap-4 self-end md:self-center">
                   <div className="text-right hidden sm:block text-xs">
-                    <div className="text-slate-400">Assessment:</div>
-                    <div className="font-bold text-slate-200 truncate max-w-xs">{selectedStudent.examTitle}</div>
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Proctored Assessment</div>
+                    <div className="font-semibold text-slate-200 truncate max-w-xs">{selectedStudent.examTitle}</div>
                   </div>
 
                   <button
@@ -1710,7 +1711,8 @@ export const VigilanceDashboard = () => {
                       setSelectedStudent(null);
                       setActiveSubModal(null);
                     }}
-                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700"
+                    title="Close Surveillance Console"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -1718,18 +1720,18 @@ export const VigilanceDashboard = () => {
               </div>
 
               {/* Main Split Screen Media Stage */}
-              <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1 bg-slate-900/50">
                 {/* 2-Column Split: Live Camera Stream (Left) + Live Student Screen (Right) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Panel 1: Live Candidate Camera Stream */}
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden flex flex-col">
-                    <div className="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-xs font-bold">
+                  <div className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden flex flex-col shadow-lg">
+                    <div className="px-3.5 py-2.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-xs font-semibold">
                       <div className="flex items-center gap-2">
                         <Video className="w-4 h-4 text-emerald-400" />
-                        <span>Live Candidate Camera Stream</span>
+                        <span className="text-slate-200 font-bold tracking-wide">Live Candidate Camera Stream</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
                           Webcam Connected
                         </span>
@@ -1737,9 +1739,9 @@ export const VigilanceDashboard = () => {
                           type="button"
                           onClick={() => handleEnterFullscreen('camera')}
                           title="View Camera in Fullscreen"
-                          className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-mono px-2 cursor-pointer"
+                          className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-semibold border border-slate-700 cursor-pointer"
                         >
-                          <Maximize2 className="w-3 h-3 text-indigo-400" />
+                          <Maximize2 className="w-3 h-3 text-slate-300" />
                           <span className="hidden sm:inline">Fullscreen</span>
                         </button>
                       </div>
@@ -1779,17 +1781,17 @@ export const VigilanceDashboard = () => {
                   </div>
 
                   {/* Panel 2: Live Student Screen Stream */}
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden flex flex-col">
-                    <div className="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-xs font-bold">
+                  <div className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden flex flex-col shadow-lg">
+                    <div className="px-3.5 py-2.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-xs font-semibold">
                       <div className="flex items-center gap-2">
                         <Monitor className="w-4 h-4 text-blue-400" />
-                        <span>Live Candidate Screen Feed</span>
+                        <span className="text-slate-200 font-bold tracking-wide">Live Candidate Screen Feed</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded text-[10px] border flex items-center gap-1 ${
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border flex items-center gap-1.5 ${
                           liveFrames[selectedStudent.attemptId]?.screenFrame || selectedStudent.screenFrame
-                            ? 'bg-blue-950 text-blue-300 border-blue-800'
-                            : 'bg-amber-950 text-amber-300 border-amber-800'
+                            ? 'bg-blue-950/80 text-blue-300 border-blue-800/80'
+                            : 'bg-amber-950/80 text-amber-300 border-amber-800/80'
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${
                             liveFrames[selectedStudent.attemptId]?.screenFrame || selectedStudent.screenFrame
@@ -1804,9 +1806,9 @@ export const VigilanceDashboard = () => {
                           type="button"
                           onClick={() => handleEnterFullscreen('screen')}
                           title="View Screen Feed in Fullscreen"
-                          className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-mono px-2 cursor-pointer"
+                          className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-semibold border border-slate-700 cursor-pointer"
                         >
-                          <Maximize2 className="w-3 h-3 text-blue-400" />
+                          <Maximize2 className="w-3 h-3 text-slate-300" />
                           <span className="hidden sm:inline">Fullscreen</span>
                         </button>
                       </div>
@@ -1825,20 +1827,20 @@ export const VigilanceDashboard = () => {
                       ) : (
                         <div className="w-full h-full p-4 bg-slate-900 flex flex-col justify-between text-xs text-slate-300">
                           <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                            <div className="font-mono text-[11px] text-indigo-400 flex items-center gap-1">
-                              <Lock className="w-3 h-3" />
-                              <span>Safe Browser Lockdown · Mode: Fullscreen Active</span>
+                            <div className="font-mono text-[11px] text-blue-400 flex items-center gap-1.5">
+                              <Lock className="w-3.5 h-3.5" />
+                              <span>Safe Browser Lockdown · Fullscreen Active</span>
                             </div>
-                            <span className="text-[10px] text-slate-400 font-mono">1920x1080</span>
+                            <span className="text-[10px] text-slate-400 font-mono">1920x1080 FHD</span>
                           </div>
 
                           <div className="space-y-2 my-auto p-3 bg-slate-950 rounded-xl border border-slate-800 font-mono text-[11px]">
-                            <div className="text-emerald-400">// Active Assessment Workspace Screen</div>
-                            <div className="text-slate-400">Exam: {selectedStudent.examTitle}</div>
-                            <div className="text-slate-500">Editor Focus: Active · Screen Stream Connecting...</div>
+                            <div className="text-emerald-400 font-semibold">// Active Assessment Workspace Screen</div>
+                            <div className="text-slate-300">Exam: {selectedStudent.examTitle}</div>
+                            <div className="text-slate-500">Editor Focus: Active · Screen Stream Synchronizing...</div>
                           </div>
 
-                          <div className="flex items-center justify-between text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+                          <div className="flex items-center justify-between text-[10px] text-slate-500 pt-2 border-t border-slate-800 font-mono">
                             <span>Keyboard Telemetry: Synchronized</span>
                             <span>Network Latency: 24ms</span>
                           </div>
@@ -1849,23 +1851,23 @@ export const VigilanceDashboard = () => {
                 </div>
 
                 {/* Audio Status & Mute/Unmute Strip */}
-                <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-md">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isAudioMuted ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}`}>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isAudioMuted ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}`}>
                       {isAudioMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                     </div>
                     <div>
-                      <div className="font-bold flex items-center gap-2 text-white">
+                      <div className="font-semibold flex items-center gap-2 text-white">
                         <span>Candidate Microphone Stream</span>
-                        <span className={`text-[10px] font-mono px-2 py-0.2 rounded ${isAudioMuted ? 'bg-amber-900/60 text-amber-300' : 'bg-emerald-900/60 text-emerald-300'}`}>
+                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold border ${isAudioMuted ? 'bg-amber-950/80 text-amber-300 border-amber-800/80' : 'bg-emerald-950/80 text-emerald-300 border-emerald-800/80'}`}>
                           {isAudioMuted ? 'MUTED BY OFFICER' : 'LIVE LISTENING ACTIVE'}
                         </span>
                         {!isAudioMuted && (
-                          <div className="flex items-center gap-0.5 ml-2">
+                          <div className="flex items-center gap-0.5 ml-1">
                             <span className="w-1 h-3 bg-emerald-400 rounded-full animate-bounce"></span>
-                            <span className="w-1 h-5 bg-emerald-400 rounded-full animate-bounce [animation-delay:150ms]"></span>
+                            <span className="w-1 h-4 bg-emerald-400 rounded-full animate-bounce [animation-delay:150ms]"></span>
                             <span className="w-1 h-2 bg-emerald-400 rounded-full animate-bounce [animation-delay:300ms]"></span>
-                            <span className="w-1 h-4 bg-emerald-400 rounded-full animate-bounce [animation-delay:450ms]"></span>
+                            <span className="w-1 h-3.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:450ms]"></span>
                           </div>
                         )}
                       </div>
@@ -1878,10 +1880,10 @@ export const VigilanceDashboard = () => {
                   <button
                     type="button"
                     onClick={() => setIsAudioMuted(!isAudioMuted)}
-                    className={`px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-colors ${
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border ${
                       isAudioMuted
-                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                        : 'bg-amber-600 hover:bg-amber-700 text-white'
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500'
+                        : 'bg-amber-600 hover:bg-amber-700 text-white border-amber-500'
                     }`}
                   >
                     {isAudioMuted ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
@@ -1894,86 +1896,86 @@ export const VigilanceDashboard = () => {
                   <button
                     type="button"
                     onClick={() => setActiveSubModal(activeSubModal === 'chat' ? null : 'chat')}
-                    className={`p-3 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all ${
+                    className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       activeSubModal === 'chat'
-                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-md'
+                        ? 'bg-blue-600 text-white border-blue-500 shadow-md ring-1 ring-blue-400'
                         : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
-                    <MessageSquare className="w-5 h-5 text-indigo-400" />
+                    <MessageSquare className="w-4 h-4 text-blue-400" />
                     <span>Chat Message</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setActiveSubModal(activeSubModal === 'warning' ? null : 'warning')}
-                    className={`p-3 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all ${
+                    className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       activeSubModal === 'warning'
-                        ? 'bg-amber-600 text-white border-amber-500 shadow-md'
+                        ? 'bg-amber-600 text-white border-amber-500 shadow-md ring-1 ring-amber-400'
                         : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
-                    <AlertTriangle className="w-5 h-5 text-amber-400" />
+                    <AlertTriangle className="w-4 h-4 text-amber-400" />
                     <span>Issue Warning</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setActiveSubModal(activeSubModal === 'evidence' ? null : 'evidence')}
-                    className={`p-3 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all ${
+                    className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       activeSubModal === 'evidence'
-                        ? 'bg-blue-600 text-white border-blue-500 shadow-md'
+                        ? 'bg-blue-600 text-white border-blue-500 shadow-md ring-1 ring-blue-400'
                         : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
-                    <Camera className="w-5 h-5 text-blue-400" />
+                    <Camera className="w-4 h-4 text-blue-400" />
                     <span>Capture Evidence</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setActiveSubModal(activeSubModal === 'timeline' ? null : 'timeline')}
-                    className={`p-3 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all ${
+                    className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       activeSubModal === 'timeline'
-                        ? 'bg-purple-600 text-white border-purple-500 shadow-md'
+                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-md ring-1 ring-indigo-400'
                         : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
-                    <Activity className="w-5 h-5 text-purple-400" />
+                    <Activity className="w-4 h-4 text-indigo-400" />
                     <span>View Activity</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setActiveSubModal(activeSubModal === 'terminate' ? null : 'terminate')}
-                    className={`p-3 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all col-span-2 sm:col-span-1 ${
+                    className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer col-span-2 sm:col-span-1 ${
                       activeSubModal === 'terminate'
-                        ? 'bg-rose-600 text-white border-rose-500 shadow-md'
-                        : 'bg-rose-950/40 text-rose-300 border-rose-800/80 hover:bg-rose-900/60'
+                        ? 'bg-rose-600 text-white border-rose-500 shadow-md ring-1 ring-rose-400'
+                        : 'bg-rose-950/30 text-rose-300 border-rose-800/80 hover:bg-rose-900/50'
                     }`}
                   >
-                    <Ban className="w-5 h-5 text-rose-400" />
+                    <Ban className="w-4 h-4 text-rose-400" />
                     <span>Terminate Exam</span>
                   </button>
                 </div>
 
                 {/* ACTION SUB-VIEW 1: LIVE CHAT DRAWER */}
                 {activeSubModal === 'chat' && (
-                  <div className="p-4 bg-slate-950 rounded-2xl border border-indigo-500/40 space-y-3 animate-fadeIn">
+                  <div className="p-4 bg-slate-950 rounded-xl border border-blue-500/40 space-y-3 animate-fadeIn shadow-lg">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <div className="font-bold text-xs flex items-center gap-2 text-indigo-300">
+                      <div className="font-semibold text-xs flex items-center gap-2 text-blue-400">
                         <MessageSquare className="w-4 h-4" />
                         <span>Direct Communication with {selectedStudent.studentName}</span>
                       </div>
                       <span className="text-[11px] text-slate-400">
-                        Messages appear immediately on student's active exam interface
+                        Dispatched in real-time to student's active exam workspace
                       </span>
                     </div>
 
-                    <div className="max-h-48 overflow-y-auto space-y-2 p-2 bg-slate-900/80 rounded-xl">
+                    <div className="max-h-48 overflow-y-auto space-y-2 p-2.5 bg-slate-900 rounded-lg border border-slate-800">
                       {chatMessages.length === 0 ? (
-                        <div className="text-center py-4 text-xs text-slate-500">
-                          No messages exchanged yet. Send a direct reminder below.
+                        <div className="text-center py-4 text-xs text-slate-500 font-mono">
+                          Zero messages exchanged. Type below to send an official advisory.
                         </div>
                       ) : (
                         chatMessages.map((msg) => {
@@ -1981,14 +1983,14 @@ export const VigilanceDashboard = () => {
                           return (
                             <div
                               key={msg.id}
-                              className={`p-2.5 rounded-xl border text-xs space-y-1 ${
+                              className={`p-2.5 rounded-lg border text-xs space-y-1 ${
                                 isStudent
                                   ? 'bg-emerald-950/40 border-emerald-500/40 ml-4 text-emerald-100'
                                   : 'bg-slate-800 border-slate-700 mr-4'
                               }`}
                             >
                               <div className="flex items-center justify-between text-[10px] font-mono">
-                                <span className={isStudent ? 'text-emerald-400 font-bold' : 'text-indigo-400'}>
+                                <span className={isStudent ? 'text-emerald-400 font-bold' : 'text-blue-400 font-bold'}>
                                   {isStudent ? `Candidate: ${msg.studentName || 'Student'}` : `Officer: ${msg.officerName} (${msg.officerStaffId})`}
                                 </span>
                                 <span className="text-slate-400">{msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : 'N/A'}</span>
@@ -2006,12 +2008,12 @@ export const VigilanceDashboard = () => {
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         placeholder="e.g. Please look directly at your camera and close all background windows..."
-                        className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button
                         type="submit"
                         disabled={sendingChat || !chatInput.trim()}
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
                       >
                         <Send className="w-3.5 h-3.5" />
                         <span>Send</span>
@@ -2022,14 +2024,14 @@ export const VigilanceDashboard = () => {
 
                 {/* ACTION SUB-VIEW 2: FORMAL WARNING DIALOG */}
                 {activeSubModal === 'warning' && (
-                  <form onSubmit={handleIssueFormalWarning} className="p-4 bg-slate-950 rounded-2xl border border-amber-500/40 space-y-3.5 animate-fadeIn">
+                  <form onSubmit={handleIssueFormalWarning} className="p-4 bg-slate-950 rounded-xl border border-amber-500/40 space-y-3.5 animate-fadeIn shadow-lg">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <div className="font-bold text-xs flex items-center gap-2 text-amber-400">
+                      <div className="font-semibold text-xs flex items-center gap-2 text-amber-400">
                         <AlertTriangle className="w-4 h-4" />
                         <span>Issue Formal Examination Warning</span>
                       </div>
-                      <span className="text-[11px] text-amber-300">
-                        Dispatches un-dismissible warning popup requiring student acknowledgement
+                      <span className="text-[11px] text-amber-300 font-mono">
+                        Requires mandatory candidate acknowledgement
                       </span>
                     </div>
 
@@ -2128,27 +2130,27 @@ export const VigilanceDashboard = () => {
 
                 {/* ACTION SUB-VIEW 3: CAPTURE EVIDENCE */}
                 {activeSubModal === 'evidence' && (
-                  <div className="p-4 bg-slate-950 rounded-2xl border border-blue-500/40 space-y-3.5 animate-fadeIn">
+                  <div className="p-4 bg-slate-950 rounded-xl border border-blue-500/40 space-y-3.5 animate-fadeIn shadow-lg">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <div className="font-bold text-xs flex items-center gap-2 text-blue-400">
+                      <div className="font-semibold text-xs flex items-center gap-2 text-blue-400">
                         <Camera className="w-4 h-4" />
                         <span>Capture Evidentiary Surveillance Snapshot</span>
                       </div>
-                      <span className="text-[11px] text-blue-300">
-                        Saves cryptographic watermarked evidence to institutional gallery
+                      <span className="text-[11px] text-blue-300 font-mono">
+                        Saves cryptographically-tagged audit evidence
                       </span>
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Evidence Description / Breach Note
+                        Evidence Description / Incident Note
                       </label>
                       <input
                         type="text"
                         value={evidenceNotes}
                         onChange={(e) => setEvidenceNotes(e.target.value)}
                         placeholder="e.g. Unidentified secondary person visible in room background at 13:45"
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       />
                     </div>
 
@@ -2162,7 +2164,7 @@ export const VigilanceDashboard = () => {
                       <button
                         type="button"
                         onClick={() => setActiveSubModal(null)}
-                        className="px-3.5 py-1.5 text-xs text-slate-400 hover:text-white"
+                        className="px-3.5 py-1.5 text-xs text-slate-400 hover:text-white cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -2170,7 +2172,7 @@ export const VigilanceDashboard = () => {
                         type="button"
                         disabled={capturingEvidence}
                         onClick={handleCaptureEvidence}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
                       >
                         <Camera className="w-3.5 h-3.5" />
                         <span>{capturingEvidence ? 'Capturing...' : 'Capture & Store Evidence Frame'}</span>
@@ -2181,26 +2183,26 @@ export const VigilanceDashboard = () => {
 
                 {/* ACTION SUB-VIEW 4: COMPLETE CHRONOLOGICAL TIMELINE */}
                 {activeSubModal === 'timeline' && (
-                  <div className="p-4 bg-slate-950 rounded-2xl border border-purple-500/40 space-y-3 animate-fadeIn">
+                  <div className="p-4 bg-slate-950 rounded-xl border border-indigo-500/40 space-y-3 animate-fadeIn shadow-lg">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <div className="font-bold text-xs flex items-center gap-2 text-purple-400">
+                      <div className="font-semibold text-xs flex items-center gap-2 text-indigo-400">
                         <Activity className="w-4 h-4" />
-                        <span>Complete Candidate Vigilance Timeline</span>
+                        <span>Candidate Vigilance Security Log</span>
                       </div>
                       <span className="text-[11px] text-slate-400 font-mono">
-                        Chronological Session Security Events
+                        Chronological Telemetry Stream
                       </span>
                     </div>
 
-                    <div className="max-h-64 overflow-y-auto space-y-2.5 pr-1">
+                    <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
                       {(!selectedStudent.timeline || selectedStudent.timeline.length === 0) ? (
-                        <div className="p-4 text-center text-xs text-slate-500">
-                          Zero security events recorded for this candidate attempt.
+                        <div className="p-4 text-center text-xs text-slate-500 font-mono">
+                          Zero security breach events recorded for this candidate attempt.
                         </div>
                       ) : (
                         selectedStudent.timeline.map((evt, idx) => (
-                          <div key={idx} className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-3 text-xs">
-                            <div className="w-7 h-7 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center shrink-0 mt-0.5">
+                          <div key={idx} className="p-3 bg-slate-900 rounded-lg border border-slate-800 flex items-start gap-3 text-xs">
+                            <div className="w-7 h-7 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center shrink-0 mt-0.5 border border-slate-700">
                               {evt.type === 'START' ? (
                                 <Play className="w-3.5 h-3.5 text-emerald-400" />
                               ) : evt.type === 'VIOLATION' ? (
@@ -2220,8 +2222,8 @@ export const VigilanceDashboard = () => {
                               </div>
                               <p className="text-slate-400 text-[11px] mt-0.5">{evt.details}</p>
                               {evt.evidenceId && (
-                                <span className="inline-block mt-1 text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
-                                  Attached Evidence ID: {evt.evidenceId}
+                                <span className="inline-block mt-1.5 text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950/80 text-blue-300 border border-blue-800/80">
+                                  Attached Evidence ID: #{evt.evidenceId}
                                 </span>
                               )}
                             </div>
@@ -2234,23 +2236,23 @@ export const VigilanceDashboard = () => {
 
                 {/* ACTION SUB-VIEW 5: SERIOUS EXAM TERMINATION PROCESS */}
                 {activeSubModal === 'terminate' && (
-                  <form onSubmit={handleConfirmExamTermination} className="p-5 bg-rose-950/40 rounded-2xl border-2 border-rose-600 space-y-4 animate-fadeIn">
-                    <div className="flex items-center gap-3 border-b border-rose-800/80 pb-3 text-rose-300">
-                      <div className="w-10 h-10 rounded-xl bg-rose-950 text-rose-500 border border-rose-700 flex items-center justify-center shrink-0">
-                        <Ban className="w-6 h-6" />
+                  <form onSubmit={handleConfirmExamTermination} className="p-4 sm:p-5 bg-rose-950/30 rounded-xl border border-rose-800 space-y-4 animate-fadeIn shadow-xl">
+                    <div className="flex items-center gap-3 border-b border-rose-900/60 pb-3 text-rose-300">
+                      <div className="w-10 h-10 rounded-xl bg-rose-950 text-rose-400 border border-rose-800 flex items-center justify-center shrink-0">
+                        <Ban className="w-5 h-5" />
                       </div>
                       <div>
-                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800">
                           Irrevocable Enforcement Action
                         </span>
-                        <h4 className="font-black text-white text-base mt-0.5">
+                        <h4 className="font-bold text-white text-base mt-0.5">
                           Terminate Candidate Examination Session
                         </h4>
                       </div>
                     </div>
 
-                    <div className="p-3.5 bg-rose-950/60 rounded-xl border border-rose-800/60 text-xs text-rose-200 space-y-1">
-                      <div className="font-bold flex items-center gap-1.5 text-rose-300">
+                    <div className="p-3 bg-rose-950/50 rounded-lg border border-rose-900/60 text-xs text-rose-200 space-y-1">
+                      <div className="font-semibold flex items-center gap-1.5 text-rose-300">
                         <AlertCircle className="w-4 h-4 text-rose-400" />
                         <span>Scope: Single Candidate Isolation Enforcement</span>
                       </div>
@@ -2266,7 +2268,7 @@ export const VigilanceDashboard = () => {
                       <select
                         value={terminationReasonCode}
                         onChange={(e) => setTerminationReasonCode(e.target.value)}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white focus:ring-2 focus:ring-rose-500 outline-none"
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-slate-700 bg-slate-900 text-white focus:ring-2 focus:ring-rose-500 focus:outline-none"
                       >
                         {STANDARDIZED_TERMINATION_REASONS.map(r => (
                           <option key={r.code} value={r.code}>{r.label}</option>
@@ -2276,14 +2278,14 @@ export const VigilanceDashboard = () => {
 
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Detailed Officer Explanation & Observations
+                        Detailed Officer Explanation &amp; Observations
                       </label>
                       <textarea
                         rows="2"
                         value={terminationExplanation}
                         onChange={(e) => setTerminationExplanation(e.target.value)}
                         placeholder="Detail specific observations, strikes logged, or proctoring engine telemetry..."
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white focus:ring-2 focus:ring-rose-500"
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:ring-2 focus:ring-rose-500 focus:outline-none"
                       />
                     </div>
 
