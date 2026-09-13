@@ -11,4 +11,4 @@ WORKDIR /app
 COPY --from=build /app/target/portal-backend-1.0.0.jar app.jar
 EXPOSE 8080
 ENV SERVER_PORT=8080
-ENTRYPOINT ["sh", "-c", "java -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -Dserver.port=${PORT:-8080} -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java -XX:+UseSerialGC -Xms128m -Xmx280m -Xss512k -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=160m -XX:+ExitOnOutOfMemoryError -Dserver.port=${PORT:-8080} -jar app.jar"]
