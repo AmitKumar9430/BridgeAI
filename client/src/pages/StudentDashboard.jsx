@@ -15,9 +15,16 @@ import { DashboardSidebar } from '../components/common/DashboardSidebar';
 import { LiveSessionsTab } from '../components/common/LiveSessionsTab';
 import FileUploadInput from '../components/common/FileUploadInput';
 
-export const StudentDashboard = ({ onOpenExam, onSelectCourse }) => {
+export const StudentDashboard = ({
+  onOpenExam,
+  onSelectCourse,
+  activeTab: controlledTab,
+  onSelectTab: controlledOnSelectTab
+}) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('assignments');
+  const [internalTab, setInternalTab] = useState('assignments');
+  const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
+  const setActiveTab = controlledOnSelectTab || setInternalTab;
   const [studyLibraryFilter, setStudyLibraryFilter] = useState('ALL'); // 'ALL' | 'GLOBAL' | 'INSTITUTION'
   const [courses, setCourses] = useState([]);
   const [sessions, setSessions] = useState([]);

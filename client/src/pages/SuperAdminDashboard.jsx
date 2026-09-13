@@ -15,7 +15,10 @@ import { DashboardSidebar } from '../components/common/DashboardSidebar';
 import { LiveSessionsTab } from '../components/common/LiveSessionsTab';
 import { ChangePasswordModal } from '../components/common/ChangePasswordModal';
 
-export const SuperAdminDashboard = () => {
+export const SuperAdminDashboard = ({
+  activeTab: controlledTab,
+  onSelectTab: controlledOnSelectTab
+}) => {
   const { user } = useAuth();
   const [trainers, setTrainers] = useState([]);
   const [students, setStudents] = useState([]);
@@ -26,7 +29,9 @@ export const SuperAdminDashboard = () => {
   const [viewingProfileUserId, setViewingProfileUserId] = useState(null);
   const [viewingProfileInitial, setViewingProfileInitial] = useState(null);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('trainers'); // 'trainers' | 'matrix' | 'students'
+  const [internalTab, setInternalTab] = useState('trainers'); // 'trainers' | 'matrix' | 'students'
+  const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
+  const setActiveTab = controlledOnSelectTab || setInternalTab;
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('bridgeai_superadmin_sidebar_open');

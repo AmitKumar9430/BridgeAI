@@ -15,11 +15,16 @@ import {
 } from 'lucide-react';
 import { ChangePasswordModal } from '../components/common/ChangePasswordModal';
 
-export const VigilanceDashboard = () => {
+export const VigilanceDashboard = ({
+  activeTab: controlledTab,
+  onSelectTab: controlledOnSelectTab
+}) => {
   const { user } = useAuth();
 
   // Navigation: Primary is 'live' (Live Examination Surveillance)
-  const [activeTab, setActiveTab] = useState('live'); // 'live' | 'warnings' | 'terminations' | 'evidence' | 'activity'
+  const [internalTab, setInternalTab] = useState('live'); // 'live' | 'warnings' | 'terminations' | 'evidence' | 'activity'
+  const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
+  const setActiveTab = controlledOnSelectTab || setInternalTab;
   const [loading, setLoading] = useState(false);
   const [feedRefreshing, setFeedRefreshing] = useState(false);
 

@@ -16,13 +16,18 @@ import { LiveSessionsTab } from '../components/common/LiveSessionsTab';
 import { ChangePasswordModal } from '../components/common/ChangePasswordModal';
 import { BossCredentialsModal } from '../components/common/BossCredentialsModal';
 
-export const BossAdminDashboard = () => {
+export const BossAdminDashboard = ({
+  activeTab: controlledTab,
+  onSelectTab: controlledOnSelectTab
+}) => {
   const { user } = useAuth();
   const [auditLogs, setAuditLogs] = useState([]);
   const [superAdmins, setSuperAdmins] = useState([]);
   const [institutions, setInstitutions] = useState([]);
   const [hierarchyTree, setHierarchyTree] = useState([]);
-  const [activeTab, setActiveTab] = useState('hierarchy'); // 'hierarchy' | 'enroll' | 'admins' | 'audit'
+  const [internalTab, setInternalTab] = useState('hierarchy'); // 'hierarchy' | 'enroll' | 'admins' | 'audit'
+  const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
+  const setActiveTab = controlledOnSelectTab || setInternalTab;
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('bridgeai_bossadmin_sidebar_open');

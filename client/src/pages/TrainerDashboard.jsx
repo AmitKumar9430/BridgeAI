@@ -91,9 +91,14 @@ export const sampleCodingProblems = [
   }
 ];
 
-export const TrainerDashboard = () => {
+export const TrainerDashboard = ({
+  activeTab: controlledTab,
+  onSelectTab: controlledOnSelectTab
+}) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('published-assignments');
+  const [internalTab, setInternalTab] = useState('published-assignments');
+  const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
+  const setActiveTab = controlledOnSelectTab || setInternalTab;
   const [courses, setCourses] = useState([]);
   const [exams, setExams] = useState([]);
   const [allAttempts, setAllAttempts] = useState([]);

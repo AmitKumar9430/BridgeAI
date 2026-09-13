@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { NavigationProvider, useNavigation } from './context/NavigationContext';
 import { Navbar } from './components/common/Navbar';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
@@ -17,14 +18,22 @@ import { Footer } from './components/common/Footer';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 function AppContent() {
-  const { user, switchRoleDemo, isBossAdmin, isSuperAdmin, isTrainer, isVigilanceOfficer, isStudent } = useAuth();
-
-  // Primary page view: 'landing' | 'login' | 'register' | 'portal'
-  const [view, setView] = useState(() => (user ? 'portal' : 'landing'));
-
-  const [activeCourseId, setActiveCourseId] = useState(null);
-  const [activeExamId, setActiveExamId] = useState(null);
-  const [examResult, setExamResult] = useState(null);
+  const { user, switchRoleDemo, isBossAdmin, isSuperAdmin, isTrainer, isVigilanceOfficer } = useAuth();
+  const {
+    view,
+    tab,
+    activeExamId,
+    activeCourseId,
+    examResult,
+    navigateToView,
+    selectTab,
+    openExam,
+    closeExam,
+    openCourse,
+    closeCourse,
+    openExamResult,
+    closeExamResult
+  } = useNavigation();
 
   // Auto-switch to vigilance officer if requested via QR scan / URL parameter on phone or tablet
   useEffect(() => {
@@ -33,129 +42,128 @@ function AppContent() {
       const roleParam = params.get('role');
       if (roleParam && (roleParam.toLowerCase() === 'vigilance' || roleParam.toUpperCase() === 'VIGILANCE_OFFICER')) {
         switchRoleDemo('VIGILANCE_OFFICER');
-        setView('portal');
+        navigateToView('portal', { replace: true });
       }
     } catch {
       // ignore
     }
-  }, []);
+  }, [switchRoleDemo, navigateToView]);
 
   // If user logs out, go to landing page
   useEffect(() => {
     if (!user && view === 'portal') {
-      setView('landing');
+      navigateToView('landing', { replace: true });
     }
-  }, [user, view]);
+  }, [user, view, navigateToView]);
 
-  // Handlers
-  const handleOpenExam = (examId) => {
-    setActiveExamId(examId);
-    setExamResult(null);
-  };
-
-  const handleExamCompleted = (resultData) => {
-    setActiveExamId(null);
-    setExamResult(resultData);
-  };
-
-  const handleSelectCourse = (courseId) => {
-    setActiveCourseId(courseId);
-  };
-
-  // 1. Proctored Exam: Takes full-screen priority
-  if (activeExamId) {
-    return (
-      <ErrorBoundary onReset={() => setActiveExamId(null)}>
-        <ProctoredExamPage
-          examId={activeExamId}
-          onExamCompleted={handleExamCompleted}
-          onCancel={() => setActiveExamId(null)}
-        />
-      </ErrorBoundary>
-    );
-  }
-
-  // 2. Dedicated Login Page
+  // Dedicated Login Page
   if (view === 'login') {
     return (
       <LoginPage
-        onNavigateLanding={() => setView('landing')}
-        onNavigateRegister={() => setView('register')}
-        onLoginSuccess={() => setView('portal')}
+        onNavigateLanding={() => navigateToView('landing')}
+        onNavigateRegister={() => navigateToView('register')}
+        onLoginSuccess={() => navigateToView('portal')}
       />
     );
   }
 
-  // 3. Dedicated Register Page (Only Students)
+  // Dedicated Register Page (Only Students)
   if (view === 'register') {
     return (
       <RegisterPage
-        onNavigateLanding={() => setView('landing')}
-        onNavigateLogin={() => setView('login')}
-        onRegisterSuccess={() => setView('portal')}
+        onNavigateLanding={() => navigateToView('landing')}
+        onNavigateLogin={() => navigateToView('login')}
+        onRegisterSuccess={() => navigateToView('portal')}
       />
     );
   }
 
-  // 4. Portal View / Landing View
+  // Primary Workspace View
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] flex flex-col font-sans text-[#0F172A] dark:text-[#F8FAFC] transition-colors">
       {/* Top Navbar */}
       <Navbar
-        onOpenLogin={() => setView('login')}
-        onOpenRegister={() => setView('register')}
-        onNavigateLanding={() => setView('landing')}
-        onNavigateDashboard={() => setView('portal')}
+        onOpenLogin={() => navigateToView('login')}
+        onOpenRegister={() => navigateToView('register')}
+        onNavigateLanding={() => navigateToView('landing')}
+        onNavigateDashboard={() => navigateToView('portal')}
         currentView={view}
       />
 
-      {/* Main Workspace Body */}
-      <main className={view === 'landing' ? "flex-1 w-full" : "flex-1 w-full max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6"}>
+      {/* Main Workspace Body: Kept mounted with display: none when taking an exam to preserve internal state & scroll position */}
+      <main
+        style={{ display: activeExamId ? 'none' : 'block' }}
+        className={view === 'landing' ? "flex-1 w-full" : "flex-1 w-full max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6"}
+      >
         {view === 'landing' ? (
           <LandingPage
-            onNavigateLogin={() => setView('login')}
-            onNavigateRegister={() => setView('register')}
+            onNavigateLogin={() => navigateToView('login')}
+            onNavigateRegister={() => navigateToView('register')}
             onExploreCourses={() => {
               if (user) {
-                setView('portal');
+                navigateToView('portal');
               } else {
-                setView('login');
+                navigateToView('login');
               }
             }}
           />
         ) : examResult ? (
           <ExamResultPage
             result={examResult}
-            onBackToDashboard={() => setExamResult(null)}
-            onRetakeExam={handleOpenExam}
+            onBackToDashboard={closeExamResult}
+            onRetakeExam={openExam}
           />
         ) : activeCourseId ? (
           <CourseDetailsPage
             courseId={activeCourseId}
-            onBack={() => setActiveCourseId(null)}
-            onOpenExam={handleOpenExam}
+            onBack={closeCourse}
+            onOpenExam={openExam}
           />
         ) : isBossAdmin ? (
-          <BossAdminDashboard />
+          <BossAdminDashboard activeTab={tab} onSelectTab={selectTab} />
         ) : isSuperAdmin ? (
-          <SuperAdminDashboard />
+          <SuperAdminDashboard activeTab={tab} onSelectTab={selectTab} />
         ) : isTrainer ? (
-          <TrainerDashboard />
+          <TrainerDashboard activeTab={tab} onSelectTab={selectTab} />
         ) : isVigilanceOfficer ? (
-          <VigilanceDashboard />
+          <VigilanceDashboard activeTab={tab} onSelectTab={selectTab} />
         ) : (
           <StudentDashboard
-            onOpenExam={handleOpenExam}
-            onSelectCourse={handleSelectCourse}
+            activeTab={tab}
+            onSelectTab={selectTab}
+            onOpenExam={openExam}
+            onSelectCourse={openCourse}
           />
         )}
       </main>
 
-      {/* Crisp Clean Footer: Strictly only visible on landing page, never on any console */}
-      {view === 'landing' && (
+      {/* Crisp Clean Footer: Strictly only visible on landing page, never on any console or during exam */}
+      {view === 'landing' && !activeExamId && (
         <Footer />
       )}
+
+      {/* Proctored Exam: Takes full-screen priority when active */}
+      {activeExamId && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0B1120]">
+          <ErrorBoundary onReset={closeExam}>
+            <ProctoredExamPage
+              examId={activeExamId}
+              onExamCompleted={openExamResult}
+              onCancel={closeExam}
+            />
+          </ErrorBoundary>
+        </div>
+      )}
     </div>
+  );
+}
+
+function AppWithNavigation() {
+  const { user } = useAuth();
+  return (
+    <NavigationProvider user={user}>
+      <AppContent />
+    </NavigationProvider>
   );
 }
 
@@ -164,7 +172,7 @@ export default function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <AuthProvider>
-          <AppContent />
+          <AppWithNavigation />
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>

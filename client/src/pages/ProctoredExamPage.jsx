@@ -257,9 +257,13 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   const streamCamVideoRef = useRef(null);
   const [screenStream, setScreenStream] = useState(null);
   const screenStreamRef = useRef(null);
+  const cameraStreamRef = useRef(null);
   useEffect(() => {
     screenStreamRef.current = screenStream;
   }, [screenStream]);
+  useEffect(() => {
+    cameraStreamRef.current = cameraStream;
+  }, [cameraStream]);
 
   // Live student microphone audio streaming states & refs
   const [audioStream, setAudioStream] = useState(null);
@@ -314,17 +318,20 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         clearTimeout(audioClipTimeoutRef.current);
         audioClipTimeoutRef.current = null;
       }
-      if (cameraStream) {
-        cameraStream.getTracks().forEach((track) => track.stop());
+      if (cameraStreamRef.current) {
+        cameraStreamRef.current.getTracks().forEach((track) => track.stop());
       }
-      if (screenStream) {
-        screenStream.getTracks().forEach((track) => track.stop());
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach((track) => track.stop());
       }
       if (audioStreamRef.current) {
         audioStreamRef.current.getTracks().forEach((track) => track.stop());
       }
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         try { mediaRecorderRef.current.stop(); } catch (e) {}
+      }
+      if (document.fullscreenElement) {
+        try { document.exitFullscreen(); } catch (e) {}
       }
     };
   }, []);
