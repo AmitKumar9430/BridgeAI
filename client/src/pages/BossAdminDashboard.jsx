@@ -1940,7 +1940,7 @@ export const BossAdminDashboard = () => {
                             {new Date(record.createdAt).toLocaleString()}
                           </td>
                           <td className="p-3 font-semibold text-slate-900 dark:text-white">
-                            {record.officerName || record.officerEmail || 'Rahul Sharma (VO-001)'}
+                            {(record.officerName || record.officerEmail || 'Rahul Sharma').replace(/\s*\([^)]*\)/g, '').trim()}
                           </td>
                           <td className="p-3 text-slate-800 dark:text-slate-200 font-medium">
                             {record.studentName || 'Student ID: ' + record.studentId}
@@ -2011,7 +2011,7 @@ export const BossAdminDashboard = () => {
                             {term.examTitle || 'Midterm Assessment'}
                           </td>
                           <td className="p-3 font-medium text-slate-700 dark:text-slate-300">
-                            {term.officerName || 'Rahul Sharma (VO-001)'}
+                            {(term.officerName || 'Rahul Sharma').replace(/\s*\([^)]*\)/g, '').trim()}
                           </td>
                           <td className="p-3 text-rose-700 dark:text-rose-400 max-w-xs font-medium">
                             {term.reason || 'Multiple unauthorized tab switches and browser extensions detected.'}

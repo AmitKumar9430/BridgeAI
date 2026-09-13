@@ -112,7 +112,7 @@ export const DashboardSidebar = ({
         {user && (
           <div className="p-3 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 space-y-1.5 shrink-0">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.fullName || 'User Profile'}</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{(user.fullName || 'User Profile').replace(/\s*\([^)]*\)/g, '').trim()}</span>
               {getRoleBadge()}
             </div>
             {user.institutionName && (

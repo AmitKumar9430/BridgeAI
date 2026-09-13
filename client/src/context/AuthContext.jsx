@@ -7,41 +7,57 @@ const AuthContext = createContext(null);
 export const DEMO_USERS = {
   BOSS_ADMIN: {
     email: 'boss@bridgeai.edu',
-    fullName: 'Chief Director (Boss Admin)',
+    fullName: 'Chief Director',
     role: 'ROLE_BOSS_ADMIN',
     password: 'BossAdmin@2026'
   },
   SUPER_ADMIN: {
     email: 'superadmin@bridgeai.edu',
-    fullName: 'Dr. Arvind Roy (Super Admin)',
+    fullName: 'Dr. Arvind Roy',
     role: 'ROLE_SUPER_ADMIN',
     password: 'SuperAdmin@2026'
   },
   TRAINER: {
     email: 'bharat.trainer@bridgeai.edu',
-    fullName: 'Bharat Sharma (Senior AI Trainer)',
+    fullName: 'Bharat Sharma',
     role: 'ROLE_TRAINER',
     password: 'Trainer@2026'
   },
   STUDENT: {
     email: 'rahul.student@bridgeai.edu',
-    fullName: 'Rahul Verma (Student)',
+    fullName: 'Rahul Verma',
     role: 'ROLE_STUDENT',
     password: 'Student@2026'
   },
   VIGILANCE_OFFICER: {
     email: 'rahul.sharma@bridgeai.edu',
     staffId: 'VO-001',
-    fullName: 'Rahul Sharma (Vigilance Officer)',
+    fullName: 'Rahul Sharma',
     role: 'ROLE_VIGILANCE_OFFICER',
     password: 'Vigilance@2026'
   }
 };
 
+const sanitizeUser = (usr) => {
+  if (!usr) return usr;
+  if (typeof usr.fullName === 'string') {
+    return {
+      ...usr,
+      fullName: usr.fullName.replace(/\s*\([^)]*\)/g, '').trim()
+    };
+  }
+  return usr;
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('bridgeai_user');
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    try {
+      return sanitizeUser(JSON.parse(saved));
+    } catch {
+      return null;
+    }
   });
   const [token, setToken] = useState(() => localStorage.getItem('bridgeai_token') || null);
   const [loading, setLoading] = useState(false);
@@ -73,10 +89,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.post('/auth/register', data);
       const { token: jwtToken, user: userData } = res.data;
+      const cleanUser = sanitizeUser(userData);
       setToken(jwtToken);
-      setUser(userData);
+      setUser(cleanUser);
       localStorage.setItem('bridgeai_token', jwtToken);
-      localStorage.setItem('bridgeai_user', JSON.stringify(userData));
+      localStorage.setItem('bridgeai_user', JSON.stringify(cleanUser));
       return { success: true };
     } catch (err) {
       return { success: false, error: err.response?.data?.message || err.message };
@@ -91,10 +108,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.post('/auth/login/password-otp', { email, password, otpCode });
       const { token: jwtToken, user: userData } = res.data;
+      const cleanUser = sanitizeUser(userData);
       setToken(jwtToken);
-      setUser(userData);
+      setUser(cleanUser);
       localStorage.setItem('bridgeai_token', jwtToken);
-      localStorage.setItem('bridgeai_user', JSON.stringify(userData));
+      localStorage.setItem('bridgeai_user', JSON.stringify(cleanUser));
       return { success: true };
     } catch (err) {
       return { success: false, error: err.response?.data?.message || err.message };
@@ -109,10 +127,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.post('/auth/login/otp-only', { email, otpCode });
       const { token: jwtToken, user: userData } = res.data;
+      const cleanUser = sanitizeUser(userData);
       setToken(jwtToken);
-      setUser(userData);
+      setUser(cleanUser);
       localStorage.setItem('bridgeai_token', jwtToken);
-      localStorage.setItem('bridgeai_user', JSON.stringify(userData));
+      localStorage.setItem('bridgeai_user', JSON.stringify(cleanUser));
       return { success: true };
     } catch (err) {
       return { success: false, error: err.response?.data?.message || err.message };
@@ -128,16 +147,18 @@ export const AuthProvider = ({ children }) => {
       try {
         const res = await api.post('/auth/demo-login', { role: demo.role });
         const { token: jwtToken, user: userData } = res.data;
+        const cleanUser = sanitizeUser(userData);
         setToken(jwtToken);
-        setUser(userData);
+        setUser(cleanUser);
         localStorage.setItem('bridgeai_token', jwtToken);
-        localStorage.setItem('bridgeai_user', JSON.stringify(userData));
-        return { success: true, user: userData };
+        localStorage.setItem('bridgeai_user', JSON.stringify(cleanUser));
+        return { success: true, user: cleanUser };
       } catch (err) {
         console.warn('Demo login API fallback:', err);
-        setUser(demo);
-        localStorage.setItem('bridgeai_user', JSON.stringify(demo));
-        return { success: true, user: demo };
+        const cleanDemo = sanitizeUser(demo);
+        setUser(cleanDemo);
+        localStorage.setItem('bridgeai_user', JSON.stringify(cleanDemo));
+        return { success: true, user: cleanDemo };
       }
     }
   };
@@ -150,8 +171,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateCurrentUser = (userData, jwtToken = null) => {
-    setUser(userData);
-    localStorage.setItem('bridgeai_user', JSON.stringify(userData));
+    const cleanUser = sanitizeUser(userData);
+    setUser(cleanUser);
+    localStorage.setItem('bridgeai_user', JSON.stringify(cleanUser));
     if (jwtToken) {
       setToken(jwtToken);
       localStorage.setItem('bridgeai_token', jwtToken);

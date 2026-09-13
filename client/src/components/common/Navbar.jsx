@@ -148,7 +148,9 @@ export const Navbar = ({ onOpenLogin, onOpenRegister, onNavigateLanding, onNavig
 
               <div className="text-right hidden md:block">
                 <div className="flex items-center justify-end gap-2">
-                  <span className="text-xs font-bold text-slate-900 dark:text-white">{user.fullName}</span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">
+                    {user.fullName ? user.fullName.replace(/\s*\([^)]*\)/g, '').trim() : ''}
+                  </span>
                   {getRolePill()}
                 </div>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400">{user.email}</span>

@@ -222,6 +222,12 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   const [acknowledgingWarning, setAcknowledgingWarning] = useState(false);
   const [antiCheatArmed, setAntiCheatArmed] = useState(false);
 
+  // 15-second grace period countdown timer for tab switch / window blur
+  const [tabSwitchCountdown, setTabSwitchCountdown] = useState(null);
+  const tabSwitchTimerRef = useRef(null);
+  const tabSwitchDeadlineRef = useRef(null);
+  const handleSubmitExamRef = useRef(null);
+
   // Anti-cheat synchronizing refs
   const violationsRef = useRef([]);
   useEffect(() => { violationsRef.current = violations; }, [violations]);
@@ -239,6 +245,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   useEffect(() => { codingAnswersRef.current = codingAnswers; }, [codingAnswers]);
   const answersRef = useRef(answers);
   useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { handleSubmitExamRef.current = handleSubmitExam; }, [handleSubmitExam]);
 
   const videoRef = useRef(null);
   const pipVideoRef = useRef(null);
@@ -852,7 +859,31 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       setExamData({ ...res.data, questions: sortedQuestions });
       setTimeLeft((res.data.durationMinutes || 30) * 60);
 
-      // 4. Mark exam as started
+      // 4. Reset exam workspace to clean state for this attempt
+      setAnswers({});
+      setCodingAnswers({});
+      setCurrentQuestionIndex(0);
+      setMarkedForReview(new Set());
+      setViolations([]);
+      violationsRef.current = [];
+      setViolationModal(null);
+      setViolationWarning(null);
+      setTerminatedByOfficer(false);
+      setTerminationReasonText('');
+      setTerminationEvidenceSnapshot(null);
+      setTerminationOfficerNotes(null);
+      setTerminationOfficerName(null);
+      setRunResults(null);
+      setQuestionVerdict({});
+      setQuestionSubmissions({});
+      setTabSwitchCountdown(null);
+      if (tabSwitchTimerRef.current) {
+        clearInterval(tabSwitchTimerRef.current);
+        tabSwitchTimerRef.current = null;
+      }
+      tabSwitchDeadlineRef.current = null;
+
+      // 5. Mark exam as started
       setExamStarted(true);
     } catch (err) {
       console.error('Failed to start exam:', err);
@@ -894,13 +925,19 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        reportViolation('TAB_SWITCH', 'Switched away from examination tab / tab hidden');
+        triggerTabSwitchGracePeriod('Switched away from examination tab / tab hidden');
+      } else {
+        handleTabSwitchReturn();
       }
     };
 
     const handleWindowBlur = () => {
       // Window focus lost / external app activated / Alt-Tab / Taskbar click
-      reportViolation('TAB_SWITCH', 'Window focus lost / external application activated');
+      triggerTabSwitchGracePeriod('Window focus lost / external application activated');
+    };
+
+    const handleWindowFocus = () => {
+      handleTabSwitchReturn();
     };
 
     const handleFullscreenExit = () => {
@@ -944,6 +981,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleWindowBlur);
+    window.addEventListener('focus', handleWindowFocus);
     document.addEventListener('fullscreenchange', handleFullscreenExit);
     document.addEventListener('copy', handleClipboard);
     document.addEventListener('paste', handleClipboard);
@@ -984,12 +1022,17 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleWindowBlur);
+      window.removeEventListener('focus', handleWindowFocus);
       document.removeEventListener('fullscreenchange', handleFullscreenExit);
       document.removeEventListener('copy', handleClipboard);
       document.removeEventListener('paste', handleClipboard);
       document.removeEventListener('cut', handleClipboard);
       document.removeEventListener('contextmenu', handleContextMenu);
       window.removeEventListener('keydown', handleKeyDown);
+
+      if (tabSwitchTimerRef.current) {
+        clearInterval(tabSwitchTimerRef.current);
+      }
     };
   }, [examStarted, antiCheatArmed]);
 
@@ -1202,6 +1245,102 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         handleSubmitExam(true);
       }, 1500);
     }
+  };
+
+  // 15-Second Tab Switch Grace Period Countdown & Auto-Termination
+  const handleTabSwitchTermination = async () => {
+    if (submittingRef.current) return;
+
+    playAlertTone();
+
+    const maxStrikes = Number(examDataRef.current?.maxStrikesAllowed || examDataRef.current?.maxViolations) || 3;
+    const strikeNum = (violationsRef.current?.length || 0) + 1;
+
+    setViolationModal({
+      strike: strikeNum,
+      max: maxStrikes,
+      type: 'TAB_SWITCH_TERMINATED',
+      details: 'Tab switch grace period expired (Exceeded 15 seconds outside examination window). Session permanently terminated.',
+      time: new Date().toLocaleTimeString(),
+      terminated: true
+    });
+
+    try {
+      const currentExam = examDataRef.current;
+      if (currentExam?.attemptId) {
+        await api.post('/exams/violation', {
+          attemptId: currentExam.attemptId,
+          violationType: 'TAB_SWITCH_TERMINATED',
+          details: 'Failed to return to examination window within 15-second grace period. Exam automatically terminated.',
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to dispatch terminal violation:', e);
+    }
+
+    if (handleSubmitExamRef.current) {
+      handleSubmitExamRef.current(true);
+    } else {
+      handleSubmitExam(true);
+    }
+  };
+
+  const triggerTabSwitchGracePeriod = (reason) => {
+    if (submittingRef.current || !antiCheatArmed) return;
+    // If countdown already active, preserve existing deadline
+    if (tabSwitchDeadlineRef.current) return;
+
+    const deadline = Date.now() + 15000;
+    tabSwitchDeadlineRef.current = deadline;
+    setTabSwitchCountdown(15);
+    playAlertTone();
+
+    if (tabSwitchTimerRef.current) {
+      clearInterval(tabSwitchTimerRef.current);
+    }
+
+    tabSwitchTimerRef.current = setInterval(() => {
+      if (!tabSwitchDeadlineRef.current) {
+        clearInterval(tabSwitchTimerRef.current);
+        return;
+      }
+      const msLeft = tabSwitchDeadlineRef.current - Date.now();
+      const secondsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      setTabSwitchCountdown(secondsLeft);
+
+      if (msLeft <= 0) {
+        clearInterval(tabSwitchTimerRef.current);
+        tabSwitchTimerRef.current = null;
+        tabSwitchDeadlineRef.current = null;
+        setTabSwitchCountdown(0);
+        handleTabSwitchTermination();
+      }
+    }, 250);
+  };
+
+  const handleTabSwitchReturn = () => {
+    if (!tabSwitchDeadlineRef.current) return;
+
+    const now = Date.now();
+    if (now >= tabSwitchDeadlineRef.current) {
+      // Returned after 15 seconds elapsed
+      clearInterval(tabSwitchTimerRef.current);
+      tabSwitchTimerRef.current = null;
+      tabSwitchDeadlineRef.current = null;
+      setTabSwitchCountdown(0);
+      handleTabSwitchTermination();
+      return;
+    }
+
+    // Returned in time!
+    clearInterval(tabSwitchTimerRef.current);
+    tabSwitchTimerRef.current = null;
+    const remainingSec = Math.max(1, Math.ceil((tabSwitchDeadlineRef.current - now) / 1000));
+    tabSwitchDeadlineRef.current = null;
+    setTabSwitchCountdown(null);
+
+    // Record violation strike
+    reportViolation('TAB_SWITCH', `Switched away from examination window (Re-entered within grace period: ${remainingSec}s remaining)`);
   };
 
   // MCQ Selection Handler
@@ -1557,6 +1696,13 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   const handleSubmitExam = async (forced = false) => {
     if (submitting) return;
     setSubmitting(true);
+
+    if (tabSwitchTimerRef.current) {
+      clearInterval(tabSwitchTimerRef.current);
+      tabSwitchTimerRef.current = null;
+    }
+    tabSwitchDeadlineRef.current = null;
+    setTabSwitchCountdown(null);
 
     try {
       const codingSubmissions = Object.entries(codingAnswers).map(([qId, data]) => ({
@@ -3692,6 +3838,76 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                 className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors disabled:opacity-50"
               >
                 {submitting ? 'Submitting...' : 'Yes, Finish Assessment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. CRITICAL TAB SWITCH 15-SECOND COUNTDOWN OVERLAY */}
+      {tabSwitchCountdown !== null && (
+        <div
+          onClick={() => {
+            window.focus();
+            handleTabSwitchReturn();
+          }}
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn select-none cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-slate-900 border-2 border-rose-600 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl text-center space-y-5 animate-scaleUp text-white"
+          >
+            <div className="w-20 h-20 mx-auto rounded-full bg-rose-500/10 border-2 border-rose-500 flex items-center justify-center shadow-lg shadow-rose-950/50">
+              <AlertTriangle className="w-10 h-10 text-rose-500 animate-pulse" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="px-3.5 py-1 bg-rose-500/20 text-rose-300 text-xs font-black rounded-full border border-rose-500/40 uppercase tracking-widest inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                Critical Proctoring Alert
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                Tab Switch / Window Blur Detected
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
+                You have switched away from the active examination window or lost window focus.
+              </p>
+            </div>
+
+            {/* Countdown Box */}
+            <div className="p-5 bg-slate-950/90 border-2 border-rose-500/50 rounded-2xl space-y-3 shadow-inner">
+              <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider flex items-center justify-center gap-2">
+                <Clock className="w-3.5 h-3.5 text-rose-400 animate-spin" />
+                <span>Return Window Grace Countdown</span>
+              </div>
+              <div className="text-5xl sm:text-6xl font-black font-mono tracking-tight text-rose-500 tabular-nums">
+                00:{tabSwitchCountdown.toString().padStart(2, '0')}
+              </div>
+              {/* Progress bar */}
+              <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                <div
+                  className="h-full bg-rose-600 transition-all duration-300 rounded-full shadow-sm shadow-rose-500"
+                  style={{ width: `${Math.max(0, Math.min(100, (tabSwitchCountdown / 15) * 100))}%` }}
+                />
+              </div>
+              <div className="text-[11px] font-semibold text-rose-400 leading-snug">
+                {tabSwitchCountdown > 0
+                  ? `Re-enter examination within ${tabSwitchCountdown}s or your exam will be permanently terminated with 0 marks.`
+                  : '15-second grace period expired! Assessment is being permanently terminated.'}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  window.focus();
+                  handleTabSwitchReturn();
+                }}
+                className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-rose-600/30 flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Re-enter Examination Window Now
               </button>
             </div>
           </div>

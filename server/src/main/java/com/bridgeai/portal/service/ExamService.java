@@ -70,28 +70,40 @@ public class ExamService {
             }
         }
 
-        // Check existing attempt
-        Optional<ExamAttempt> existingOpt = attemptRepository.findByExamIdAndStudentId(examId, studentId);
+        // Check existing attempt (fetch the latest attempt for this student and exam)
+        Optional<ExamAttempt> existingOpt = attemptRepository.findTopByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
         if (existingOpt.isPresent()) {
             ExamAttempt existing = existingOpt.get();
-            if ("IN_PROGRESS".equals(existing.getStatus())) {
+            // Reconnect to current ongoing session if not flagged for a fresh reattempt
+            if ("IN_PROGRESS".equals(existing.getStatus()) && !existing.isCanReattempt()) {
                 return buildStartExamResponse(exam, existing);
             }
             if (!isSelfAssessment && !existing.isCanReattempt()) {
                 throw new IllegalStateException("You have already completed this institutional assessment (Status: " + existing.getStatus() + "). Re-attempts are locked unless permitted by your trainer.");
             }
-            // For self-assessment (continuous practice) or trainer-permitted re-attempt: reset and restart
-            existing.setStatus("IN_PROGRESS");
-            existing.setViolationCount(0);
-            existing.setStartedAt(LocalDateTime.now());
-            existing.setCompletedAt(null);
-            existing.setScore(0);
-            existing.setPercentage(0.0);
-            existing.setPassed(false);
+
+            // Student is permitted to re-attempt or is practicing self-assessment:
+            // CRITICAL: Must NOT re-enter earlier session! Archive previous attempt row & spawn a fresh new ExamAttempt.
             existing.setCanReattempt(false);
             attemptRepository.save(existing);
-            auditLogService.log(studentName, "STUDENT", isSelfAssessment ? "SELF_ASSESSMENT_PRACTICE_STARTED" : "EXAM_REATTEMPT_STARTED", "Exam", examId, "Started " + (isSelfAssessment ? "self-assessment practice attempt " : "formal re-attempt ") + existing.getId(), ip);
-            return buildStartExamResponse(exam, existing);
+
+            ExamAttempt newAttempt = ExamAttempt.builder()
+                    .examId(examId)
+                    .studentId(studentId)
+                    .studentName(studentName)
+                    .startedAt(LocalDateTime.now())
+                    .status("IN_PROGRESS")
+                    .violationCount(0)
+                    .totalMarks(exam.getTotalMarks())
+                    .score(0)
+                    .percentage(0.0)
+                    .passed(false)
+                    .canReattempt(false)
+                    .build();
+            attemptRepository.save(newAttempt);
+
+            auditLogService.log(studentName, "STUDENT", isSelfAssessment ? "SELF_ASSESSMENT_PRACTICE_STARTED" : "EXAM_REATTEMPT_STARTED", "Exam", examId, "Started brand new " + (isSelfAssessment ? "practice session #" : "re-attempt session #") + newAttempt.getId() + " (previous session #" + existing.getId() + " archived)", ip);
+            return buildStartExamResponse(exam, newAttempt);
         }
 
         ExamAttempt attempt = ExamAttempt.builder()
@@ -489,7 +501,7 @@ public class ExamService {
     }
 
     public List<ExamAttempt> getStudentAttempts(Long studentId) {
-        return attemptRepository.findByStudentId(studentId);
+        return attemptRepository.findByStudentIdOrderByStartedAtDesc(studentId);
     }
 
     public List<ExamAttempt> getAllAttempts() {
@@ -701,7 +713,7 @@ public class ExamService {
             return id2.compareTo(id1);
         });
 
-        List<ExamAttempt> attempts = (studentId != null) ? attemptRepository.findByStudentId(studentId) : Collections.emptyList();
+        List<ExamAttempt> attempts = (studentId != null) ? attemptRepository.findByStudentIdOrderByStartedAtDesc(studentId) : Collections.emptyList();
         Map<Long, ExamAttempt> attemptMap = attempts.stream()
                 .collect(Collectors.toMap(ExamAttempt::getExamId, a -> a, (k1, k2) -> k1));
 

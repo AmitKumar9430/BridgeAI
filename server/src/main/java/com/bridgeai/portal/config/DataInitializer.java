@@ -61,11 +61,11 @@ public class DataInitializer implements CommandLineRunner {
                 "registrar@pilani.bits-pilani.ac.in", "+91-1596-242210", "https://www.bits-pilani.ac.in", 1964);
 
         // 1. Seed Core Users (Boss Admin, Super Admin, Trainer, Student)
-        User bossAdmin = seedUser("boss@bridgeai.edu", "BossAdmin@2026", "Chief Director (Boss Admin)", "+91-9876500001", Role.ROLE_BOSS_ADMIN, "National Higher Education Board", "System Governance");
-        User superAdmin = seedUser("superadmin@bridgeai.edu", "SuperAdmin@2026", "Dr. Arvind Roy (Super Admin)", "+91-9876500002", Role.ROLE_SUPER_ADMIN, "Indian Institute of Technology (IIT)", "Institutional Administration");
-        User superAdmin2 = seedUser("sunita.superadmin@bridgeai.edu", "SuperAdmin@2026", "Dr. Sunita Rao (Co-Super Admin)", "+91-9876500012", Role.ROLE_SUPER_ADMIN, "Indian Institute of Technology (IIT)", "Academics & Accreditation");
-        User trainer = seedUser("bharat.trainer@bridgeai.edu", "Trainer@2026", "Bharat Sharma (Senior AI Trainer)", "+91-9876500003", Role.ROLE_TRAINER, "Indian Institute of Technology (IIT)", "Computer Science & AI");
-        User trainer2 = seedUser("marcus.trainer@bridgeai.edu", "Trainer@2026", "Prof. Marcus Vance (Java Enterprise Lead)", "+91-9876500009", Role.ROLE_TRAINER, "Indian Institute of Technology (IIT)", "Java & Enterprise Systems");
+        User bossAdmin = seedUser("boss@bridgeai.edu", "BossAdmin@2026", "Chief Director", "+91-9876500001", Role.ROLE_BOSS_ADMIN, "National Higher Education Board", "System Governance");
+        User superAdmin = seedUser("superadmin@bridgeai.edu", "SuperAdmin@2026", "Dr. Arvind Roy", "+91-9876500002", Role.ROLE_SUPER_ADMIN, "Indian Institute of Technology (IIT)", "Institutional Administration");
+        User superAdmin2 = seedUser("sunita.superadmin@bridgeai.edu", "SuperAdmin@2026", "Dr. Sunita Rao", "+91-9876500012", Role.ROLE_SUPER_ADMIN, "Indian Institute of Technology (IIT)", "Academics & Accreditation");
+        User trainer = seedUser("bharat.trainer@bridgeai.edu", "Trainer@2026", "Bharat Sharma", "+91-9876500003", Role.ROLE_TRAINER, "Indian Institute of Technology (IIT)", "Computer Science & AI");
+        User trainer2 = seedUser("marcus.trainer@bridgeai.edu", "Trainer@2026", "Prof. Marcus Vance", "+91-9876500009", Role.ROLE_TRAINER, "Indian Institute of Technology (IIT)", "Java & Enterprise Systems");
 
         // Link trainers to Supervising Super Admin
         if (trainer.getSuperAdminId() == null) {
@@ -78,16 +78,25 @@ public class DataInitializer implements CommandLineRunner {
             trainer2.setSuperAdminName(superAdmin.getFullName());
             userRepository.save(trainer2);
         }
-        User student = seedUser("rahul.student@bridgeai.edu", "Student@2026", "Rahul Verma (Student)", "+91-9876500004", Role.ROLE_STUDENT, "Indian Institute of Technology (IIT)", "Computer Science & AI");
-        User priya = seedUser("priya.student@bridgeai.edu", "Student@2026", "Priya Sharma (Student)", "+91-9876500005", Role.ROLE_STUDENT, "Indian Institute of Technology (IIT)", "Computer Science & AI");
-        User amit = seedUser("amit.student@bridgeai.edu", "Student@2026", "Amit Patel (Student)", "+91-9876500006", Role.ROLE_STUDENT, "Indian Institute of Technology (IIT)", "Computer Science & AI");
-        User neha = seedUser("neha.student@bridgeai.edu", "Student@2026", "Neha Gupta (Student)", "+91-9876500007", Role.ROLE_STUDENT, "Indian Institute of Technology (IIT)", "Computer Science & AI");
-        User vikram = seedUser("vikram.student@bridgeai.edu", "Student@2026", "Vikram Singh (Student)", "+91-9876500008", Role.ROLE_STUDENT, "Indian Institute of Technology (IIT)", "Computer Science & AI");
+        User student = seedUser("rahul.student@bridgeai.edu", "Student@2026", "Rahul Verma", "+91-9876500004", Role.ROLE_STUDENT, "Indian Institute of Technology (IIT)", "Computer Science & AI");
+        User priya = seedUser("priya.student@bridgeai.edu", "Student@2026", "Priya Sharma", "+91-9876500005", Role.ROLE_STUDENT, "Indian Institute of Technology (IIT)", "Computer Science & AI");
+        User amit = seedUser("amit.student@bridgeai.edu", "Student@2026", "Amit Patel", "+91-9876500006", Role.ROLE_STUDENT, "Indian Institute of Technology (IIT)", "Computer Science & AI");
+        User neha = seedUser("neha.student@bridgeai.edu", "Student@2026", "Neha Gupta", "+91-9876500007", Role.ROLE_STUDENT, "Indian Institute of Technology (IIT)", "Computer Science & AI");
+        User vikram = seedUser("vikram.student@bridgeai.edu", "Student@2026", "Vikram Singh", "+91-9876500008", Role.ROLE_STUDENT, "Indian Institute of Technology (IIT)", "Computer Science & AI");
 
-        User vigilanceOfficer = seedUser("rahul.sharma@bridgeai.edu", "Vigilance@2026", "Rahul Sharma (Vigilance Officer)", "+91-9876500015", Role.ROLE_VIGILANCE_OFFICER, "National Examination Board", "Examination Vigilance & Anti-Fraud");
+        User vigilanceOfficer = seedUser("rahul.sharma@bridgeai.edu", "Vigilance@2026", "Rahul Sharma", "+91-9876500015", Role.ROLE_VIGILANCE_OFFICER, "National Examination Board", "Examination Vigilance & Anti-Fraud");
         if (vigilanceOfficer.getStaffId() == null) {
             vigilanceOfficer.setStaffId("VO-001");
             userRepository.save(vigilanceOfficer);
+        }
+
+        // Clean up any remaining bracketed role suffixes from all existing users in the database
+        List<User> existingUsersWithBrackets = userRepository.findAll();
+        for (User u : existingUsersWithBrackets) {
+            if (u.getFullName() != null && u.getFullName().contains("(")) {
+                u.setFullName(u.getFullName().replaceAll("\\s*\\([^)]*\\)", "").trim());
+                userRepository.save(u);
+            }
         }
 
         // 2. Seed Course if empty
@@ -617,12 +626,13 @@ public class DataInitializer implements CommandLineRunner {
                     .map(Institution::getId)
                     .orElse(null);
         }
+        String cleanName = name != null ? name.replaceAll("\\s*\\([^)]*\\)", "").trim() : "";
         User u = userRepository.findByEmail(email).orElse(null);
         if (u == null) {
             u = User.builder()
                     .email(email)
                     .password(passwordEncoder.encode(rawPassword))
-                    .fullName(name)
+                    .fullName(cleanName)
                     .phone(phone)
                     .role(role)
                     .institutionId(instId)
@@ -634,6 +644,7 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Created user [{}] with role [{}] for institute [{}]", email, role, instName);
             return userRepository.save(u);
         } else {
+            u.setFullName(cleanName);
             if (rawPassword != null && !rawPassword.isBlank()) {
                 u.setPassword(passwordEncoder.encode(rawPassword));
             }

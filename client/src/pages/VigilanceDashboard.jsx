@@ -669,7 +669,7 @@ export const VigilanceDashboard = () => {
                   </span>
                 </div>
                 <h2 className="text-xl font-black text-slate-900 dark:text-white mt-1">
-                  {user?.fullName || 'Rahul Sharma (Vigilance Officer)'}
+                  {(user?.fullName || 'Rahul Sharma').replace(/\s*\([^)]*\)/g, '').trim()}
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Centralized Academic Integrity & Anti-Fraud Bureau · Primary Duty: Real-Time Examination Surveillance
@@ -2782,7 +2782,7 @@ export const VigilanceDashboard = () => {
               </div>
 
               <p className="text-[11px] text-slate-400 leading-relaxed text-center">
-                Ensure your tablet or phone is connected to the same Wi-Fi network. Scanning automatically logs you in as <strong>Vigilance Officer (Rahul Sharma)</strong> so you can monitor live candidate video and telemetry on your handheld device while the student takes the exam.
+                Ensure your tablet or phone is connected to the same Wi-Fi network. Scanning automatically logs you in as <strong>Vigilance Officer Rahul Sharma</strong> so you can monitor live candidate video and telemetry on your handheld device while the student takes the exam.
               </p>
 
               <button

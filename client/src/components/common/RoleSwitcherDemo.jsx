@@ -15,7 +15,7 @@ export const RoleSwitcherDemo = ({ onRoleSelected }) => {
       <div className="w-full max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-slate-500 dark:text-slate-400 font-medium">Switch View:</span>
-          <span className="text-slate-800 dark:text-slate-300 font-semibold">{user?.fullName || 'Guest'}</span>
+          <span className="text-slate-800 dark:text-slate-300 font-semibold">{(user?.fullName || 'Guest').replace(/\s*\([^)]*\)/g, '').trim()}</span>
         </div>
 
         {/* Clean Role Switcher without metadata */}

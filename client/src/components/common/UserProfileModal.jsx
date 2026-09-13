@@ -71,7 +71,7 @@ export const UserProfileModal = ({ userId, initialData, onClose }) => {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h2 className="text-xl font-bold truncate">{profile?.fullName || 'User Profile'}</h2>
+                <h2 className="text-xl font-bold truncate">{(profile?.fullName || 'User Profile').replace(/\s*\([^)]*\)/g, '').trim()}</h2>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badge.bg}`}>
                   {badge.label}
                 </span>
@@ -226,7 +226,7 @@ export const UserProfileModal = ({ userId, initialData, onClose }) => {
                   <span>{profile?.assignedSubject || meta.domainSpecialization || 'Computer Science & AI'}</span>
                 </div>
                 <p className="text-[11px] text-amber-800 dark:text-amber-300">
-                  Supervised by Institutional Lead: <strong>{profile?.superAdminName || meta.supervisingSuperAdmin || 'Dr. Arvind Roy (Super Admin)'}</strong>
+                  Supervised by Institutional Lead: <strong>{(profile?.superAdminName || meta.supervisingSuperAdmin || 'Dr. Arvind Roy').replace(/\s*\([^)]*\)/g, '').trim()}</strong>
                 </p>
               </div>
 
