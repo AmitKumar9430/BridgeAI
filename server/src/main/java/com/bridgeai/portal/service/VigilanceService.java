@@ -44,6 +44,7 @@ public class VigilanceService {
         private String audioChunk;
         private boolean audioConnected;
         private int audioLevel;
+        private long audioTimestamp;
         private long timestamp;
     }
 
@@ -54,7 +55,9 @@ public class VigilanceService {
                                     String audioChunk, boolean audioConnected, int audioLevel) {
         if (attemptId == null) return;
         LiveStreamFrame prev = liveStreamFrames.get(attemptId);
-        String finalAudio = (audioChunk != null && !audioChunk.isBlank()) ? audioChunk : (prev != null ? prev.getAudioChunk() : null);
+        boolean hasNewAudio = audioChunk != null && !audioChunk.isBlank();
+        String finalAudio = hasNewAudio ? audioChunk : (prev != null ? prev.getAudioChunk() : null);
+        long finalAudioTimestamp = hasNewAudio ? System.currentTimeMillis() : (prev != null ? prev.getAudioTimestamp() : 0L);
         liveStreamFrames.put(attemptId, LiveStreamFrame.builder()
                 .attemptId(attemptId)
                 .cameraFrame(cameraFrame != null ? cameraFrame : (prev != null ? prev.getCameraFrame() : null))
@@ -64,6 +67,7 @@ public class VigilanceService {
                 .audioChunk(finalAudio)
                 .audioConnected(audioConnected)
                 .audioLevel(audioLevel)
+                .audioTimestamp(finalAudioTimestamp)
                 .timestamp(System.currentTimeMillis())
                 .build());
     }
@@ -441,6 +445,7 @@ public class VigilanceService {
                 studentMap.put("cameraFrame", streamFrame.getCameraFrame());
                 studentMap.put("screenFrame", streamFrame.getScreenFrame());
                 studentMap.put("audioChunk", streamFrame.getAudioChunk());
+                studentMap.put("audioTimestamp", streamFrame.getAudioTimestamp());
                 if (streamFrame.isCameraConnected()) cameraConnected = true;
                 if (streamFrame.isScreenConnected()) screenConnected = true;
                 if (streamFrame.isAudioConnected()) audioConnected = true;
@@ -449,6 +454,7 @@ public class VigilanceService {
                 studentMap.put("cameraFrame", null);
                 studentMap.put("screenFrame", null);
                 studentMap.put("audioChunk", null);
+                studentMap.put("audioTimestamp", 0L);
             }
 
             studentMap.put("cameraConnected", cameraConnected);

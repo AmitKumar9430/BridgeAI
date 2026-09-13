@@ -194,6 +194,7 @@ public class VigilanceController {
                     .audioChunk(null)
                     .audioConnected(false)
                     .audioLevel(0)
+                    .audioTimestamp(0)
                     .timestamp(0)
                     .build());
         }

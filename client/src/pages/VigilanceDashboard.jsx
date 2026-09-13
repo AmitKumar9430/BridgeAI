@@ -86,25 +86,84 @@ export const VigilanceDashboard = () => {
   const [audioVolume, setAudioVolume] = useState(1.0);
   const isAudioMutedRef = useRef(isAudioMuted);
   const audioVolumeRef = useRef(audioVolume);
-  useEffect(() => { isAudioMutedRef.current = isAudioMuted; }, [isAudioMuted]);
-  useEffect(() => { audioVolumeRef.current = audioVolume; }, [audioVolume]);
+  const audioQueueRef = useRef([]);
+  const isPlayingAudioRef = useRef(false);
+  const currentAudioPlayerRef = useRef(null);
+
+  useEffect(() => { 
+    isAudioMutedRef.current = isAudioMuted; 
+    if (isAudioMuted) {
+      if (currentAudioPlayerRef.current) {
+        try { currentAudioPlayerRef.current.pause(); } catch (e) {}
+      }
+      audioQueueRef.current = [];
+      isPlayingAudioRef.current = false;
+    }
+  }, [isAudioMuted]);
+
+  useEffect(() => { 
+    audioVolumeRef.current = audioVolume; 
+    if (currentAudioPlayerRef.current) {
+      currentAudioPlayerRef.current.volume = Math.max(0, Math.min(1, audioVolume));
+    }
+  }, [audioVolume]);
 
   const selectedStudentRef = useRef(selectedStudent);
-  useEffect(() => { selectedStudentRef.current = selectedStudent; }, [selectedStudent]);
+  useEffect(() => { 
+    selectedStudentRef.current = selectedStudent; 
+    if (!selectedStudent) {
+      if (currentAudioPlayerRef.current) {
+        try { currentAudioPlayerRef.current.pause(); } catch (e) {}
+      }
+      audioQueueRef.current = [];
+      isPlayingAudioRef.current = false;
+      lastPlayedAudioChunkRef.current = null;
+    }
+  }, [selectedStudent]);
 
   const lastPlayedAudioChunkRef = useRef(null);
 
-  // Play incoming real-time audio chunk through officer speakers
+  const playNextInQueue = () => {
+    if (isAudioMutedRef.current || audioQueueRef.current.length === 0) {
+      isPlayingAudioRef.current = false;
+      return;
+    }
+    isPlayingAudioRef.current = true;
+    const nextChunk = audioQueueRef.current.shift();
+    try {
+      const audio = new Audio(nextChunk);
+      currentAudioPlayerRef.current = audio;
+      audio.volume = Math.max(0, Math.min(1, audioVolumeRef.current));
+      audio.onended = () => {
+        playNextInQueue();
+      };
+      audio.onerror = (e) => {
+        console.warn('Live candidate audio playback error:', e);
+        playNextInQueue();
+      };
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.warn('Browser audio playback waiting for user interaction:', err);
+          isPlayingAudioRef.current = false;
+        });
+      }
+    } catch (err) {
+      console.warn('Audio initialization error:', err);
+      isPlayingAudioRef.current = false;
+    }
+  };
+
+  // Play incoming real-time audio chunk through officer speakers via sequential FIFO queue
   const playCandidateAudioChunk = (audioChunk) => {
     if (isAudioMutedRef.current || !audioChunk) return;
-    try {
-      const audio = new Audio(audioChunk);
-      audio.volume = audioVolumeRef.current;
-      audio.play().catch(e => {
-        // Autoplay may need user gesture
-      });
-    } catch (err) {
-      console.warn('Live audio playback error:', err);
+    // Cap queue to maximum 3 clips to prevent latency backlog
+    if (audioQueueRef.current.length > 3) {
+      audioQueueRef.current = audioQueueRef.current.slice(-2);
+    }
+    audioQueueRef.current.push(audioChunk);
+    if (!isPlayingAudioRef.current) {
+      playNextInQueue();
     }
   };
 
@@ -211,11 +270,13 @@ export const VigilanceDashboard = () => {
                 timestamp: e.data.timestamp
               }
             }));
-            if (e.data.audioChunk && selectedStudentRef.current?.attemptId === e.data.attemptId) {
+            const isTarget = String(selectedStudentRef.current?.attemptId) === String(e.data.attemptId);
+            if (e.data.audioChunk && isTarget) {
               playCandidateAudioChunk(e.data.audioChunk);
             }
           } else if (e.data?.type === 'AUDIO_CHUNK' && e.data.attemptId) {
-            if (selectedStudentRef.current?.attemptId === e.data.attemptId) {
+            const isTarget = String(selectedStudentRef.current?.attemptId) === String(e.data.attemptId);
+            if (isTarget && e.data.audioChunk) {
               playCandidateAudioChunk(e.data.audioChunk);
             }
             if (typeof e.data.audioLevel === 'number') {
@@ -246,9 +307,11 @@ export const VigilanceDashboard = () => {
       try {
         const res = await api.get(`/vigilance/feed/stream/${selectedStudent.attemptId}`);
         if (res.data) {
-          if (res.data.audioChunk && selectedStudentRef.current?.attemptId === selectedStudent.attemptId) {
-            if (lastPlayedAudioChunkRef.current !== res.data.audioChunk) {
-              lastPlayedAudioChunkRef.current = res.data.audioChunk;
+          const isTarget = String(selectedStudentRef.current?.attemptId) === String(selectedStudent.attemptId);
+          if (res.data.audioChunk && isTarget) {
+            const audioId = res.data.audioTimestamp || res.data.audioChunk;
+            if (lastPlayedAudioChunkRef.current !== audioId) {
+              lastPlayedAudioChunkRef.current = audioId;
               playCandidateAudioChunk(res.data.audioChunk);
             }
           }
@@ -379,6 +442,13 @@ export const VigilanceDashboard = () => {
     setSelectedStudent(student);
     setActiveSubModal(null);
     setIsAudioMuted(false);
+    audioQueueRef.current = [];
+    isPlayingAudioRef.current = false;
+    lastPlayedAudioChunkRef.current = null;
+    try {
+      const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+      silentAudio.play().catch(() => {});
+    } catch (e) {}
     setWarningReason('UNAUTHORIZED_ASSISTANCE');
     setWarningCustomReason('');
     setWarningNotes('');

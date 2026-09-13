@@ -262,6 +262,8 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   const [audioStream, setAudioStream] = useState(null);
   const audioStreamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  const isAudioRecordingRef = useRef(false);
+  const audioClipTimeoutRef = useRef(null);
   const latestAudioChunkRef = useRef(null);
   const currentAudioLevelRef = useRef(0);
   const bcRef = useRef(null);
@@ -299,6 +301,11 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      isAudioRecordingRef.current = false;
+      if (audioClipTimeoutRef.current) {
+        clearTimeout(audioClipTimeoutRef.current);
+        audioClipTimeoutRef.current = null;
+      }
       if (cameraStream) {
         cameraStream.getTracks().forEach((track) => track.stop());
       }
@@ -319,30 +326,37 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       // 1. AudioContext analyser for live audio level (0-100 VU meter)
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) {
-        const audioCtx = new AudioCtx();
-        const source = audioCtx.createMediaStreamSource(aStream);
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 128;
-        source.connect(analyser);
+        try {
+          const audioCtx = new AudioCtx();
+          const source = audioCtx.createMediaStreamSource(aStream);
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 128;
+          source.connect(analyser);
 
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        const checkLevel = () => {
-          if (!aStream.active || aStream.getAudioTracks().every(t => t.readyState === 'ended')) {
-            return;
-          }
-          analyser.getByteFrequencyData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) {
-            sum += dataArray[i];
-          }
-          const avg = sum / dataArray.length;
-          currentAudioLevelRef.current = Math.min(100, Math.round((avg / 128) * 100));
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          const checkLevel = () => {
+            if (!aStream.active || aStream.getAudioTracks().every(t => t.readyState === 'ended')) {
+              return;
+            }
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+              sum += dataArray[i];
+            }
+            const avg = sum / dataArray.length;
+            currentAudioLevelRef.current = Math.min(100, Math.round((avg / 128) * 100));
+            requestAnimationFrame(checkLevel);
+          };
           requestAnimationFrame(checkLevel);
-        };
-        requestAnimationFrame(checkLevel);
+        } catch (acErr) {
+          console.warn('AudioContext analyser error:', acErr);
+        }
       }
 
-      // 2. MediaRecorder to slice real candidate audio into continuous streaming chunks
+      // 2. Discrete Audio Snippet Engine
+      // Recording snippets in start/stop cycles ensures EVERY single emitted chunk contains a complete,
+      // self-contained EBML header and Opus metadata so the vigilance officer's browser can play
+      // each received clip independently without demuxer parse failures or missing headers.
       if (typeof MediaRecorder !== 'undefined') {
         let mimeType = 'audio/webm;codecs=opus';
         if (!MediaRecorder.isTypeSupported(mimeType)) {
@@ -352,35 +366,80 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         }
 
         const options = mimeType ? { mimeType } : {};
-        const recorder = new MediaRecorder(aStream, options);
-        mediaRecorderRef.current = recorder;
+        isAudioRecordingRef.current = true;
 
-        recorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64Audio = reader.result;
-              latestAudioChunkRef.current = base64Audio;
+        const recordNextClip = () => {
+          if (!isAudioRecordingRef.current || !aStream.active || aStream.getAudioTracks().every(t => t.readyState === 'ended')) {
+            return;
+          }
 
-              // Immediately push to BroadcastChannel for instant zero-latency peer listening
-              try {
-                if (bcRef.current) {
-                  bcRef.current.postMessage({
-                    type: 'AUDIO_CHUNK',
-                    attemptId: examDataRef.current?.attemptId || examData?.attemptId,
-                    audioChunk: base64Audio,
-                    audioLevel: currentAudioLevelRef.current,
-                    timestamp: Date.now()
-                  });
+          let recorder;
+          try {
+            recorder = new MediaRecorder(aStream, options);
+          } catch (e) {
+            console.warn('MediaRecorder instantiation failed:', e);
+            return;
+          }
+
+          mediaRecorderRef.current = recorder;
+          const chunks = [];
+
+          recorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              chunks.push(e.data);
+            }
+          };
+
+          recorder.onstop = () => {
+            if (chunks.length > 0) {
+              const blob = new Blob(chunks, { type: mimeType || 'audio/webm' });
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                const base64Audio = reader.result;
+                latestAudioChunkRef.current = base64Audio;
+
+                // Relay immediately over BroadcastChannel if candidate has an active attempt
+                const currentAttempt = examDataRef.current?.attemptId;
+                if (currentAttempt && bcRef.current) {
+                  try {
+                    bcRef.current.postMessage({
+                      type: 'AUDIO_CHUNK',
+                      attemptId: currentAttempt,
+                      audioChunk: base64Audio,
+                      audioLevel: currentAudioLevelRef.current,
+                      timestamp: Date.now()
+                    });
+                  } catch (bErr) {}
                 }
-              } catch (bErr) {}
-            };
-            reader.readAsDataURL(e.data);
+              };
+              reader.readAsDataURL(blob);
+            }
+
+            // Continue recording next clip seamlessly
+            if (isAudioRecordingRef.current) {
+              recordNextClip();
+            }
+          };
+
+          try {
+            recorder.start();
+            // Record 1.2s snippet, then stop() to finalize the WebM container with full EBML header
+            audioClipTimeoutRef.current = setTimeout(() => {
+              if (recorder.state === 'recording') {
+                try {
+                  recorder.stop();
+                } catch (e) {}
+              }
+            }, 1200);
+          } catch (startErr) {
+            console.warn('Recorder start error:', startErr);
+            if (isAudioRecordingRef.current) {
+              audioClipTimeoutRef.current = setTimeout(recordNextClip, 1000);
+            }
           }
         };
 
-        // Emit chunks every 1000ms for seamless stream continuity
-        recorder.start(1000);
+        recordNextClip();
       }
     } catch (err) {
       console.warn('Audio capture setup error:', err);
@@ -832,6 +891,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         const isAudioActive = Boolean(audioStreamRef.current && audioStreamRef.current.getAudioTracks().some(t => t.readyState === 'live'));
         const audioChunkToSend = latestAudioChunkRef.current;
         const currentAudioLevel = currentAudioLevelRef.current || 0;
+        if (audioChunkToSend) {
+          latestAudioChunkRef.current = null;
+        }
 
         if (bc) {
           try {
@@ -922,6 +984,11 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     setLoading(true);
 
     try {
+      // 0. Ensure webcam and microphone audio streams are active
+      if (!audioStreamRef.current || !cameraStream) {
+        await initCamera();
+      }
+
       // 1. Mandatory Entire Screen Permission requested BEFORE starting exam
       // (This guarantees browser permissions modal finishes before anti-cheat is armed, avoiding false strikes)
       let currentScreen = screenStreamRef.current || screenStream;
