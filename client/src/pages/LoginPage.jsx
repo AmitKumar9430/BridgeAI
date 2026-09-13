@@ -130,7 +130,7 @@ export const LoginPage = ({ onNavigateLanding, onNavigateRegister, onLoginSucces
     <div className="min-h-screen flex relative overflow-hidden font-sans">
       {/* BACKGROUND IMAGE */}
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('${BG_IMAGE}')` }} />
-      <div className="absolute inset-0 bg-[#071329]/75 dark:bg-[#020814]/85 backdrop-brightness-[0.82]" />
+      <div className="absolute inset-0 bg-[#071329]/50 dark:bg-[#020814]/65 backdrop-brightness-[0.95]" />
 
       {/* THEME TOGGLE BUTTON */}
       <button

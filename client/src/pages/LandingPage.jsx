@@ -62,8 +62,8 @@ export const LandingPage = ({ onNavigateLogin, onNavigateRegister, onExploreCour
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url('${CAMPUS_IMG}')` }}
         />
-        {/* Solid professional tint: gives crisp readability without color gradients */}
-        <div className="absolute inset-0 bg-[#071329]/75 dark:bg-[#020814]/85" />
+        {/* Solid professional tint: gives crisp readability without obscuring background */}
+        <div className="absolute inset-0 bg-[#071329]/50 dark:bg-[#020814]/65 backdrop-brightness-[0.95]" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">

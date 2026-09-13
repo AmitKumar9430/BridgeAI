@@ -84,10 +84,9 @@ export const RegisterPage = ({ onNavigateLanding, onNavigateLogin, onRegisterSuc
 
   return (
     <div className="min-h-screen flex relative overflow-hidden font-sans">
-      {/* BACKGROUND IMAGE - Vivid and visible */}
+      {/* BACKGROUND IMAGE */}
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('${BG_IMAGE}')` }} />
-      {/* Solid professional tint: gives crisp readability without color gradients */}
-      <div className="absolute inset-0 bg-[#071329]/75 dark:bg-[#020814]/85 backdrop-brightness-[0.82]" />
+      <div className="absolute inset-0 bg-[#071329]/50 dark:bg-[#020814]/65 backdrop-brightness-[0.95]" />
 
       <button onClick={toggleTheme} className="absolute top-4 right-4 z-20 p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all shadow-lg" title="Toggle theme">
         {isDark ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4" />}
