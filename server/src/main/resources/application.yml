@@ -17,7 +17,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/bridgeai?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
     username: ${DB_USER:root}
-    password: ${DB_PASSWORD:root}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:35}
@@ -42,12 +42,12 @@ spring:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    secret: ${JWT_SECRET:}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000} # 24 hours
   emailjs:
-    service-id: ${EMAILJS_SERVICE_ID:service_u63zkza}
-    template-id: ${EMAILJS_TEMPLATE_ID:template_ftzgvwc}
-    public-key: ${EMAILJS_PUBLIC_KEY:udHNyzfgZadsOjR97}
+    service-id: ${EMAILJS_SERVICE_ID:}
+    template-id: ${EMAILJS_TEMPLATE_ID:}
+    public-key: ${EMAILJS_PUBLIC_KEY:}
   exam:
     max-violations: 3
 
