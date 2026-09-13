@@ -47,6 +47,15 @@ public class DataInitializer implements CommandLineRunner {
             log.debug("Notice on recording_snapshot_url column definition: {}", e.getMessage());
         }
 
+        // Ensure correct_option and selected_option can store up to 255 chars in MySQL
+        try {
+            jdbcTemplate.execute("ALTER TABLE exam_questions MODIFY COLUMN correct_option VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE exam_answers MODIFY COLUMN selected_option VARCHAR(255)");
+            log.info("Successfully ensured correct_option and selected_option are VARCHAR(255) in MySQL");
+        } catch (Exception e) {
+            log.debug("Notice on widening question option column definitions: {}", e.getMessage());
+        }
+
         // 0. Seed Institutions with complete location details
         seedInstitution("Indian Institute of Technology (IIT)", "IIT-D", "Institute of National Importance", "NAAC A++ | NIRF Rank #1",
                 "Hauz Khas, Outer Ring Road", "New Delhi", "Delhi", "110016",

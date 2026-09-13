@@ -686,6 +686,37 @@ export const TrainerDashboard = ({
     document.body.removeChild(link);
   };
 
+  // Robust Normalizer for MCQ Correct Options (Maps "Option A", "1", option text, etc. to 'A', 'B', 'C', 'D')
+  const normalizeCorrectOption = (raw, optA, optB, optC, optD) => {
+    if (!raw) return 'A';
+    const s = String(raw).trim();
+    const u = s.toUpperCase();
+    if (['A', 'B', 'C', 'D'].includes(u)) return u;
+    if (u.startsWith('OPTION') || u.startsWith('CHOICE') || u.startsWith('ANSWER')) {
+      const stripped = u.replace(/^(OPTION|CHOICE|ANSWER)[:\-\s]*/i, '').trim();
+      if (stripped.startsWith('A') || stripped === '1') return 'A';
+      if (stripped.startsWith('B') || stripped === '2') return 'B';
+      if (stripped.startsWith('C') || stripped === '3') return 'C';
+      if (stripped.startsWith('D') || stripped === '4') return 'D';
+    }
+    if (s === '1') return 'A';
+    if (s === '2') return 'B';
+    if (s === '3') return 'C';
+    if (s === '4') return 'D';
+    if (/^\[?[A-D][).\:\-\s]/i.test(u)) {
+      return u.replace(/^\[?([A-D]).*/, '$1');
+    }
+    if (optA && s.toLowerCase() === String(optA).trim().toLowerCase()) return 'A';
+    if (optB && s.toLowerCase() === String(optB).trim().toLowerCase()) return 'B';
+    if (optC && s.toLowerCase() === String(optC).trim().toLowerCase()) return 'C';
+    if (optD && s.toLowerCase() === String(optD).trim().toLowerCase()) return 'D';
+    if (u.startsWith('A')) return 'A';
+    if (u.startsWith('B')) return 'B';
+    if (u.startsWith('C')) return 'C';
+    if (u.startsWith('D')) return 'D';
+    return 'A';
+  };
+
   // Parse CSV Line handling quoted fields
   const parseCsvLine = (text) => {
     const result = [];
@@ -732,8 +763,7 @@ export const TrainerDashboard = ({
             const optB = cols[2] || '';
             const optC = cols[3] || '';
             const optD = cols[4] || '';
-            let correct = (cols[5] || 'A').toUpperCase().trim();
-            if (!['A', 'B', 'C', 'D'].includes(correct)) correct = 'A';
+            const correct = normalizeCorrectOption(cols[5], optA, optB, optC, optD);
             const marks = cols[6] ? parseInt(cols[6], 10) || 10 : 10;
             const explanation = cols[7] || '';
 
@@ -1090,7 +1120,7 @@ export const TrainerDashboard = ({
             optionB: parts[2],
             optionC: parts[3],
             optionD: parts[4],
-            correctOption: (parts[5] || 'A').toUpperCase(),
+            correctOption: normalizeCorrectOption(parts[5], parts[1], parts[2], parts[3], parts[4]),
             marks: Number(parts[6]) || 10,
             explanation: parts[7] || ''
           });
@@ -1180,7 +1210,10 @@ public class OrderEventPublisher {
             constraints: rawConstraints
           };
         }
-        return q;
+        return {
+          ...q,
+          correctOption: normalizeCorrectOption(q.correctOption, q.optionA, q.optionB, q.optionC, q.optionD)
+        };
       });
 
       await api.post('/exams/schedule', {
@@ -1273,7 +1306,12 @@ public class OrderEventPublisher {
         isInstitution: materialForm.isInstitution,
         institutionId: user?.institutionId || selectedCourse?.institutionId || null,
         institutionName: user?.institutionName || selectedCourse?.institutionName || '',
-        questions: materialForm.includeModuleTest ? materialQuestions : []
+        questions: materialForm.includeModuleTest
+          ? materialQuestions.map(q => ({
+              ...q,
+              correctOption: normalizeCorrectOption(q.correctOption, q.optionA, q.optionB, q.optionC, q.optionD)
+            }))
+          : []
       });
       alert(materialForm.includeModuleTest
         ? `Study material and Module Assessment Test with ${materialQuestions.length} questions published successfully under [${calculatedScope}] library! Available for students after reading.`
@@ -3973,7 +4011,7 @@ public class OrderEventPublisher {
                                 Correct Answer (Auto-Evaluated) *
                               </label>
                               <select
-                                value={q.correctOption}
+                                value={normalizeCorrectOption(q.correctOption, q.optionA, q.optionB, q.optionC, q.optionD)}
                                 onChange={(e) => handleQuestionFieldChange(idx, 'correctOption', e.target.value)}
                                 className="w-full px-2.5 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded-md text-emerald-900 dark:text-emerald-300 focus:outline-none"
                               >
@@ -4544,7 +4582,7 @@ public class OrderEventPublisher {
                                 <div>
                                   <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Correct Option</label>
                                   <select
-                                    value={q.correctOption}
+                                    value={normalizeCorrectOption(q.correctOption, q.optionA, q.optionB, q.optionC, q.optionD)}
                                     onChange={(e) => handleUpdateMaterialQuestion(qIdx, 'correctOption', e.target.value)}
                                     className="w-full px-2 py-1 text-xs border border-blue-400 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/60 font-bold text-blue-900 dark:text-blue-200 rounded focus:outline-none"
                                   >

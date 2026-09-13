@@ -646,7 +646,7 @@ public class ExamService {
                         .optionB(qDto.getOptionB())
                         .optionC(qDto.getOptionC())
                         .optionD(qDto.getOptionD())
-                        .correctOption(qDto.getCorrectOption() != null ? qDto.getCorrectOption().toUpperCase() : "A")
+                        .correctOption(ExamQuestion.normalizeCorrectOption(qDto.getCorrectOption(), qDto.getOptionA(), qDto.getOptionB(), qDto.getOptionC(), qDto.getOptionD()))
                         .explanation(qDto.getExplanation())
                         // Coding fields
                         .problemTitle(qDto.getProblemTitle() != null ? qDto.getProblemTitle() : qDto.getQuestionText())

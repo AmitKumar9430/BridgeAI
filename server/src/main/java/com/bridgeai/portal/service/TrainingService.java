@@ -524,7 +524,7 @@ public class TrainingService {
                                 .optionB(qDto.getOptionB())
                                 .optionC(qDto.getOptionC())
                                 .optionD(qDto.getOptionD())
-                                .correctOption(qDto.getCorrectOption() != null ? qDto.getCorrectOption().toUpperCase() : "A")
+                                .correctOption(ExamQuestion.normalizeCorrectOption(qDto.getCorrectOption(), qDto.getOptionA(), qDto.getOptionB(), qDto.getOptionC(), qDto.getOptionD()))
                                 .marks(qDto.getMarks() > 0 ? qDto.getMarks() : 10)
                                 .explanation(qDto.getExplanation())
                                 .build();

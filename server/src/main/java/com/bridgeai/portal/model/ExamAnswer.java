@@ -27,7 +27,7 @@ public class ExamAnswer {
     private String questionType = "MCQ"; // "MCQ" or "CODING"
 
     // MCQ Fields
-    @Column(length = 5)
+    @Column(length = 255)
     private String selectedOption; // 'A', 'B', 'C', 'D'
 
     @Builder.Default
