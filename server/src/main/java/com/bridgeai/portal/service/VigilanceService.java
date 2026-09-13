@@ -307,6 +307,14 @@ public class VigilanceService {
         // Aggregate by institutionName -> examId -> list of student attempts
         Map<String, Map<Long, List<Map<String, Object>>>> instExamTree = new LinkedHashMap<>();
 
+        // Ensure all active exams are pre-seeded in the surveillance hierarchy
+        for (Exam ex : allExams) {
+            String exInst = (ex.getInstitutionName() != null && !ex.getInstitutionName().isBlank())
+                    ? ex.getInstitutionName() : "National Examination Board";
+            instExamTree.computeIfAbsent(exInst, k -> new LinkedHashMap<>())
+                    .computeIfAbsent(ex.getId(), k -> new ArrayList<>());
+        }
+
         int totalActiveInstitutions = 0;
         int totalActiveExams = 0;
         int totalLiveStudents = 0;
@@ -349,9 +357,22 @@ public class VigilanceService {
             boolean isTerminated = "TERMINATED_BY_VIOLATION".equalsIgnoreCase(att.getStatus());
             boolean isSubmitted = "SUBMITTED".equalsIgnoreCase(att.getStatus());
             int examDur = (exam != null && exam.getDurationMinutes() > 0) ? exam.getDurationMinutes() : 60;
-            // Student is only live if status is IN_PROGRESS and started recently (within exam duration + 15 min buffer)
-            boolean isWithinDuration = att.getStartedAt() != null && att.getStartedAt().isAfter(LocalDateTime.now().minusMinutes(examDur + 15));
-            boolean isLive = "IN_PROGRESS".equalsIgnoreCase(att.getStatus()) && isWithinDuration;
+
+            // Check active live stream frame arriving from student browser
+            LiveStreamFrame streamFrame = liveStreamFrames.get(att.getId());
+            boolean hasActiveStream = streamFrame != null && (System.currentTimeMillis() - streamFrame.getTimestamp() < 90000);
+
+            // Student is live if actively streaming, OR if status is IN_PROGRESS (not terminated and not submitted)
+            // and started within a generous window (handling any database vs server timezone offsets)
+            boolean isRecentlyStarted = att.getStartedAt() == null ||
+                    Math.abs(java.time.Duration.between(att.getStartedAt(), LocalDateTime.now()).toMinutes()) < (examDur + 360);
+            boolean isLive = !isTerminated && !isSubmitted && ("IN_PROGRESS".equalsIgnoreCase(att.getStatus()) || hasActiveStream);
+            if ("IN_PROGRESS".equalsIgnoreCase(att.getStatus()) && !hasActiveStream && !isRecentlyStarted) {
+                isLive = false;
+            }
+            if (hasActiveStream) {
+                isLive = true;
+            }
 
             // Media connection simulator / state
             // If candidate has strikes >= 2 or critical alert, mark accordingly
@@ -370,7 +391,7 @@ public class VigilanceService {
             boolean audioConnected = isLive;
             boolean networkConnected = true;
 
-            // Mock occasional disconnected state for demo fidelity if student name contains "Disconnected" or specific attempt
+            // Mock occasional disconnected state for demo fidelity if student name contains "offline"
             if (att.getStudentName() != null && att.getStudentName().toLowerCase().contains("offline")) {
                 networkConnected = false;
                 cameraConnected = false;
@@ -398,9 +419,9 @@ public class VigilanceService {
             studentMap.put("warningCount", warningCount);
             studentMap.put("alertLevel", alertLevel);
             studentMap.put("isLive", isLive);
-            LiveStreamFrame streamFrame = liveStreamFrames.get(att.getId());
-            boolean hasActiveStream = streamFrame != null && (System.currentTimeMillis() - streamFrame.getTimestamp() < 45000);
-            if (hasActiveStream) {
+            studentMap.put("hasActiveStream", hasActiveStream);
+
+            if (hasActiveStream && streamFrame != null) {
                 studentMap.put("cameraFrame", streamFrame.getCameraFrame());
                 studentMap.put("screenFrame", streamFrame.getScreenFrame());
                 if (streamFrame.isCameraConnected()) cameraConnected = true;
@@ -484,13 +505,25 @@ public class VigilanceService {
                 Long examId = examEntry.getKey();
                 List<Map<String, Object>> students = examEntry.getValue();
 
-                // Sort students by priority: CRITICAL -> WARNING -> DISCONNECTED -> NORMAL
+                // Sort students by priority: isLive (true first) -> CRITICAL -> WARNING -> DISCONNECTED -> NORMAL -> startedAt (desc)
                 students.sort((a, b) -> {
+                    boolean liveA = Boolean.TRUE.equals(a.get("isLive"));
+                    boolean liveB = Boolean.TRUE.equals(b.get("isLive"));
+                    if (liveA != liveB) {
+                        return liveA ? -1 : 1;
+                    }
                     String aL = (String) a.get("alertLevel");
                     String bL = (String) b.get("alertLevel");
                     int rankA = "CRITICAL".equals(aL) ? 0 : ("WARNING".equals(aL) ? 1 : ("DISCONNECTED".equals(aL) ? 2 : 3));
                     int rankB = "CRITICAL".equals(bL) ? 0 : ("WARNING".equals(bL) ? 1 : ("DISCONNECTED".equals(bL) ? 2 : 3));
-                    return Integer.compare(rankA, rankB);
+                    if (rankA != rankB) {
+                        return Integer.compare(rankA, rankB);
+                    }
+                    LocalDateTime tA = (LocalDateTime) a.get("startedAt");
+                    LocalDateTime tB = (LocalDateTime) b.get("startedAt");
+                    if (tA == null) return 1;
+                    if (tB == null) return -1;
+                    return tB.compareTo(tA);
                 });
 
                 int eLive = 0;

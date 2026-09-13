@@ -593,7 +593,10 @@ export const VigilanceDashboard = () => {
 
   // Filter students based on searchTerm, severityFilter, selectedInstituteFilter, and selectedExamFilter
   const filterStudentItem = (student) => {
-    if (severityFilter !== 'ALL' && student.alertLevel !== severityFilter) {
+    if (severityFilter === 'LIVE_ONLY' && !student.isLive) {
+      return false;
+    }
+    if (severityFilter !== 'ALL' && severityFilter !== 'LIVE_ONLY' && student.alertLevel !== severityFilter) {
       return false;
     }
     if (selectedInstituteFilter !== 'ALL' && student.institutionName !== selectedInstituteFilter) {
@@ -886,10 +889,11 @@ export const VigilanceDashboard = () => {
                   </span>
                   {[
                     { key: 'ALL', label: 'All Candidates' },
+                    { key: 'LIVE_ONLY', label: `Live Candidates (${surveillanceData.liveStudents || 0})`, color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' },
                     { key: 'CRITICAL', label: 'Critical Alert', color: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' },
                     { key: 'WARNING', label: 'Warning Active', color: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' },
                     { key: 'DISCONNECTED', label: 'Disconnected', color: 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-300' },
-                    { key: 'NORMAL', label: 'Normal Session', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' }
+                    { key: 'NORMAL', label: 'Normal Session', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' }
                   ].map(({ key, label, color }) => (
                     <button
                       key={key}
@@ -1015,7 +1019,9 @@ export const VigilanceDashboard = () => {
                 {surveillanceData.institutions
                   .filter(inst => selectedInstituteFilter === 'ALL' || inst.institutionName === selectedInstituteFilter)
                   .map((inst, instIdx) => {
-                  const isExpanded = Boolean(expandedInstitutions[inst.institutionName]); // closed by default
+                  const isExpanded = expandedInstitutions[inst.institutionName] !== undefined
+                    ? Boolean(expandedInstitutions[inst.institutionName])
+                    : (Boolean(inst.liveStudentsCount > 0) || instIdx === 0 || (surveillanceData.institutions?.length || 0) <= 3);
                   return (
                     <div
                       key={instIdx}

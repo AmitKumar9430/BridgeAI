@@ -713,7 +713,8 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         const camFrame = getCameraFrame();
         const scrFrame = await getScreenFrame();
 
-        if (!camFrame && !scrFrame) return;
+        const isCamActive = Boolean(cameraStream || camFrame);
+        const isScrActive = Boolean(screenStream || scrFrame);
 
         if (bc) {
           try {
@@ -722,8 +723,8 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               attemptId: examData.attemptId,
               cameraFrame: camFrame,
               screenFrame: scrFrame,
-              cameraConnected: true,
-              screenConnected: true,
+              cameraConnected: isCamActive,
+              screenConnected: isScrActive,
               timestamp: Date.now()
             });
           } catch (e) {}
@@ -732,8 +733,8 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         api.post(`/vigilance/feed/stream/${examData.attemptId}`, {
           cameraFrame: camFrame,
           screenFrame: scrFrame,
-          cameraConnected: true,
-          screenConnected: true
+          cameraConnected: isCamActive,
+          screenConnected: isScrActive
         }).catch(() => {});
       } catch (err) {
         // ignore
