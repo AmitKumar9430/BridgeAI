@@ -34,10 +34,10 @@ public class AssignmentSubmission {
     @Column(length = 30)
     private String submissionType; // FILE_UPLOAD, GITHUB_LINK, TEXT_RESPONSE
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String submissionContent; // Link or text
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String pdfSubmissionUrl;
 
     @Column(nullable = false, length = 30)
@@ -52,7 +52,7 @@ public class AssignmentSubmission {
     @Column(length = 20)
     private String grade;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String feedback;
 
     private Long evaluatedByTrainerId;

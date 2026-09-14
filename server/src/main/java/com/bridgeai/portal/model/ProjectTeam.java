@@ -34,22 +34,22 @@ public class ProjectTeam {
     @Column(length = 150)
     private String institutionName;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String zipFileUrl;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String pptFileUrl;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String pdfReportUrl;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String githubRepoUrl;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String liveDemoUrl;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String studentComments;
 
     @Column(nullable = false, length = 30)
@@ -58,7 +58,7 @@ public class ProjectTeam {
 
     private Integer score;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String feedback;
 
     @Column(length = 100)

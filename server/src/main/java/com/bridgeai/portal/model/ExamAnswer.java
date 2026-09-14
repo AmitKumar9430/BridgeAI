@@ -37,7 +37,7 @@ public class ExamAnswer {
     private int marksAwarded = 0;
 
     // Coding Fields
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String submittedCode;
 
     @Column(length = 30)
@@ -49,9 +49,9 @@ public class ExamAnswer {
     @Builder.Default
     private int totalTestCases = 0;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String compilerOutput;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String executionDetailsJson; // JSON array of test case results
 }

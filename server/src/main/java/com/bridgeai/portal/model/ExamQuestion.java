@@ -116,14 +116,14 @@ public class ExamQuestion {
     @Builder.Default
     private int marks = 10;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String explanation;
 
     // Coding Problem Fields
     @Column(length = 200)
     private String problemTitle;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String problemDescription;
 
     @Column(columnDefinition = "TEXT")
@@ -135,7 +135,7 @@ public class ExamQuestion {
     @Column(columnDefinition = "TEXT")
     private String constraints;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String starterCodeJson; // JSON mapping: {"c": "...", "cpp": "...", "java": "...", "python": "...", "csharp": "...", "kotlin": "..."}
 
     @Column(length = 150)

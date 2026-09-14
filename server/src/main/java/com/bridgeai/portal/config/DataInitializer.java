@@ -40,21 +40,50 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Checking initial system seed data...");
 
         // Ensure recording_snapshot_url in exam_attempts can store large base64 photos
-        try {
-            jdbcTemplate.execute("ALTER TABLE exam_attempts MODIFY COLUMN recording_snapshot_url LONGTEXT");
-            log.info("Successfully ensured recording_snapshot_url is LONGTEXT in MySQL");
-        } catch (Exception e) {
-            log.debug("Notice on recording_snapshot_url column definition: {}", e.getMessage());
-        }
+        executeSafeMigration("ALTER TABLE exam_attempts MODIFY COLUMN recording_snapshot_url LONGTEXT", "exam_attempts.recording_snapshot_url");
 
         // Ensure correct_option and selected_option can store up to 255 chars in MySQL
-        try {
-            jdbcTemplate.execute("ALTER TABLE exam_questions MODIFY COLUMN correct_option VARCHAR(255)");
-            jdbcTemplate.execute("ALTER TABLE exam_answers MODIFY COLUMN selected_option VARCHAR(255)");
-            log.info("Successfully ensured correct_option and selected_option are VARCHAR(255) in MySQL");
-        } catch (Exception e) {
-            log.debug("Notice on widening question option column definitions: {}", e.getMessage());
-        }
+        executeSafeMigration("ALTER TABLE exam_questions MODIFY COLUMN correct_option VARCHAR(255)", "exam_questions.correct_option");
+        executeSafeMigration("ALTER TABLE exam_answers MODIFY COLUMN selected_option VARCHAR(255)", "exam_answers.selected_option");
+
+        // Ensure evidence snapshots and vigilance text columns persist large base64 images without truncation
+        executeSafeMigration("ALTER TABLE vigilance_records MODIFY COLUMN evidence_snapshot LONGTEXT", "vigilance_records.evidence_snapshot");
+        executeSafeMigration("ALTER TABLE vigilance_records MODIFY COLUMN chat_message LONGTEXT", "vigilance_records.chat_message");
+        executeSafeMigration("ALTER TABLE vigilance_records MODIFY COLUMN reason LONGTEXT", "vigilance_records.reason");
+        executeSafeMigration("ALTER TABLE vigilance_records MODIFY COLUMN officer_notes LONGTEXT", "vigilance_records.officer_notes");
+
+        // Ensure study materials & resources can store full articles, markdown, large URLs
+        executeSafeMigration("ALTER TABLE resource_items MODIFY COLUMN rich_content LONGTEXT", "resource_items.rich_content");
+        executeSafeMigration("ALTER TABLE resource_items MODIFY COLUMN image_urls LONGTEXT", "resource_items.image_urls");
+        executeSafeMigration("ALTER TABLE resource_items MODIFY COLUMN url_or_path VARCHAR(1000)", "resource_items.url_or_path");
+        executeSafeMigration("ALTER TABLE resource_items MODIFY COLUMN video_embed_url VARCHAR(1000)", "resource_items.video_embed_url");
+
+        // Ensure student coding answers and execution outputs never truncate
+        executeSafeMigration("ALTER TABLE exam_answers MODIFY COLUMN submitted_code LONGTEXT", "exam_answers.submitted_code");
+        executeSafeMigration("ALTER TABLE exam_answers MODIFY COLUMN compiler_output LONGTEXT", "exam_answers.compiler_output");
+        executeSafeMigration("ALTER TABLE exam_answers MODIFY COLUMN execution_details_json LONGTEXT", "exam_answers.execution_details_json");
+
+        // Ensure starter code and coding problem definitions never truncate
+        executeSafeMigration("ALTER TABLE exam_questions MODIFY COLUMN starter_code_json LONGTEXT", "exam_questions.starter_code_json");
+        executeSafeMigration("ALTER TABLE exam_questions MODIFY COLUMN problem_description LONGTEXT", "exam_questions.problem_description");
+        executeSafeMigration("ALTER TABLE exam_questions MODIFY COLUMN explanation LONGTEXT", "exam_questions.explanation");
+
+        // Ensure assignment submissions and attachments persist long URLs and text
+        executeSafeMigration("ALTER TABLE assignment_submissions MODIFY COLUMN submission_content LONGTEXT", "assignment_submissions.submission_content");
+        executeSafeMigration("ALTER TABLE assignment_submissions MODIFY COLUMN pdf_submission_url VARCHAR(1000)", "assignment_submissions.pdf_submission_url");
+        executeSafeMigration("ALTER TABLE assignment_submissions MODIFY COLUMN feedback LONGTEXT", "assignment_submissions.feedback");
+        executeSafeMigration("ALTER TABLE assignments MODIFY COLUMN assigned_student_ids LONGTEXT", "assignments.assigned_student_ids");
+        executeSafeMigration("ALTER TABLE assignments MODIFY COLUMN attachment_url VARCHAR(1000)", "assignments.attachment_url");
+        executeSafeMigration("ALTER TABLE assignments MODIFY COLUMN pdf_attachment_url VARCHAR(1000)", "assignments.pdf_attachment_url");
+
+        // Ensure project submissions and team links persist long URLs and feedback
+        executeSafeMigration("ALTER TABLE project_teams MODIFY COLUMN student_comments LONGTEXT", "project_teams.student_comments");
+        executeSafeMigration("ALTER TABLE project_teams MODIFY COLUMN feedback LONGTEXT", "project_teams.feedback");
+        executeSafeMigration("ALTER TABLE project_teams MODIFY COLUMN zip_file_url VARCHAR(1000)", "project_teams.zip_file_url");
+        executeSafeMigration("ALTER TABLE project_teams MODIFY COLUMN ppt_file_url VARCHAR(1000)", "project_teams.ppt_file_url");
+        executeSafeMigration("ALTER TABLE project_teams MODIFY COLUMN pdf_report_url VARCHAR(1000)", "project_teams.pdf_report_url");
+        executeSafeMigration("ALTER TABLE project_teams MODIFY COLUMN github_repo_url VARCHAR(1000)", "project_teams.github_repo_url");
+        executeSafeMigration("ALTER TABLE project_teams MODIFY COLUMN live_demo_url VARCHAR(1000)", "project_teams.live_demo_url");
 
         // 0. Seed Institutions with complete location details
         seedInstitution("Indian Institute of Technology (IIT)", "IIT-D", "Institute of National Importance", "NAAC A++ | NIRF Rank #1",
@@ -878,6 +907,15 @@ public class DataInitializer implements CommandLineRunner {
                 u.setAssignedSubject(subject);
             }
             return userRepository.save(u);
+        }
+    }
+
+    private void executeSafeMigration(String sql, String targetLabel) {
+        try {
+            jdbcTemplate.execute(sql);
+            log.info("Database schema check: ensured [{}] persistence definition in MySQL", targetLabel);
+        } catch (Exception e) {
+            log.debug("Notice on column persistence check for [{}]: {}", targetLabel, e.getMessage());
         }
     }
 }

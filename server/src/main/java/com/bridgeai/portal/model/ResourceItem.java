@@ -28,7 +28,7 @@ public class ResourceItem {
     @Column(length = 20, nullable = false)
     private String resourceType; // PDF, PPT, DOC, EXCEL, IMAGE, VIDEO, LINK, GITHUB
 
-    @Column(length = 500)
+    @Column(length = 1000)
     @Builder.Default
     private String urlOrPath = "#";
 
@@ -41,10 +41,10 @@ public class ResourceItem {
     @Column(columnDefinition = "LONGTEXT")
     private String richContent;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String videoEmbedUrl;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String imageUrls;
 
     @Builder.Default

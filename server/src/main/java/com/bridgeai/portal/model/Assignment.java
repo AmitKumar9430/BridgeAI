@@ -46,16 +46,16 @@ public class Assignment {
 
     private LocalDateTime dueDateTime;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String attachmentUrl;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String pdfAttachmentUrl;
 
     @Builder.Default
     private boolean assignedToAll = true;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String assignedStudentIds; // e.g. "4,8,12" if assignedToAll is false
 
     @Builder.Default
