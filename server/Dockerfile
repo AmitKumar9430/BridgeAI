@@ -6,7 +6,10 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jdk-alpine
+
+RUN apk add --no-cache gcc g++ python3 musl-dev && \
+    ln -sf /usr/bin/python3 /usr/bin/python
 WORKDIR /app
 COPY --from=build /app/target/portal-backend-1.0.0.jar app.jar
 EXPOSE 8080
