@@ -4,7 +4,6 @@ import com.bridgeai.portal.dto.ExamDtos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PreDestroy;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -19,24 +18,6 @@ import java.util.regex.Pattern;
 public class CodeExecutionService {
 
     private static final int DEFAULT_TIMEOUT_SECONDS = 5;
-
-    /**
-     * Shared pool for stdout/stderr/stdin pumping threads.
-     * FIX (#3, thread leak): previously a brand-new single-thread executor was created
-     * (and never shut down) for every single test case run. Under load this leaked
-     * non-daemon threads without bound. We now use one bounded, daemon-backed pool for
-     * the lifetime of the service, and shut it down on bean destruction.
-     */
-    private final ExecutorService ioPool = Executors.newCachedThreadPool(r -> {
-        Thread t = new Thread(r, "code-exec-io");
-        t.setDaemon(true);
-        return t;
-    });
-
-    @PreDestroy
-    public void shutdown() {
-        ioPool.shutdownNow();
-    }
 
     public static class ExecutionResult {
         public String status; // "SUCCESS", "COMPILATION_ERROR", "RUNTIME_ERROR", "TIME_LIMIT_EXCEEDED"
@@ -178,16 +159,6 @@ public class CodeExecutionService {
     }
 
     private String compileCode(String lang, Path dir, String sourceFileName) {
-        // FIX (#2, Kotlin/C# dead-end): runSingleTestCase always rejects these two
-        // languages as unsupported, regardless of whether compilation succeeded. Actually
-        // invoking kotlinc/csc here wastes real CPU time compiling something that can never
-        // be executed, and made compileCode/runSingleTestCase disagree with each other.
-        // Since execution support isn't implemented, fail fast here instead of pretending
-        // to compile.
-        if (lang.equals("kotlin") || lang.equals("csharp")) {
-            return (lang.equals("kotlin") ? "Kotlin" : "C#") + " is not supported on this server";
-        }
-
         List<String> cmd = new ArrayList<>();
         switch (lang) {
             case "c":
@@ -211,6 +182,30 @@ public class CodeExecutionService {
                 cmd.add("-encoding");
                 cmd.add("UTF-8");
                 cmd.add(sourceFileName);
+                break;
+            case "csharp":
+                // Try dotnet or csc
+                if (isCommandAvailable("csc")) {
+                    cmd.add("csc");
+                    cmd.add("/nologo");
+                    cmd.add("/out:Solution.exe");
+                    cmd.add(sourceFileName);
+                } else if (isCommandAvailable("dotnet")) {
+                    // Script execution or compilation via dotnet
+                    return null; // Will run with dotnet exec
+                }
+                break;
+            case "kotlin":
+                if (isCommandAvailable("kotlinc")) {
+                    cmd.add("kotlinc");
+                    cmd.add(sourceFileName);
+                    cmd.add("-include-runtime");
+                    cmd.add("-d");
+                    cmd.add("Solution.jar");
+                } else {
+                    // Fallback to java/portable compiler
+                    return null;
+                }
                 break;
             case "python":
             default:
@@ -285,23 +280,27 @@ public class CodeExecutionService {
         }
 
         long startTime = System.currentTimeMillis();
-        Process process = null;
         try {
             ProcessBuilder pb = new ProcessBuilder(cmd);
             pb.directory(dir.toFile());
-            process = pb.start();
-            final Process proc = process;
+            Process process = pb.start();
 
-            // FIX (#1, stdin/stdout deadlock): stdout/stderr reader threads must be running
-            // *before* we write to stdin. Previously stdin was written synchronously first;
-            // if the child program interleaves reads and writes (e.g. reads a line, echoes
-            // a line, reads the next line), it can fill the stdout pipe buffer before anyone
-            // is draining it, block on that write, while we are still blocked writing stdin
-            // -- a classic pipe deadlock. Starting the readers first, and writing stdin from
-            // its own task, avoids that ordering dependency entirely.
-            Future<String> stdoutFuture = ioPool.submit(() -> readStream(proc.getInputStream()));
-            Future<String> stderrFuture = ioPool.submit(() -> readStream(proc.getErrorStream()));
-            Future<?> stdinFuture = ioPool.submit(() -> writeStdin(proc, input));
+            // Pipe input
+            if (input != null && !input.isEmpty()) {
+                try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8))) {
+                    writer.write(input);
+                    if (!input.endsWith("\n")) {
+                        writer.newLine();
+                    }
+                    writer.flush();
+                } catch (IOException ignored) {}
+            } else {
+                process.getOutputStream().close();
+            }
+
+            // Capture streams in parallel
+            Future<String> stdoutFuture = Executors.newSingleThreadExecutor().submit(() -> readStream(process.getInputStream()));
+            Future<String> stderrFuture = Executors.newSingleThreadExecutor().submit(() -> readStream(process.getErrorStream()));
 
             boolean completed = process.waitFor(timeLimitSeconds, TimeUnit.SECONDS);
             long duration = System.currentTimeMillis() - startTime;
@@ -309,35 +308,14 @@ public class CodeExecutionService {
 
             if (!completed) {
                 process.destroyForcibly();
-                stdinFuture.cancel(true);
                 res.isTimeout = true;
                 res.success = false;
                 res.error = "Time Limit Exceeded (" + timeLimitSeconds + "s)";
-                // Best-effort cleanup of reader tasks; don't let them block us further.
-                stdoutFuture.cancel(true);
-                stderrFuture.cancel(true);
                 return res;
             }
 
-            // FIX (#4, hard-coded 1s read timeout): once the process has exited, reading
-            // the remaining buffered output should be fast, but a fixed 1-second cap is
-            // fragile for test cases with large stdout -- a legitimate slow read would fall
-            // into the generic catch block and get mislabeled as a plain "Execution Error".
-            // Give it a more generous, still-bounded window, and report a read-timeout
-            // distinctly if it happens.
-            long readTimeoutSeconds = Math.max(2, Math.min(timeLimitSeconds, 10));
-            String stdout;
-            String stderr;
-            try {
-                stdout = stdoutFuture.get(readTimeoutSeconds, TimeUnit.SECONDS);
-                stderr = stderrFuture.get(readTimeoutSeconds, TimeUnit.SECONDS);
-            } catch (TimeoutException te) {
-                stdoutFuture.cancel(true);
-                stderrFuture.cancel(true);
-                res.success = false;
-                res.error = "Timed out reading program output after process completion";
-                return res;
-            }
+            String stdout = stdoutFuture.get(1, TimeUnit.SECONDS);
+            String stderr = stderrFuture.get(1, TimeUnit.SECONDS);
 
             res.stdout = stdout;
             if (process.exitValue() == 0) {
@@ -353,34 +331,6 @@ public class CodeExecutionService {
             res.success = false;
             res.error = "Execution Error: " + e.getMessage();
             return res;
-        } finally {
-            if (process != null) {
-                process.destroyForcibly();
-            }
-        }
-    }
-
-    /**
-     * Writes the test case input to the process's stdin and closes it.
-     * Runs on the shared io pool so it can proceed concurrently with the
-     * stdout/stderr readers (see FIX #1 above).
-     */
-    private static void writeStdin(Process process, String input) {
-        try {
-            if (input != null && !input.isEmpty()) {
-                try (BufferedWriter writer = new BufferedWriter(
-                        new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8))) {
-                    writer.write(input);
-                    if (!input.endsWith("\n")) {
-                        writer.newLine();
-                    }
-                    writer.flush();
-                }
-            } else {
-                process.getOutputStream().close();
-            }
-        } catch (IOException ignored) {
-            // Child may have exited already (e.g. it doesn't read stdin at all) -- not fatal.
         }
     }
 
@@ -406,6 +356,15 @@ public class CodeExecutionService {
             baos.write(buf, 0, n);
         }
         return baos.toString(StandardCharsets.UTF_8);
+    }
+
+    private static boolean isCommandAvailable(String cmd) {
+        try {
+            Process p = new ProcessBuilder(System.getProperty("os.name").toLowerCase().contains("win") ? "where" : "which", cmd).start();
+            return p.waitFor(2, TimeUnit.SECONDS) && p.exitValue() == 0;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static void deleteDirectoryRecursively(File file) {
