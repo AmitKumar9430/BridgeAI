@@ -249,6 +249,8 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   const [tabSwitchCountdown, setTabSwitchCountdown] = useState(null);
   const tabSwitchTimerRef = useRef(null);
   const tabSwitchDeadlineRef = useRef(null);
+  const blurTimerRef = useRef(null);
+  const wasDocumentHiddenRef = useRef(false);
   const handleSubmitExamRef = useRef(null);
 
   // Anti-cheat synchronizing refs
@@ -1238,6 +1240,11 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
+        wasDocumentHiddenRef.current = true;
+        if (blurTimerRef.current) {
+          clearTimeout(blurTimerRef.current);
+          blurTimerRef.current = null;
+        }
         triggerTabSwitchGracePeriod('Switched away from examination tab / tab hidden');
       } else {
         handleTabSwitchReturn();
@@ -1245,11 +1252,29 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     };
 
     const handleWindowBlur = () => {
-      // Window focus lost / external app activated / Alt-Tab / Taskbar click
-      triggerTabSwitchGracePeriod('Window focus lost / external application activated');
+      // If the tab is actually hidden, immediately trigger tab switch
+      if (document.hidden) {
+        wasDocumentHiddenRef.current = true;
+        triggerTabSwitchGracePeriod('Window focus lost / tab hidden');
+        return;
+      }
+
+      // If document is NOT hidden, the student may have clicked "Hide" on the native browser screen-sharing pill.
+      // Allow a 2.5s transient UI grace period before triggering an official focus-loss strike.
+      if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+      blurTimerRef.current = setTimeout(() => {
+        blurTimerRef.current = null;
+        if (!document.hasFocus || !document.hasFocus()) {
+          triggerTabSwitchGracePeriod('Window focus lost / external application activated');
+        }
+      }, 2500);
     };
 
     const handleWindowFocus = () => {
+      if (blurTimerRef.current) {
+        clearTimeout(blurTimerRef.current);
+        blurTimerRef.current = null;
+      }
       handleTabSwitchReturn();
     };
 
@@ -1366,6 +1391,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('beforeunload', handleBeforeUnload);
 
+      if (blurTimerRef.current) {
+        clearTimeout(blurTimerRef.current);
+      }
       if (tabSwitchTimerRef.current) {
         clearInterval(tabSwitchTimerRef.current);
       }
