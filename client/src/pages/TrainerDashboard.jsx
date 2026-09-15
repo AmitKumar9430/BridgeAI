@@ -2303,19 +2303,47 @@ public class OrderEventPublisher {
                                   </div>
                                   <div className="text-right">
                                     {t.score != null ? (
-                                      <span className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
-                                        Score: {t.score} / 100
-                                      </span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
+                                          Score: {t.score} / 100
+                                        </span>
+                                        <button
+                                          onClick={() => {
+                                            setShowProjectGradeModal({
+                                              ...t,
+                                              isTeam: true,
+                                              teamId: t.id,
+                                              topicTitle: topic.title,
+                                              topicSubject: topic.subjectName,
+                                              members: members
+                                            });
+                                            setProjectGradeForm({
+                                              score: t.score,
+                                              feedback: t.feedback || 'Deliverables verified. High quality submission with complete implementation and documentation.'
+                                            });
+                                          }}
+                                          className="px-2 py-0.5 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-[11px] font-semibold transition-colors"
+                                        >
+                                          Re-grade
+                                        </button>
+                                      </div>
                                     ) : (
                                       <button
                                         onClick={() => {
-                                          setShowProjectGradeModal({ ...t, isTeam: true, teamId: t.id });
+                                          setShowProjectGradeModal({
+                                            ...t,
+                                            isTeam: true,
+                                            teamId: t.id,
+                                            topicTitle: topic.title,
+                                            topicSubject: topic.subjectName,
+                                            members: members
+                                          });
                                           setProjectGradeForm({
                                             score: t.score || 90,
-                                            feedback: t.feedback || 'Deliverables verified.'
+                                            feedback: t.feedback || 'Deliverables verified. Solid implementation and well-structured documentation.'
                                           });
                                         }}
-                                        className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold transition-colors"
+                                        className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold transition-colors shadow-2xs"
                                       >
                                         Grade Team
                                       </button>
@@ -5102,6 +5130,328 @@ public class OrderEventPublisher {
                   className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow-sm"
                 >
                   Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Grade Team Deliverables */}
+      {showProjectGradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto p-6 space-y-5 text-slate-900 dark:text-white">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold flex items-center gap-2">
+                    <FolderGit2 className="w-5 h-5 text-emerald-500" />
+                    <span>Evaluate &amp; Grade Team Deliverables</span>
+                  </h3>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                    showProjectGradeModal.status === 'EVALUATED'
+                      ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                      : showProjectGradeModal.status === 'SUBMITTED'
+                      ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800'
+                      : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                  }`}>
+                    {showProjectGradeModal.status || 'SUBMITTED'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Team: <strong className="text-slate-800 dark:text-slate-200">{showProjectGradeModal.teamName || showProjectGradeModal.title}</strong>
+                  {showProjectGradeModal.topicTitle && ` • Topic: ${showProjectGradeModal.topicTitle}`}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowProjectGradeModal(null)}
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-md transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Team Roster Section */}
+            {showProjectGradeModal.members && showProjectGradeModal.members.length > 0 && (
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                  Team Members ({showProjectGradeModal.members.length}):
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {showProjectGradeModal.members.map((m) => (
+                    <span
+                      key={m.id || m.studentId}
+                      className="px-2.5 py-1 rounded-md text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 flex items-center gap-1.5 font-medium shadow-2xs"
+                    >
+                      <Users className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{m.studentName}</span>
+                      {m.role === 'LEADER' && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-emerald-600 text-white rounded">LEADER</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Uploaded Deliverables Inspection Panel */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-blue-500" />
+                  <span>Student Uploaded Deliverables</span>
+                </h4>
+                {showProjectGradeModal.lastUpdatedByName && (
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 italic">
+                    Updated by {showProjectGradeModal.lastUpdatedByName}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                {/* ZIP Archive */}
+                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 space-y-2 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
+                      <Archive className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      <span>Source Code (ZIP)</span>
+                    </div>
+                    {showProjectGradeModal.zipFileUrl && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded">
+                        Available
+                      </span>
+                    )}
+                  </div>
+                  {showProjectGradeModal.zipFileUrl ? (
+                    <a
+                      href={showProjectGradeModal.zipFileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold hover:underline break-all"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download ZIP Archive &rarr;</span>
+                    </a>
+                  ) : (
+                    <span className="text-slate-400 italic text-[11px]">Not uploaded by student</span>
+                  )}
+                </div>
+
+                {/* PPT Presentation */}
+                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 space-y-2 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
+                      <Presentation className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                      <span>Presentation Deck (PPT)</span>
+                    </div>
+                    {showProjectGradeModal.pptFileUrl && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded">
+                        Available
+                      </span>
+                    )}
+                  </div>
+                  {showProjectGradeModal.pptFileUrl ? (
+                    <a
+                      href={showProjectGradeModal.pptFileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold hover:underline break-all"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>View Presentation Deck &rarr;</span>
+                    </a>
+                  ) : (
+                    <span className="text-slate-400 italic text-[11px]">Not uploaded by student</span>
+                  )}
+                </div>
+
+                {/* PDF Report */}
+                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 space-y-2 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
+                      <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <span>Documentation (PDF)</span>
+                    </div>
+                    {showProjectGradeModal.pdfReportUrl && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded">
+                        Available
+                      </span>
+                    )}
+                  </div>
+                  {showProjectGradeModal.pdfReportUrl ? (
+                    <a
+                      href={showProjectGradeModal.pdfReportUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold hover:underline break-all"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Open PDF Report &rarr;</span>
+                    </a>
+                  ) : (
+                    <span className="text-slate-400 italic text-[11px]">Not uploaded by student</span>
+                  )}
+                </div>
+
+                {/* GitHub Repository */}
+                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 space-y-2 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
+                      <FolderGit2 className="w-4 h-4 text-slate-900 dark:text-white" />
+                      <span>GitHub Repository</span>
+                    </div>
+                    {showProjectGradeModal.githubRepoUrl && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded">
+                        Available
+                      </span>
+                    )}
+                  </div>
+                  {showProjectGradeModal.githubRepoUrl ? (
+                    <a
+                      href={showProjectGradeModal.githubRepoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold hover:underline break-all"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Explore Repository &rarr;</span>
+                    </a>
+                  ) : (
+                    <span className="text-slate-400 italic text-[11px]">Not provided</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Live Demo URL */}
+              {showProjectGradeModal.liveDemoUrl && (
+                <div className="p-3 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/40 text-xs flex items-center justify-between">
+                  <span className="font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
+                    <ExternalLink className="w-4 h-4 text-emerald-700 dark:text-emerald-400" /> Live Deployment Demo:
+                  </span>
+                  <a
+                    href={showProjectGradeModal.liveDemoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-emerald-800 dark:text-emerald-300 font-mono font-bold hover:underline"
+                  >
+                    {showProjectGradeModal.liveDemoUrl}
+                  </a>
+                </div>
+              )}
+
+              {/* Student Comments */}
+              {showProjectGradeModal.studentComments && (
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-xs space-y-1">
+                  <span className="font-bold text-slate-700 dark:text-slate-300">Student Submission Notes:</span>
+                  <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{showProjectGradeModal.studentComments}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Trainer Evaluation & Grading Form */}
+            <form onSubmit={handleGradeProject} className="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Trainer Evaluation &amp; Marks Assignment</span>
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Project Score (0 - 100) *
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    required
+                    value={projectGradeForm.score}
+                    onChange={(e) => setProjectGradeForm({ ...projectGradeForm, score: Number(e.target.value) })}
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <div className="flex items-center gap-1.5 mt-2">
+                    {[100, 95, 90, 85, 75].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setProjectGradeForm({ ...projectGradeForm, score: s })}
+                        className={`px-2 py-0.5 rounded text-[11px] font-bold border transition-colors ${
+                          projectGradeForm.score === s
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        {s} pts
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Quick Feedback Presets
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setProjectGradeForm({ ...projectGradeForm, feedback: 'Outstanding architecture, clean codebase, and thorough documentation. All requirements met flawlessly.' })}
+                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-medium text-left truncate transition-colors"
+                    >
+                      🌟 Outstanding
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setProjectGradeForm({ ...projectGradeForm, feedback: 'Solid implementation with working code and clear presentation slides. Well-organized team collaboration.' })}
+                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-medium text-left truncate transition-colors"
+                    >
+                      👍 Excellent
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setProjectGradeForm({ ...projectGradeForm, feedback: 'Good work on core requirements. Suggested improvements on test coverage, error handling, and UI polish.' })}
+                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-medium text-left truncate transition-colors"
+                    >
+                      👌 Good Work
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setProjectGradeForm({ ...projectGradeForm, feedback: 'Deliverables verified. Please review feedback on modular architecture and add missing test scenarios.' })}
+                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-medium text-left truncate transition-colors"
+                    >
+                      📝 Satisfactory
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Comprehensive Faculty Feedback (Visible to All Teammates) *
+                </label>
+                <textarea
+                  rows="3"
+                  required
+                  value={projectGradeForm.feedback}
+                  onChange={(e) => setProjectGradeForm({ ...projectGradeForm, feedback: e.target.value })}
+                  placeholder="Provide constructive feedback, grading remarks, and advice for the team..."
+                  className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowProjectGradeModal(null)}
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Submit Evaluation &amp; Synchronize Team</span>
                 </button>
               </div>
             </form>
