@@ -87,6 +87,18 @@ public class ExamController {
         return ResponseEntity.ok(examService.getAttemptResult(attemptId));
     }
 
+    @GetMapping("/latest-result")
+    public ResponseEntity<ExamResultResponse> getLatestResult(Authentication auth) {
+        User caller = resolveCandidate(auth);
+        return ResponseEntity.ok(examService.getLatestStudentResult(caller.getId(), null));
+    }
+
+    @GetMapping("/{examId}/latest-result")
+    public ResponseEntity<ExamResultResponse> getExamLatestResult(@PathVariable Long examId, Authentication auth) {
+        User caller = resolveCandidate(auth);
+        return ResponseEntity.ok(examService.getLatestStudentResult(caller.getId(), examId));
+    }
+
     @GetMapping("/my-attempts")
     public ResponseEntity<List<ExamAttempt>> getMyAttempts(Authentication auth) {
         User user = resolveCandidate(auth);

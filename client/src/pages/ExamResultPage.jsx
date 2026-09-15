@@ -1,13 +1,40 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
+import api from '../services/api';
 import { StatusBadge } from '../components/common/StatusBadge';
 import {
   Award, CheckCircle, XCircle, AlertTriangle, ArrowLeft,
   FileCheck, ShieldCheck, Printer, Download, Sparkles, RotateCcw, Building2,
-  Code2, Terminal, CheckCircle2, FileCode
+  Code2, Terminal, CheckCircle2, FileCode, Copy, Check, Clock, Play,
+  Cpu, AlertCircle, ShieldAlert, CheckSquare, Layers, HelpCircle
 } from 'lucide-react';
 
-export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
+export const ExamResultPage = ({ result: initialResult, onBackToDashboard, onRetakeExam }) => {
+  const [result, setResult] = useState(initialResult || null);
+  const [loading, setLoading] = useState(!initialResult);
+  const [copiedCodeId, setCopiedCodeId] = useState(null);
+
+  useEffect(() => {
+    if (initialResult) {
+      setResult(initialResult);
+      setLoading(false);
+    } else {
+      // Auto-fetch latest result if accessed directly or refreshed
+      const fetchLatestResult = async () => {
+        try {
+          setLoading(true);
+          const res = await api.get('/exams/latest-result');
+          setResult(res.data);
+        } catch (err) {
+          console.warn('Could not fetch latest exam result:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchLatestResult();
+    }
+  }, [initialResult]);
+
   useEffect(() => {
     if (result?.passed) {
       confetti({
@@ -19,7 +46,44 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
     }
   }, [result]);
 
-  if (!result) return null;
+  const handleCopyCode = (qId, code) => {
+    if (!code) return;
+    navigator.clipboard.writeText(code);
+    setCopiedCodeId(qId);
+    setTimeout(() => setCopiedCodeId(null), 2000);
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto py-16 text-center space-y-4">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+          Loading Proctored Assessment Scorecard &amp; Diagnostics...
+        </p>
+      </div>
+    );
+  }
+
+  if (!result) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 text-center space-y-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
+        <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center mx-auto">
+          <FileCheck className="w-7 h-7" />
+        </div>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Exam Result Record Found</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+          There is no completed exam submission in the active session. Please navigate to the examinations dashboard to attempt scheduled tests.
+        </p>
+        <button
+          onClick={onBackToDashboard}
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 shadow-sm transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Return to Dashboard
+        </button>
+      </div>
+    );
+  }
 
   const {
     examId,
@@ -43,11 +107,12 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
   const isSelfAssessment = assessmentType === 'SELF_ASSESSMENT' || allowMultipleAttempts || canReattempt;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12 text-slate-900 dark:text-slate-100">
+    <div className="max-w-4xl mx-auto space-y-6 pb-12 text-slate-900 dark:text-slate-100 animate-fadeIn">
+      {/* Top Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <button
           onClick={onBackToDashboard}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors self-start sm:self-auto cursor-pointer shadow-2xs"
         >
           <ArrowLeft className="w-4 h-4" />
           Return to Dashboard
@@ -57,7 +122,7 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
           {isSelfAssessment && onRetakeExam && (
             <button
               onClick={() => onRetakeExam(examId)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-md hover:bg-blue-700 shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 shadow-2xs cursor-pointer transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Retake Practice Self-Assessment
@@ -66,7 +131,7 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
 
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0F172A] text-white text-xs font-bold rounded-md hover:bg-slate-800"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0F172A] dark:bg-slate-800 text-white text-xs font-bold rounded-lg hover:bg-slate-800 dark:hover:bg-slate-700 cursor-pointer shadow-2xs transition-colors"
           >
             <Printer className="w-4 h-4" />
             Print Performance Scorecard
@@ -84,7 +149,7 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
             <div>
               <div className="flex items-center gap-2">
                 <strong className="text-xs font-bold text-blue-950 dark:text-blue-100">Module Self-Assessment Practice Result</strong>
-                <span className="px-2 py-0.2 rounded-full bg-blue-200/70 dark:bg-blue-900/80 text-blue-800 dark:text-blue-200 text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-blue-200/70 dark:bg-blue-900/80 text-blue-800 dark:text-blue-200 text-[10px] font-bold">
                   Unlimited Practice Attempts
                 </span>
               </div>
@@ -96,7 +161,7 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
           {onRetakeExam && (
             <button
               onClick={() => onRetakeExam(examId)}
-              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-2xs shrink-0 flex items-center justify-center gap-1.5 transition-colors"
+              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-2xs shrink-0 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Retake Test</span>
@@ -195,7 +260,7 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
 
           <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">BridgeAI Certificate of Excellence</p>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-2">This is to certify that</h2>
-          <h3 className="text-2xl font-black text-blue-700 mt-1">{studentName}</h3>
+          <h3 className="text-2xl font-black text-blue-700 dark:text-blue-400 mt-1">{studentName}</h3>
           <p className="text-xs text-slate-600 dark:text-slate-300 max-w-lg mx-auto mt-2">
             has successfully demonstrated professional competence and cleared the proctored examination for:
           </p>
@@ -208,7 +273,7 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
             </div>
             <div>
               <span className="block text-slate-400 dark:text-slate-500">Credential ID</span>
-              <strong className="font-mono text-emerald-700">{certificateCode}</strong>
+              <strong className="font-mono text-emerald-700 dark:text-emerald-400">{certificateCode}</strong>
             </div>
             <div>
               <span className="block text-slate-400 dark:text-slate-500">Score</span>
@@ -218,149 +283,308 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
         </div>
       )}
 
-      {/* Detailed Question-wise Analysis (Infographic 2: Panel 8) */}
+      {/* Detailed Question-wise Analysis */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-4 text-slate-900 dark:text-white">
-        <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">Question-wise Objective Evaluation</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Review candidate response vs. verified answer key with comprehensive technical explanations.
-          </p>
+        <div className="border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Comprehensive Question Evaluation &amp; Diagnostics</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Review submitted solutions, testcase execution breakdowns, compiler outputs, and objective answer keys.
+            </p>
+          </div>
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+            {breakdowns.length} Problems Evaluated
+          </span>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {breakdowns.map((q, idx) => {
             const isCoding = q.questionType === 'CODING';
 
             if (isCoding) {
               const allPassed = q.testCasesPassed > 0 && q.testCasesPassed === q.totalTestCases;
-              const somePassed = q.testCasesPassed > 0;
+              const somePassed = q.testCasesPassed > 0 && !allPassed;
+              const isCopied = copiedCodeId === (q.questionId || idx);
 
               return (
                 <div
                   key={q.questionId || idx}
-                  className={`p-4 rounded-xl border transition-all ${
+                  className={`p-5 rounded-2xl border transition-all shadow-xs ${
                     allPassed
-                      ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50/30 dark:bg-emerald-950/20'
+                      ? 'border-emerald-200 dark:border-emerald-800/70 bg-emerald-50/20 dark:bg-emerald-950/15'
                       : somePassed
-                      ? 'border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/20'
-                      : 'border-rose-200 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-950/20'
+                      ? 'border-amber-200 dark:border-amber-800/70 bg-amber-50/20 dark:bg-amber-950/15'
+                      : 'border-rose-200 dark:border-rose-800/70 bg-rose-50/20 dark:bg-rose-950/15'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-2.5">
-                      <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0 ${
+                  {/* Problem Header */}
+                  <div className="flex items-start justify-between gap-3 border-b border-slate-200/70 dark:border-slate-800/70 pb-3.5">
+                    <div className="flex items-start gap-3">
+                      <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
                         allPassed ? 'bg-emerald-600 text-white' : somePassed ? 'bg-amber-600 text-white' : 'bg-rose-600 text-white'
                       }`}>
                         {idx + 1}
                       </span>
                       <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase flex items-center gap-1">
-                            <Code2 className="w-3 h-3 text-emerald-600" />
-                            <span>Coding Problem</span>
+                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                          <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 text-[10px] font-bold uppercase flex items-center gap-1 border border-blue-200 dark:border-blue-800">
+                            <Code2 className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                            <span>Coding Assessment</span>
                           </span>
-                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-mono font-bold">
-                            {q.selectedLanguage || 'code'}
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-mono font-bold uppercase border border-slate-200 dark:border-slate-700">
+                            Language: {q.selectedLanguage || 'python'}
                           </span>
                         </div>
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{q.questionText}</h4>
-
-                        {/* Test Cases Passed Summary */}
-                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                          <div className="p-2 rounded bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                            <span className="text-slate-500 dark:text-slate-400 font-semibold">Test Cases Passed: </span>
-                            <strong className={allPassed ? 'text-emerald-700' : somePassed ? 'text-amber-700' : 'text-rose-700'}>
-                              {q.testCasesPassed || 0} / {q.totalTestCases || 0} Test Cases
-                            </strong>
-                          </div>
-
-                          <div className="p-2 rounded bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                            <span className="text-slate-500 dark:text-slate-400 font-semibold">Execution Status: </span>
-                            <strong className={allPassed ? 'text-emerald-700' : somePassed ? 'text-amber-700' : 'text-rose-700'}>
-                              {allPassed ? 'All Test Cases Passed' : somePassed ? 'Partial Test Cases Passed' : 'Test Cases Failed'}
-                            </strong>
-                          </div>
-                        </div>
-
-                        {/* Submitted Code Viewer */}
-                        {q.submittedCode && (
-                          <div className="mt-3 space-y-1">
-                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                              <FileCode className="w-3 h-3 text-slate-500" />
-                              <span>Submitted Code:</span>
-                            </span>
-                            <pre className="bg-slate-950 text-emerald-400 p-3 rounded-lg text-xs font-mono overflow-x-auto max-h-48 border border-slate-800">
-                              {q.submittedCode}
-                            </pre>
-                          </div>
-                        )}
-
-                        {/* Compiler Output if any */}
-                        {q.compilerOutput && (
-                          <div className="mt-2 space-y-1">
-                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                              <Terminal className="w-3 h-3 text-slate-500" />
-                              <span>Compiler / Execution Diagnostics:</span>
-                            </span>
-                            <pre className="bg-slate-900 text-slate-300 p-2.5 rounded text-xs font-mono overflow-x-auto max-h-36">
-                              {q.compilerOutput}
-                            </pre>
-                          </div>
-                        )}
+                        <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                          {q.problemTitle || q.questionText}
+                        </h4>
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded border ${
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${
                         allPassed
                           ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                           : somePassed
                           ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
                           : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800'
                       }`}>
-                        +{q.marksAwarded} Marks
+                        +{q.marksAwarded} / {q.maxMarks || q.marksAwarded} Marks
                       </span>
                     </div>
                   </div>
+
+                  {/* Problem Description if provided */}
+                  {q.questionText && q.questionText !== q.problemTitle && (
+                    <div className="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white/60 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                      <strong className="text-slate-800 dark:text-slate-200 block mb-1">Problem Description:</strong>
+                      <p className="whitespace-pre-wrap">{q.questionText}</p>
+                    </div>
+                  )}
+
+                  {/* Test Cases Passed Summary Bar */}
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-2xs">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className={`w-4 h-4 ${allPassed ? 'text-emerald-600' : somePassed ? 'text-amber-600' : 'text-rose-600'}`} />
+                        <span className="text-slate-600 dark:text-slate-400 font-semibold">Test Cases Passed:</span>
+                      </div>
+                      <strong className={`font-mono font-bold text-sm ${allPassed ? 'text-emerald-600 dark:text-emerald-400' : somePassed ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        {q.testCasesPassed || 0} / {q.totalTestCases || 0} Cases
+                      </strong>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-2xs">
+                      <div className="flex items-center gap-2">
+                        <Cpu className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <span className="text-slate-600 dark:text-slate-400 font-semibold">Evaluation Status:</span>
+                      </div>
+                      <strong className={`font-bold ${allPassed ? 'text-emerald-600 dark:text-emerald-400' : somePassed ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        {allPassed ? 'All Test Cases Passed' : somePassed ? 'Partial Test Cases Passed' : 'All Test Cases Failed'}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Submitted Code Viewer */}
+                  <div className="mt-4 space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <FileCode className="w-4 h-4 text-blue-500" />
+                        <span>Candidate Submitted Code:</span>
+                      </span>
+                      {q.submittedCode && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCode(q.questionId || idx, q.submittedCode)}
+                          className="px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-500" />
+                              <span className="text-emerald-600 dark:text-emerald-400 font-bold">Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>Copy Code</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {q.submittedCode ? (
+                      <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-[#0F172A] shadow-md">
+                        <div className="flex items-center justify-between px-3 py-1.5 bg-slate-900 border-b border-slate-800 text-[10px] font-mono text-slate-400">
+                          <span>solution.{q.selectedLanguage === 'python' ? 'py' : q.selectedLanguage === 'java' ? 'java' : q.selectedLanguage === 'cpp' ? 'cpp' : q.selectedLanguage === 'c' ? 'c' : 'txt'}</span>
+                          <span className="uppercase">{q.selectedLanguage || 'code'}</span>
+                        </div>
+                        <pre className="p-4 text-emerald-400 dark:text-emerald-300 font-mono text-xs overflow-x-auto max-h-72 leading-relaxed selection:bg-blue-600 selection:text-white">
+                          {q.submittedCode}
+                        </pre>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 italic text-center">
+                        No solution code was submitted for this problem during the assessment.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Individual Test Cases Detailed Breakdown */}
+                  {q.testCaseResults && q.testCaseResults.length > 0 && (
+                    <div className="mt-5 space-y-2.5">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                        <Layers className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                        <span>Individual Test Case Execution Breakdown:</span>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {q.testCaseResults.map((tc, tcIdx) => (
+                          <div
+                            key={tc.id || tcIdx}
+                            className={`p-3.5 rounded-xl border transition-all ${
+                              tc.passed
+                                ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/60'
+                                : 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800/60'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold ${
+                                  tc.passed ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                                }`}>
+                                  {tcIdx + 1}
+                                </span>
+                                <span className="text-xs font-bold text-slate-900 dark:text-white">
+                                  Test Case #{tcIdx + 1} {tc.sample ? '(Sample)' : '(Hidden)'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                {tc.executionTimeMs !== undefined && (
+                                  <span className="text-[10px] text-slate-500 font-mono flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {tc.executionTimeMs} ms
+                                  </span>
+                                )}
+                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 ${
+                                  tc.passed
+                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700'
+                                    : 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-300 dark:border-rose-700'
+                                }`}>
+                                  {tc.passed ? (
+                                    <>
+                                      <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                      <span>Passed</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <XCircle className="w-3 h-3 text-rose-600" />
+                                      <span>Failed</span>
+                                    </>
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Inputs and Outputs Table */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs font-mono">
+                              {/* Input */}
+                              <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                <span className="text-[10px] font-sans font-bold text-slate-500 uppercase block mb-1">Input:</span>
+                                <div className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap break-all max-h-20 overflow-y-auto">
+                                  {tc.input || '(empty)'}
+                                </div>
+                              </div>
+
+                              {/* Expected Output */}
+                              <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                <span className="text-[10px] font-sans font-bold text-emerald-600 dark:text-emerald-400 uppercase block mb-1">Expected Output:</span>
+                                <div className="text-emerald-700 dark:text-emerald-300 whitespace-pre-wrap break-all max-h-20 overflow-y-auto font-semibold">
+                                  {tc.expectedOutput || '(empty)'}
+                                </div>
+                              </div>
+
+                              {/* Actual Output */}
+                              <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                <span className="text-[10px] font-sans font-bold text-slate-500 uppercase block mb-1">Candidate Output:</span>
+                                <div className={`whitespace-pre-wrap break-all max-h-20 overflow-y-auto font-semibold ${tc.passed ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-400'}`}>
+                                  {tc.actualOutput || (tc.error ? `Error: ${tc.error}` : '(no output)')}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Error Details if any */}
+                            {tc.error && (
+                              <div className="mt-2 p-2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 text-[11px] font-mono">
+                                <strong>Execution Error:</strong> {tc.error}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Compiler / Diagnostics Output if present */}
+                  {q.compilerOutput && (
+                    <div className="mt-4 space-y-1">
+                      <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                        <Terminal className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Compiler &amp; Runtime Output:</span>
+                      </span>
+                      <pre className="bg-slate-900 text-slate-200 p-3 rounded-xl text-xs font-mono overflow-x-auto max-h-36 border border-slate-800">
+                        {q.compilerOutput}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               );
             }
 
+            // MCQ / Objective Problem
             return (
               <div
                 key={q.questionId || idx}
-                className={`p-4 rounded-xl border transition-all ${
+                className={`p-5 rounded-2xl border transition-all shadow-xs ${
                   q.correct
-                    ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50/30 dark:bg-emerald-950/20'
-                    : 'border-rose-200 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-950/20'
+                    ? 'border-emerald-200 dark:border-emerald-800/70 bg-emerald-50/20 dark:bg-emerald-950/15'
+                    : 'border-rose-200 dark:border-rose-800/70 bg-rose-50/20 dark:bg-rose-950/15'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-2.5">
-                    <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0 ${
+                  <div className="flex items-start gap-3">
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
                       q.correct ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
                     }`}>
                       {idx + 1}
                     </span>
                     <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{q.questionText}</h4>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 text-[10px] font-bold uppercase border border-purple-200 dark:border-purple-800">
+                          Objective MCQ
+                        </span>
+                      </div>
+                      <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug">
+                        {q.questionText}
+                      </h4>
                       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                        <div className="p-2 rounded bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700">
-                          <span className="text-slate-500 dark:text-slate-400 font-semibold">Your Selected Option: </span>
-                          <strong className={q.correct ? 'text-emerald-700' : 'text-rose-700'}>
+                        <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                          <span className="text-slate-500 dark:text-slate-400 font-semibold block mb-0.5">Your Selected Option: </span>
+                          <strong className={q.correct ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-rose-700 dark:text-rose-400 font-bold'}>
                             Option {q.selectedOption || 'None (Unanswered)'}
                           </strong>
                         </div>
-                        <div className="p-2 rounded bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700">
-                          <span className="text-slate-500 dark:text-slate-400 font-semibold">Correct Option: </span>
-                          <strong className="text-emerald-700">Option {q.correctOption}</strong>
+                        <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                          <span className="text-slate-500 dark:text-slate-400 font-semibold block mb-0.5">Verified Correct Option: </span>
+                          <strong className="text-emerald-700 dark:text-emerald-400 font-bold">Option {q.correctOption}</strong>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="text-right shrink-0">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded border ${
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${
                       q.correct
                         ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                         : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800'
@@ -371,8 +595,8 @@ export const ExamResultPage = ({ result, onBackToDashboard, onRetakeExam }) => {
                 </div>
 
                 {q.explanation && (
-                  <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300">
-                    <strong className="text-slate-700 dark:text-slate-300 font-semibold">Explanation: </strong>
+                  <div className="mt-3.5 pt-3 border-t border-slate-200/60 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300">
+                    <strong className="text-slate-800 dark:text-slate-200 font-semibold">Faculty Explanation: </strong>
                     {q.explanation}
                   </div>
                 )}

@@ -2695,56 +2695,86 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     }`}>
       
       {/* 0. TOP GLOBAL PROCTORED STATUS HUD */}
-      <div className="w-full bg-slate-950 text-slate-200 px-4 sm:px-6 py-1.5 border-b border-slate-800 text-[11px] font-mono flex flex-wrap items-center justify-between gap-2 z-50 select-none">
-        <div className="flex items-center gap-1.5 font-bold text-slate-300">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="tracking-wider uppercase">SECURE EXAM MODE:</span>
+      <div className="w-full bg-slate-950 text-slate-200 px-4 sm:px-6 py-2 border-b border-slate-800 text-[11px] font-mono flex flex-wrap items-center justify-between gap-3 z-50 select-none shadow-xs">
+        <div className="flex items-center gap-2 font-bold text-slate-200">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <span className="tracking-wider uppercase font-semibold">SECURE EXAM MODE</span>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-          <span className="flex items-center gap-1">
-            <span>📷 Camera</span>
+        <div className="flex items-center gap-2.5 sm:gap-4 flex-wrap text-xs">
+          {/* Camera Status */}
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800">
+            <Video className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-300 font-medium">Camera:</span>
             {cameraStream && cameraStream.getVideoTracks().some((t) => t.readyState === 'live') ? (
-              <span className="text-emerald-400 font-bold">🟢 Active</span>
+              <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active
+              </span>
             ) : (
-              <span className="text-rose-400 font-bold animate-pulse">🔴 Disconnected</span>
+              <span className="text-rose-400 font-semibold inline-flex items-center gap-1 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Disconnected
+              </span>
             )}
-          </span>
-          <span className="text-slate-700">•</span>
-          <span className="flex items-center gap-1">
-            <span>🎤 Microphone</span>
+          </div>
+
+          {/* Microphone Status */}
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800">
+            <Mic className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-300 font-medium">Mic:</span>
             {audioStream && audioStream.getAudioTracks().some((t) => t.readyState === 'live') ? (
-              <span className="text-emerald-400 font-bold">🟢 Active ({currentAudioLevelRef.current || 0}%)</span>
+              <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active ({currentAudioLevelRef.current || 0}%)
+              </span>
             ) : (
-              <span className="text-rose-400 font-bold animate-pulse">🔴 Disconnected</span>
+              <span className="text-rose-400 font-semibold inline-flex items-center gap-1 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Disconnected
+              </span>
             )}
-          </span>
-          <span className="text-slate-700">•</span>
-          <span className="flex items-center gap-1">
-            <span>🖥 Screen</span>
+          </div>
+
+          {/* Screen Share Status */}
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800">
+            <Monitor className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-300 font-medium">Screen:</span>
             {screenStream && screenStream.getVideoTracks().some((t) => t.readyState === 'live') ? (
-              <span className="text-emerald-400 font-bold">🟢 Shared</span>
+              <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Shared
+              </span>
             ) : (
-              <span className="text-rose-400 font-bold animate-pulse">🔴 Stopped</span>
+              <span className="text-rose-400 font-semibold inline-flex items-center gap-1 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Stopped
+              </span>
             )}
-          </span>
-          <span className="text-slate-700">•</span>
-          <span className="flex items-center gap-1">
-            <span>⛶ Fullscreen</span>
+          </div>
+
+          {/* Fullscreen Status */}
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800">
+            <Maximize2 className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-300 font-medium">Fullscreen:</span>
             {isFullscreen ? (
-              <span className="text-emerald-400 font-bold">🟢 Locked</span>
+              <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Locked
+              </span>
             ) : (
-              <span className="text-rose-400 font-bold animate-pulse">🔴 Exited</span>
+              <span className="text-rose-400 font-semibold inline-flex items-center gap-1 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Exited
+              </span>
             )}
-          </span>
-          <span className="text-slate-700">•</span>
-          <span className="flex items-center gap-1">
-            <span>🌐 Connection</span>
+          </div>
+
+          {/* Connection Status */}
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800">
+            <Wifi className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-300 font-medium">Connection:</span>
             {isNetworkOnline ? (
-              <span className="text-emerald-400 font-bold">🟢 Online</span>
+              <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Online
+              </span>
             ) : (
-              <span className="text-rose-400 font-bold animate-pulse">🔴 Offline</span>
+              <span className="text-rose-400 font-semibold inline-flex items-center gap-1 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Offline
+              </span>
             )}
-          </span>
+          </div>
         </div>
       </div>
 

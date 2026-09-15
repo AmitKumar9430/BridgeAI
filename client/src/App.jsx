@@ -133,6 +133,7 @@ function AppContent() {
             onSelectTab={selectTab}
             onOpenExam={openExam}
             onSelectCourse={openCourse}
+            onViewExamResult={openExamResult}
           />
         )}
       </main>

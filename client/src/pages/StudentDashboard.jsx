@@ -9,7 +9,8 @@ import {
   Archive, Presentation, Clock, Lock, RefreshCw, ChevronRight,
   Users, UserPlus, Check, X, Shield, Edit3, Monitor, ShieldAlert, Target,
   Globe, Building2, Layers, PanelLeftOpen, PanelLeftClose,
-  Printer, Download, Search, Copy, Sparkles, GraduationCap, Bell, Camera, Ban
+  Printer, Download, Search, Copy, Sparkles, GraduationCap, Bell, Camera, Ban,
+  FileCheck
 } from 'lucide-react';
 import { DashboardSidebar } from '../components/common/DashboardSidebar';
 import { LiveSessionsTab } from '../components/common/LiveSessionsTab';
@@ -18,6 +19,7 @@ import FileUploadInput from '../components/common/FileUploadInput';
 export const StudentDashboard = ({
   onOpenExam,
   onSelectCourse,
+  onViewExamResult,
   activeTab: controlledTab,
   onSelectTab: controlledOnSelectTab
 }) => {
@@ -37,10 +39,30 @@ export const StudentDashboard = ({
   const [vigilanceHistory, setVigilanceHistory] = useState([]);
   const [selectedEvidenceModal, setSelectedEvidenceModal] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingResultExamId, setLoadingResultExamId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('bridgeai_student_sidebar_open');
     return saved !== null ? saved === 'true' : true;
   });
+
+  const handleViewExamScorecard = async (ex) => {
+    try {
+      setLoadingResultExamId(ex.examId);
+      let res;
+      if (ex.attemptId) {
+        res = await api.get(`/exams/attempts/${ex.attemptId}/result`);
+      } else {
+        res = await api.get(`/exams/${ex.examId}/latest-result`);
+      }
+      if (onViewExamResult) {
+        onViewExamResult(res.data);
+      }
+    } catch (err) {
+      alert('Could not load detailed scorecard: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoadingResultExamId(null);
+    }
+  };
 
   const handleToggleSidebar = () => {
     setSidebarOpen(prev => {
@@ -1736,9 +1758,22 @@ export const StudentDashboard = ({
                           )}
                         </div>
 
-                        <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* 1. If Attempt Record Exists, provide View Scorecard & Performance button */}
+                          {(isDone || isTerminated || ex.attemptId) && (
+                            <button
+                              type="button"
+                              onClick={() => handleViewExamScorecard(ex)}
+                              disabled={loadingResultExamId === ex.examId}
+                              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                              <FileCheck className="w-4 h-4" />
+                              <span>{loadingResultExamId === ex.examId ? 'Loading Scorecard...' : 'View Scorecard & Results'}</span>
+                            </button>
+                          )}
+
                           {isTerminated ? (
-                            <div className="flex items-center gap-2 flex-wrap">
+                            <>
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1775,7 +1810,7 @@ export const StudentDashboard = ({
                                   </button>
                                 )
                               )}
-                            </div>
+                            </>
                           ) : isMobileOrTablet ? (
                             <button
                               disabled
@@ -1788,7 +1823,7 @@ export const StudentDashboard = ({
                           ) : canStart ? (
                             <button
                               onClick={() => onOpenExam && onOpenExam(ex.examId)}
-                              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center gap-1.5 transition-colors"
+                              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
                             >
                               <ShieldCheck className="w-4 h-4" />
                               {displayStatus === 'IN_PROGRESS'
@@ -1797,15 +1832,15 @@ export const StudentDashboard = ({
                                 ? 'Re-attempt Permitted • Start Exam'
                                 : 'Start Proctored Assessment'}
                             </button>
-                          ) : (
+                          ) : !isDone && isMissed ? (
                             <button
                               disabled
                               className="px-3.5 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg text-xs font-semibold cursor-not-allowed flex items-center gap-1 border border-slate-300 dark:border-slate-700"
                             >
                               <Lock className="w-3.5 h-3.5" />
-                              {isDone ? 'Assessment Done (Locked)' : 'Exam Closed (Missed)'}
+                              Exam Closed (Missed)
                             </button>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </div>

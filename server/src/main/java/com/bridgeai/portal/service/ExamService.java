@@ -435,6 +435,20 @@ public class ExamService {
                 .build();
     }
 
+    public ExamResultResponse getLatestStudentResult(Long studentId, Long examId) {
+        List<ExamAttempt> attempts;
+        if (examId != null) {
+            attempts = attemptRepository.findByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
+        } else {
+            attempts = attemptRepository.findByStudentIdOrderByStartedAtDesc(studentId);
+        }
+        if (attempts.isEmpty()) {
+            throw new IllegalArgumentException("No exam attempts found for student.");
+        }
+        ExamAttempt latest = attempts.get(0);
+        return getAttemptResult(latest.getId());
+    }
+
     public RunCodeResponse runCode(RunCodeRequest req) {
         List<CodingTestCaseDto> testCases = req.getSampleTestCases();
         if (testCases == null || testCases.isEmpty()) {
