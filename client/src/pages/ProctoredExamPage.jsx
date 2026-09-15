@@ -2560,9 +2560,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                 <div className="text-xs space-y-1">
                   <p className="text-slate-700 dark:text-slate-300 font-semibold">
                     {isScreenReady
-                      ? '✓ Entire Screen stream is verified and ready.'
+                      ? 'Entire Screen stream is verified and ready.'
                       : isScreenRejected
-                      ? '⚠ You shared a single window or tab. You MUST select and share your "Entire Screen".'
+                      ? 'You shared a single window or tab. You MUST select and share your "Entire Screen".'
                       : 'Entire screen sharing will be requested seamlessly. You must choose "Entire Screen" in the prompt.'}
                   </p>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">

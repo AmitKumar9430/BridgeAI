@@ -10,7 +10,7 @@ import {
   FileText, FolderGit2, FileCode, Presentation, Archive, UploadCloud, RefreshCw,
   Download, Upload, Check, Lock, Star, Target, X, Globe, Building2, Layers,
   PanelLeftOpen, PanelLeftClose, Code2, Terminal, Code, ListOrdered, History, KeyRound, Edit3,
-  BookOpen, Pencil, ChevronDown, ChevronUp, Eye, EyeOff
+  BookOpen, Pencil, ChevronDown, ChevronUp, Eye, EyeOff, ThumbsUp
 } from 'lucide-react';
 import { DashboardSidebar } from '../components/common/DashboardSidebar';
 import { LiveSessionsTab } from '../components/common/LiveSessionsTab';
@@ -5395,30 +5395,34 @@ public class OrderEventPublisher {
                     <button
                       type="button"
                       onClick={() => setProjectGradeForm({ ...projectGradeForm, feedback: 'Outstanding architecture, clean codebase, and thorough documentation. All requirements met flawlessly.' })}
-                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-medium text-left truncate transition-colors"
+                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-semibold text-left truncate transition-colors flex items-center gap-1.5"
                     >
-                      🌟 Outstanding
+                      <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span>Outstanding</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setProjectGradeForm({ ...projectGradeForm, feedback: 'Solid implementation with working code and clear presentation slides. Well-organized team collaboration.' })}
-                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-medium text-left truncate transition-colors"
+                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-semibold text-left truncate transition-colors flex items-center gap-1.5"
                     >
-                      👍 Excellent
+                      <ThumbsUp className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                      <span>Excellent</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setProjectGradeForm({ ...projectGradeForm, feedback: 'Good work on core requirements. Suggested improvements on test coverage, error handling, and UI polish.' })}
-                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-medium text-left truncate transition-colors"
+                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-semibold text-left truncate transition-colors flex items-center gap-1.5"
                     >
-                      👌 Good Work
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <span>Good Work</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setProjectGradeForm({ ...projectGradeForm, feedback: 'Deliverables verified. Please review feedback on modular architecture and add missing test scenarios.' })}
-                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-medium text-left truncate transition-colors"
+                      className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-[11px] font-semibold text-left truncate transition-colors flex items-center gap-1.5"
                     >
-                      📝 Satisfactory
+                      <FileCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                      <span>Satisfactory</span>
                     </button>
                   </div>
                 </div>

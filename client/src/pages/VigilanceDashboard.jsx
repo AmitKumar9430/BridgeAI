@@ -1111,7 +1111,7 @@ export const VigilanceDashboard = ({
                       })
                       .map((ex, i) => (
                         <option key={i} value={String(ex.examId)}>
-                          {ex.liveStudentsCount > 0 ? `🔴 LIVE (${ex.liveStudentsCount}) - ` : ''}{ex.examTitle} (Exam #{ex.examId})
+                          {ex.liveStudentsCount > 0 ? `[LIVE (${ex.liveStudentsCount})] - ` : ''}{ex.examTitle} (Exam #{ex.examId})
                         </option>
                       ))}
                   </select>
