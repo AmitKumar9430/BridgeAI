@@ -2273,7 +2273,7 @@ public class OrderEventPublisher {
                       </h5>
 
                       {(!topic.teams || topic.teams.length === 0) ? (
-                        <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-850 rounded-lg border border-slate-100 dark:border-slate-800">
+                        <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-800/60 rounded-lg border border-slate-100 dark:border-slate-800">
                           No student teams formed yet for this project topic.
                         </div>
                       ) : (
@@ -3801,7 +3801,7 @@ public class OrderEventPublisher {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <label className="flex-1 cursor-pointer flex items-center justify-center gap-2 p-3 bg-white dark:bg-slate-850 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 transition-colors">
+                  <label className="flex-1 cursor-pointer flex items-center justify-center gap-2 p-3 bg-white dark:bg-slate-800/80 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 transition-colors">
                     <Upload className="w-4 h-4 text-slate-400" />
                     <span>Choose CSV file to append questions</span>
                     <input
@@ -5210,14 +5210,14 @@ public class OrderEventPublisher {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 {/* ZIP Archive */}
-                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 space-y-2 shadow-2xs">
+                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 space-y-2 shadow-2xs">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
+                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100">
                       <Archive className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <span>Source Code (ZIP)</span>
                     </div>
                     {showProjectGradeModal.zipFileUrl && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded">
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded">
                         Available
                       </span>
                     )}
@@ -5233,19 +5233,19 @@ public class OrderEventPublisher {
                       <span>Download ZIP Archive &rarr;</span>
                     </a>
                   ) : (
-                    <span className="text-slate-400 italic text-[11px]">Not uploaded by student</span>
+                    <span className="text-slate-400 dark:text-slate-500 italic text-[11px]">Not uploaded by student</span>
                   )}
                 </div>
 
                 {/* PPT Presentation */}
-                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 space-y-2 shadow-2xs">
+                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 space-y-2 shadow-2xs">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
+                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100">
                       <Presentation className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                       <span>Presentation Deck (PPT)</span>
                     </div>
                     {showProjectGradeModal.pptFileUrl && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded">
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded">
                         Available
                       </span>
                     )}
@@ -5261,19 +5261,19 @@ public class OrderEventPublisher {
                       <span>View Presentation Deck &rarr;</span>
                     </a>
                   ) : (
-                    <span className="text-slate-400 italic text-[11px]">Not uploaded by student</span>
+                    <span className="text-slate-400 dark:text-slate-500 italic text-[11px]">Not uploaded by student</span>
                   )}
                 </div>
 
                 {/* PDF Report */}
-                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 space-y-2 shadow-2xs">
+                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 space-y-2 shadow-2xs">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
+                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100">
                       <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                       <span>Documentation (PDF)</span>
                     </div>
                     {showProjectGradeModal.pdfReportUrl && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded">
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded">
                         Available
                       </span>
                     )}
@@ -5289,19 +5289,19 @@ public class OrderEventPublisher {
                       <span>Open PDF Report &rarr;</span>
                     </a>
                   ) : (
-                    <span className="text-slate-400 italic text-[11px]">Not uploaded by student</span>
+                    <span className="text-slate-400 dark:text-slate-500 italic text-[11px]">Not uploaded by student</span>
                   )}
                 </div>
 
                 {/* GitHub Repository */}
-                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 space-y-2 shadow-2xs">
+                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 space-y-2 shadow-2xs">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
+                    <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100">
                       <FolderGit2 className="w-4 h-4 text-slate-900 dark:text-white" />
                       <span>GitHub Repository</span>
                     </div>
                     {showProjectGradeModal.githubRepoUrl && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded">
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded">
                         Available
                       </span>
                     )}
@@ -5317,7 +5317,7 @@ public class OrderEventPublisher {
                       <span>Explore Repository &rarr;</span>
                     </a>
                   ) : (
-                    <span className="text-slate-400 italic text-[11px]">Not provided</span>
+                    <span className="text-slate-400 dark:text-slate-500 italic text-[11px]">Not provided</span>
                   )}
                 </div>
               </div>

@@ -18,6 +18,9 @@ export default {
           800: '#1E3A8A',
           900: '#0F172A',
         },
+        slate: {
+          850: '#131D33',
+        },
         surface: {
           bg: '#F8FAFC',
           card: '#FFFFFF',

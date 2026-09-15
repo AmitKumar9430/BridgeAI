@@ -584,7 +584,7 @@ public class ModuleService {
             {assignedTrainersList.map((trainer) => (
               <div
                 key={trainer.trainerId || trainer.id}
-                className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 hover:bg-white dark:hover:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-2xs transition-all"
+                className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-2xs transition-all"
               >
                 <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                   {trainer.trainerName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'TR'}
