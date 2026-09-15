@@ -141,6 +141,14 @@ public class AssignmentService {
         Assignment assignment = assignmentRepository.findById(req.getAssignmentId())
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + req.getAssignmentId()));
 
+        LocalDateTime deadline = assignment.getDueDateTime();
+        if (deadline == null && assignment.getDueDate() != null) {
+            deadline = assignment.getDueDate().atTime(23, 59, 59);
+        }
+        if (deadline != null && LocalDateTime.now().isAfter(deadline)) {
+            throw new IllegalStateException("Assignment deadline has expired (" + deadline + "). Submissions are closed.");
+        }
+
         AssignmentSubmission submission = submissionRepository.findByAssignmentIdAndStudentId(req.getAssignmentId(), studentId).orElse(null);
         boolean isEdit = (submission != null);
         String previousPdf = isEdit ? submission.getPdfSubmissionUrl() : null;

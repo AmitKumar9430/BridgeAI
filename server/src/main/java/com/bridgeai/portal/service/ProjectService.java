@@ -113,6 +113,10 @@ public class ProjectService {
             throw new org.springframework.security.access.AccessDeniedException("Access denied: You cannot select a project from another institution.");
         }
 
+        if (topic.getDeadline() != null && LocalDate.now().isAfter(topic.getDeadline())) {
+            throw new IllegalStateException("Project topic selection deadline has expired (" + topic.getDeadline() + "). Selection is closed.");
+        }
+
         // 1. Record topic selection idempotently
         ProjectSelection selection = selectionRepository.findByTopicIdAndStudentId(topicId, studentId)
                 .orElse(null);
@@ -300,6 +304,10 @@ public class ProjectService {
 
         ProjectWork topic = projectRepository.findById(team.getTopicId())
                 .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + team.getTopicId()));
+
+        if (topic.getDeadline() != null && LocalDate.now().isAfter(topic.getDeadline())) {
+            throw new IllegalStateException("Project deadline has expired (" + topic.getDeadline() + "). Team invitations are closed.");
+        }
 
         // Team membership check: only an active member of this team can send invitations
         Optional<ProjectTeamMember> senderMemberOpt = memberRepository.findByTopicIdAndStudentId(team.getTopicId(), senderId);
@@ -620,6 +628,10 @@ public class ProjectService {
         ProjectWork topic = projectRepository.findById(team.getTopicId())
                 .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + team.getTopicId()));
 
+        if (topic.getDeadline() != null && LocalDate.now().isAfter(topic.getDeadline())) {
+            throw new IllegalStateException("Project deadline has expired (" + topic.getDeadline() + "). Team membership changes are closed.");
+        }
+
         List<ProjectTeamMember> currentMembers = memberRepository.findByTeamId(team.getId());
         int effectiveMaxSize = topic.getMaxTeamSize() > 0 ? topic.getMaxTeamSize() : 4;
         if (currentMembers.size() >= effectiveMaxSize) {
@@ -789,6 +801,12 @@ public class ProjectService {
             throw new IllegalStateException("Cannot submit deliverables for a dissolved team.");
         }
 
+        ProjectWork topic = projectRepository.findById(team.getTopicId())
+                .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + team.getTopicId()));
+        if (topic.getDeadline() != null && LocalDate.now().isAfter(topic.getDeadline())) {
+            throw new IllegalStateException("Project submission deadline has expired (" + topic.getDeadline() + "). Submissions are closed.");
+        }
+
         List<ProjectTeamMember> members = memberRepository.findByTeamId(team.getId());
         boolean isMember = members.stream().anyMatch(m -> m.getStudentId().equals(studentId));
         if (!isMember) {
@@ -891,6 +909,9 @@ public class ProjectService {
     public ProjectWork submitDeliverables(SubmitProjectRequest req, Long studentId) {
         ProjectWork project = projectRepository.findById(req.getProjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Project not found: " + req.getProjectId()));
+        if (project.getDeadline() != null && LocalDate.now().isAfter(project.getDeadline())) {
+            throw new IllegalStateException("Project submission deadline has expired (" + project.getDeadline() + "). Submissions are closed.");
+        }
         if (req.getZipFileUrl() != null) project.setZipFileUrl(req.getZipFileUrl());
         if (req.getPptFileUrl() != null) project.setPptFileUrl(req.getPptFileUrl());
         if (req.getPdfReportUrl() != null) project.setPdfReportUrl(req.getPdfReportUrl());

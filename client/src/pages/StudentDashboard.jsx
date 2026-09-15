@@ -1046,8 +1046,10 @@ export const StudentDashboard = ({
                   assignmentsWithSub.map((item) => {
                     const a = item.assignment;
                     const sub = item.mySubmission;
-                    const status = sub ? sub.status : 'PENDING';
-                    const canEdit = sub ? (sub.canEdit || a.allowResubmission) : true;
+                    const rawDeadline = a.dueDateTime ? new Date(a.dueDateTime) : (a.dueDate ? new Date(a.dueDate + 'T23:59:59') : null);
+                    const isDeadlinePassed = rawDeadline ? (new Date() > rawDeadline) : false;
+                    const status = sub ? sub.status : (isDeadlinePassed ? 'EXPIRED' : 'PENDING');
+                    const canEdit = !isDeadlinePassed && (sub ? (sub.canEdit || a.allowResubmission) : true);
 
                     return (
                       <tr key={a.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
@@ -1067,7 +1069,12 @@ export const StudentDashboard = ({
                         </td>
                         <td className="p-3 text-slate-600 dark:text-slate-300 max-w-xs truncate">{a.description}</td>
                         <td className="p-3 font-mono text-slate-600 dark:text-slate-300">
-                          {a.dueDateTime ? new Date(a.dueDateTime).toLocaleString() : 'Open'}
+                          <div>{a.dueDateTime ? new Date(a.dueDateTime).toLocaleString() : (a.dueDate || 'Open')}</div>
+                          {isDeadlinePassed && (
+                            <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold block mt-0.5">
+                              Deadline Expired
+                            </span>
+                          )}
                         </td>
                         <td className="p-3">
                           {sub ? (
@@ -1081,7 +1088,9 @@ export const StudentDashboard = ({
                               <span>View Submitted PDF</span>
                             </a>
                           ) : (
-                            <span className="text-slate-400 dark:text-slate-500 italic">Not submitted</span>
+                            <span className={isDeadlinePassed ? "text-rose-500 italic font-semibold" : "text-slate-400 dark:text-slate-500 italic"}>
+                              {isDeadlinePassed ? 'Missed submission' : 'Not submitted'}
+                            </span>
                           )}
                         </td>
                         <td className="p-3">
@@ -1092,6 +1101,8 @@ export const StudentDashboard = ({
                               ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
                               : status === 'SUBMITTED'
                               ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800'
+                              : status === 'EXPIRED'
+                              ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800'
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                           }`}>
                             {status}
@@ -1106,21 +1117,33 @@ export const StudentDashboard = ({
                                 <p className="text-[11px] font-normal text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{sub.feedback}</p>
                               )}
                             </div>
+                          ) : isDeadlinePassed && !sub ? (
+                            <span className="text-rose-600 dark:text-rose-400 font-normal">0 Marks (Missed)</span>
                           ) : (
                             <span className="text-slate-400 dark:text-slate-500 font-normal">Pending check</span>
                           )}
                         </td>
                         <td className="p-3 text-right">
                           {!sub ? (
-                            <button
-                              onClick={() => {
-                                setSubmitAssignmentModal(item);
-                                setAssignForm({ pdfSubmissionUrl: '', submissionContent: '' });
-                              }}
-                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors shadow-2xs"
-                            >
-                              Submit PDF
-                            </button>
+                            isDeadlinePassed ? (
+                              <button
+                                disabled
+                                className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 rounded text-xs font-bold border border-slate-200 dark:border-slate-700 cursor-not-allowed"
+                                title="Assignment deadline has passed. Submissions are closed."
+                              >
+                                Deadline Expired
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setSubmitAssignmentModal(item);
+                                  setAssignForm({ pdfSubmissionUrl: '', submissionContent: '' });
+                                }}
+                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors shadow-2xs"
+                              >
+                                Submit PDF
+                              </button>
+                            )
                           ) : (
                             <button
                               disabled={!canEdit}
@@ -1136,9 +1159,9 @@ export const StudentDashboard = ({
                                   ? 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700'
                                   : 'bg-slate-50 dark:bg-slate-800/40 text-slate-400 dark:text-slate-600 border border-slate-200 dark:border-slate-800 cursor-not-allowed'
                               }`}
-                              title={canEdit ? 'Edit submission' : 'Trainer permission required to edit'}
+                              title={isDeadlinePassed ? 'Deadline has expired. Submissions are locked.' : (canEdit ? 'Edit submission' : 'Trainer permission required to edit')}
                             >
-                              {canEdit ? 'Edit Submission' : 'Locked by Trainer'}
+                              {isDeadlinePassed ? 'Deadline Closed' : (canEdit ? 'Edit Submission' : 'Locked by Trainer')}
                             </button>
                           )}
                         </td>
@@ -1226,6 +1249,7 @@ export const StudentDashboard = ({
                   const maxSize = topic?.maxTeamSize || 4;
                   const isLeader = teamData.isLeader;
                   const hasMinMet = members.length >= minSize;
+                  const isTopicDeadlinePassed = topic?.deadline ? (new Date(topic.deadline + 'T23:59:59') < new Date()) : false;
 
                   return (
                     <div key={topicId} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-slate-900 space-y-0">
@@ -1244,16 +1268,25 @@ export const StudentDashboard = ({
                                 ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                                 : team.status === 'SUBMITTED'
                                 ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800'
+                                : isTopicDeadlinePassed
+                                ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800'
                                 : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
                             }`}>
-                              {team.status}
+                              {isTopicDeadlinePassed && team.status !== 'SUBMITTED' && team.status !== 'EVALUATED' ? 'DEADLINE EXPIRED' : team.status}
                             </span>
                           </div>
                           <h4 className="text-base font-bold text-slate-900 dark:text-white mt-1">{topic?.title}</h4>
                           <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">{topic?.description}</p>
                         </div>
                         <div className="text-right text-xs">
-                          <span className="text-slate-500 dark:text-slate-400 font-mono">Deadline: {topic?.deadline || 'Open'}</span>
+                          <span className="text-slate-500 dark:text-slate-400 font-mono">
+                            Deadline: {topic?.deadline || 'Open'}
+                            {isTopicDeadlinePassed && (
+                              <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold block">
+                                Submissions Closed
+                              </span>
+                            )}
+                          </span>
                           <div className="text-slate-700 dark:text-slate-300 font-bold mt-1">
                             Instructor: {topic?.trainerName || 'Faculty'}
                           </div>
@@ -1268,7 +1301,7 @@ export const StudentDashboard = ({
                             <div>
                               <div className="flex items-center gap-1.5">
                                 <h5 className="text-sm font-bold text-slate-900 dark:text-white">{team.teamName}</h5>
-                                {isLeader && (
+                                {isLeader && !isTopicDeadlinePassed && (
                                   <button
                                     onClick={() => {
                                       setShowRenameModal({ topicId, currentName: team.teamName });
@@ -1287,16 +1320,16 @@ export const StudentDashboard = ({
                             </div>
 
                             <button
-                              disabled={members.length >= maxSize}
+                              disabled={isTopicDeadlinePassed || members.length >= maxSize}
                               onClick={() => handleOpenInviteModal(topicId)}
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors ${
-                                members.length >= maxSize
+                                isTopicDeadlinePassed || members.length >= maxSize
                                   ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed'
                                   : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
                               }`}
                             >
                               <UserPlus className="w-3.5 h-3.5" />
-                              <span>{members.length >= maxSize ? 'Team Full' : 'Invite Teammates'}</span>
+                              <span>{isTopicDeadlinePassed ? 'Closed' : (members.length >= maxSize ? 'Team Full' : 'Invite Teammates')}</span>
                             </button>
                           </div>
 
@@ -1345,12 +1378,14 @@ export const StudentDashboard = ({
                               {Array.from({ length: Math.max(0, maxSize - members.length) }).map((_, idx) => (
                                 <div key={`open-slot-${idx}`} className="p-2 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/40 dark:bg-slate-800/20 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                                   <span className="italic text-[11px]">Open Place {members.length + idx + 1} of {maxSize} (Available)</span>
-                                  <button
-                                    onClick={() => handleOpenInviteModal(topicId)}
-                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-semibold text-[11px] underline"
-                                  >
-                                    + Invite Peer
-                                  </button>
+                                  {!isTopicDeadlinePassed && (
+                                    <button
+                                      onClick={() => handleOpenInviteModal(topicId)}
+                                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-semibold text-[11px] underline"
+                                    >
+                                      + Invite Peer
+                                    </button>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -1393,23 +1428,34 @@ export const StudentDashboard = ({
                               </p>
                             </div>
 
-                            <button
-                              onClick={() => {
-                                setShowSharedUploadModal(team);
-                                setProjectDeliverables({
-                                  zipFileUrl: team.zipFileUrl || '',
-                                  pptFileUrl: team.pptFileUrl || '',
-                                  pdfReportUrl: team.pdfReportUrl || '',
-                                  githubRepoUrl: team.githubRepoUrl || '',
-                                  liveDemoUrl: team.liveDemoUrl || '',
-                                  studentComments: team.studentComments || ''
-                                });
-                              }}
-                              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs w-fit"
-                            >
-                              <UploadCloud className="w-4 h-4 text-white" />
-                              <span>{team.zipFileUrl ? 'Update Deliverables' : 'Upload Deliverables'}</span>
-                            </button>
+                            {isTopicDeadlinePassed ? (
+                              <button
+                                disabled
+                                className="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 cursor-not-allowed flex items-center gap-1.5"
+                                title="Project deadline has expired. Submissions are closed."
+                              >
+                                <Lock className="w-3.5 h-3.5" />
+                                <span>Deadline Expired</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setShowSharedUploadModal(team);
+                                  setProjectDeliverables({
+                                    zipFileUrl: team.zipFileUrl || '',
+                                    pptFileUrl: team.pptFileUrl || '',
+                                    pdfReportUrl: team.pdfReportUrl || '',
+                                    githubRepoUrl: team.githubRepoUrl || '',
+                                    liveDemoUrl: team.liveDemoUrl || '',
+                                    studentComments: team.studentComments || ''
+                                  });
+                                }}
+                                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs w-fit"
+                              >
+                                <UploadCloud className="w-4 h-4 text-white" />
+                                <span>{team.zipFileUrl ? 'Update Deliverables' : 'Upload Deliverables'}</span>
+                              </button>
+                            )}
                           </div>
 
                           {/* Deliverables Links Grid */}
@@ -1535,6 +1581,8 @@ export const StudentDashboard = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {availableTopics.map((topic) => {
                 const isSelected = !!myTeamByTopic[topic.id];
+                const isTopicDeadlinePassed = topic.deadline ? (new Date(topic.deadline + 'T23:59:59') < new Date()) : false;
+
                 return (
                   <div key={topic.id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-3 bg-white dark:bg-slate-900 flex flex-col justify-between">
                     <div className="space-y-2">
@@ -1554,12 +1602,28 @@ export const StudentDashboard = ({
                     </div>
 
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                      <span className="text-slate-500 dark:text-slate-400 font-mono">Deadline: {topic.deadline || 'Open'}</span>
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400 font-mono">Deadline: {topic.deadline || 'Open'}</span>
+                        {isTopicDeadlinePassed && (
+                          <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold block">
+                            Selection Closed
+                          </span>
+                        )}
+                      </div>
                       {isSelected ? (
                         <span className="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
                           <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                           <span>Selected (Active Team Above)</span>
                         </span>
+                      ) : isTopicDeadlinePassed ? (
+                        <button
+                          disabled
+                          className="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 cursor-not-allowed flex items-center gap-1"
+                          title="Project topic selection deadline has expired."
+                        >
+                          <Lock className="w-3.5 h-3.5" />
+                          <span>Deadline Expired</span>
+                        </button>
                       ) : (
                         <button
                           onClick={() => handleSelectTopic(topic.id)}
@@ -1651,10 +1715,15 @@ export const StudentDashboard = ({
                     (v.status === 'TERMINATED_BY_VIOLATION' || v.actionType === 'TERMINATE_EXAM')
                   );
                   const isTerminated = (ex.displayStatus === 'TERMINATED' || ex.attemptStatus === 'TERMINATED_BY_VIOLATION' || !!termRecord);
-                  const displayStatus = isTerminated ? 'TERMINATED' : (ex.displayStatus || 'AVAILABLE');
+                  const isExamDeadlinePassed = ex.scheduledEndTime ? (new Date() > new Date(ex.scheduledEndTime)) : false;
+                  const displayStatus = isTerminated 
+                    ? 'TERMINATED' 
+                    : (isExamDeadlinePassed && !ex.attemptId && ex.displayStatus !== 'IN_PROGRESS') 
+                    ? 'MISSED' 
+                    : (ex.displayStatus || 'AVAILABLE');
                   const isDone = (displayStatus === 'DONE' || displayStatus === 'SUBMITTED') && !isTerminated;
-                  const isMissed = displayStatus === 'MISSED' && !isTerminated;
-                  const canStart = (!isDone && !isMissed && !isTerminated) || ex.canReattempt;
+                  const isMissed = (displayStatus === 'MISSED' || (isExamDeadlinePassed && !ex.canReattempt)) && !isTerminated && !isDone;
+                  const canStart = (!isDone && !isMissed && !isTerminated) || (ex.canReattempt && !isExamDeadlinePassed);
                   const isRecentlyTriggered = !isTerminated && (displayStatus === 'IN_PROGRESS' || (ex.canReattempt && isDone) || (idx === 0 && canStart));
 
                   return (
@@ -1680,6 +1749,16 @@ export const StudentDashboard = ({
                               <Building2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                               <span>{ex.institutionName || user?.institutionName || 'Institutional Faculty'}</span>
                             </span>
+                            {ex.scheduledEndTime && (
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+                                isExamDeadlinePassed
+                                  ? 'text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-700'
+                                  : 'text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-700'
+                              }`}>
+                                <Clock className="w-3 h-3" />
+                                <span>Deadline: {new Date(ex.scheduledEndTime).toLocaleString()}</span>
+                              </span>
+                            )}
                             {isRecentlyTriggered && (
                               <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
                                 <Sparkles className="w-3 h-3 text-amber-600 dark:text-amber-400" />
