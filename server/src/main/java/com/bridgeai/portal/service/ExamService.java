@@ -81,22 +81,28 @@ public class ExamService {
             institutionSecurityUtils.assertInstitutionAccess(student, exam.getInstitutionId(), exam.getInstitutionName());
         }
 
-        // Check existing attempt (fetch the latest attempt for this student and exam)
+        // Check existing attempt (fetch all attempts for this student and exam)
+        List<ExamAttempt> allStudentAttempts = attemptRepository.findByExamIdAndStudentId(examId, studentId);
         Optional<ExamAttempt> existingOpt = attemptRepository.findTopByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
-        if (existingOpt.isPresent()) {
-            ExamAttempt existing = existingOpt.get();
+
+        if (existingOpt.isPresent() || !allStudentAttempts.isEmpty()) {
+            ExamAttempt existing = existingOpt.orElse(allStudentAttempts.get(allStudentAttempts.size() - 1));
+            boolean isReattemptAllowed = isSelfAssessment || existing.isCanReattempt() || allStudentAttempts.stream().anyMatch(ExamAttempt::isCanReattempt);
+
             // Reconnect to current ongoing session if not flagged for a fresh reattempt
-            if ("IN_PROGRESS".equals(existing.getStatus()) && !existing.isCanReattempt()) {
+            if ("IN_PROGRESS".equals(existing.getStatus()) && !isReattemptAllowed) {
                 return buildStartExamResponse(exam, existing);
             }
-            if (!isSelfAssessment && !existing.isCanReattempt()) {
+            if (!isSelfAssessment && !isReattemptAllowed) {
                 throw new IllegalStateException("You have already completed this institutional assessment (Status: " + existing.getStatus() + "). Re-attempts are locked unless permitted by your trainer.");
             }
 
             // Student is permitted to re-attempt or is practicing self-assessment:
-            // CRITICAL: Must NOT re-enter earlier session! Archive previous attempt row & spawn a fresh new ExamAttempt.
-            existing.setCanReattempt(false);
-            attemptRepository.save(existing);
+            // CRITICAL: Must NOT re-enter earlier session! Archive previous attempt records & spawn a fresh new ExamAttempt.
+            for (ExamAttempt prev : allStudentAttempts) {
+                prev.setCanReattempt(false);
+            }
+            attemptRepository.saveAll(allStudentAttempts);
 
             ExamAttempt newAttempt = ExamAttempt.builder()
                     .examId(examId)
@@ -115,7 +121,7 @@ public class ExamService {
                     .build();
             attemptRepository.save(newAttempt);
 
-            auditLogService.log(studentName, "STUDENT", isSelfAssessment ? "SELF_ASSESSMENT_PRACTICE_STARTED" : "EXAM_REATTEMPT_STARTED", "Exam", examId, "Started brand new " + (isSelfAssessment ? "practice session #" : "re-attempt session #") + newAttempt.getId() + " (previous session #" + existing.getId() + " archived)", ip);
+            auditLogService.log(studentName, "STUDENT", isSelfAssessment ? "SELF_ASSESSMENT_PRACTICE_STARTED" : "EXAM_REATTEMPT_STARTED", "Exam", examId, "Started brand new " + (isSelfAssessment ? "practice session #" : "re-attempt session #") + newAttempt.getId() + " (previous attempts archived)", ip);
             return buildStartExamResponse(exam, newAttempt);
         }
 
@@ -734,6 +740,13 @@ public class ExamService {
         ExamAttempt attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new IllegalArgumentException("Attempt not found: " + attemptId));
         attempt.setCanReattempt(allow);
+        if (attempt.getExamId() != null && attempt.getStudentId() != null) {
+            List<ExamAttempt> all = attemptRepository.findByExamIdAndStudentId(attempt.getExamId(), attempt.getStudentId());
+            for (ExamAttempt a : all) {
+                a.setCanReattempt(allow);
+            }
+            attemptRepository.saveAll(all);
+        }
         return attemptRepository.save(attempt);
     }
 

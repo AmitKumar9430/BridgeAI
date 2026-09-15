@@ -2372,27 +2372,28 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     const isCamReady = cameraStatus === 'active' && !!cameraStream;
     const isMicReady = micStatus === 'active' && !!audioStream;
     const isScreenReady = screenStatus === 'active' && !!screenStream;
-    const allChecksReady = isCamReady && isMicReady && isScreenReady && agreedToRules && protectionPassed;
+    const isScreenRejected = screenStatus === 'invalid_surface';
+    const canInitiateStart = isCamReady && isMicReady && !isScreenRejected && agreedToRules && protectionPassed;
 
     return (
-      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] text-[#0F172A] dark:text-[#F8FAFC] flex items-center justify-center p-4 sm:p-6 select-none font-sans transition-colors">
-        <div className="max-w-3xl w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#080D1A] text-[#0F172A] dark:text-[#F8FAFC] flex flex-col items-center justify-center p-4 sm:p-6 py-10 pb-36 sm:pb-32 select-none font-sans transition-colors overflow-y-auto">
+        <div className="max-w-3xl w-full bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 backdrop-blur-xl">
           {/* Header */}
           <div className="flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
-            <div className="w-12 h-12 rounded-2xl bg-[#0F172A] dark:bg-blue-600 text-white flex items-center justify-center font-black shadow-md shrink-0">
-              <ShieldAlert className="w-6 h-6 text-rose-400 dark:text-white" />
+            <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-600/20 shrink-0">
+              <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold tracking-wider text-rose-600 uppercase bg-rose-50 dark:bg-rose-950/50 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-900">
-                  Strict Security Protocol
+                <span className="text-[10px] font-extrabold tracking-wider text-rose-600 uppercase bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-900">
+                  Strict Secure Protocol
                 </span>
-                <span className="text-[11px] font-bold tracking-wider text-blue-600 dark:text-blue-400 uppercase bg-blue-50 dark:bg-blue-950/50 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-900">
-                  AI & Vigilance Proctoring
+                <span className="text-[10px] font-extrabold tracking-wider text-blue-600 dark:text-blue-400 uppercase bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-900">
+                  AI & Live Proctoring
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
-                Mandatory Proctored Assessment Pre-Check
+                Mandatory Assessment Pre-Check
               </h1>
             </div>
           </div>
@@ -2401,7 +2402,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* 1. Camera Verification Box */}
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="p-4 bg-slate-50/80 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
                   <Video className="w-4 h-4 text-blue-500" />
@@ -2430,13 +2431,13 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                   className="w-full h-full object-cover"
                 />
                 {!isCamReady && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-4 text-center bg-slate-950/80">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-4 text-center bg-slate-950/85">
                     <VideoOff className="w-7 h-7 mb-2 text-rose-400 animate-pulse" />
                     <span className="text-xs font-semibold text-rose-300">Camera Feed Not Available</span>
                     <button
                       type="button"
                       onClick={initCamera}
-                      className="mt-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
+                      className="mt-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
                     >
                       Enable Camera
                     </button>
@@ -2452,7 +2453,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
             </div>
 
             {/* 2. Microphone Verification Box */}
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between">
+            <div className="p-4 bg-slate-50/80 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between shadow-xs">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
@@ -2473,28 +2474,28 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                 </div>
 
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Audio streaming is recorded to ensure acoustic room integrity and speech proctoring compliance.
+                  Continuous audio streaming guarantees acoustic compliance and speech proctoring integrity throughout the assessment.
                 </p>
               </div>
 
               {/* VU / Mic Activity Level Meter */}
               <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Live Audio Input Level:</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Live Audio Level:</span>
                   <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{isMicReady ? `${micLiveLevel}%` : '0%'}</span>
                 </div>
                 {/* Level Meter Bar */}
                 <div className="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden p-0.5">
                   <div
-                    className="h-full bg-gradient-to-r from-emerald-500 via-yellow-500 to-rose-500 rounded-full transition-all duration-100"
-                    style={{ width: `${isMicReady ? Math.max(8, micLiveLevel) : 0}%` }}
+                    className="h-full bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 rounded-full transition-all duration-100 shadow-xs"
+                    style={{ width: `${isMicReady ? Math.max(10, micLiveLevel) : 0}%` }}
                   />
                 </div>
                 {!isMicReady && (
                   <button
                     type="button"
                     onClick={initMicrophone}
-                    className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
+                    className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
                   >
                     Enable Microphone Access
                   </button>
@@ -2503,7 +2504,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
             </div>
 
             {/* 3. Entire Screen Sharing Box */}
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 md:col-span-2">
+            <div className="p-4 bg-slate-50/80 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 md:col-span-2 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
                   <Monitor className="w-4 h-4 text-emerald-500" />
@@ -2514,63 +2515,69 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                     <CheckCircle2 className="w-3 h-3" />
                     Entire Screen Verified
                   </span>
-                ) : screenStatus === 'invalid_surface' ? (
+                ) : isScreenRejected ? (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
                     Window / Tab Rejected
                   </span>
                 ) : (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1">
-                    <XCircle className="w-3 h-3" />
-                    Entire Screen Share Required
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    One-Click Setup
                   </span>
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div className="text-xs space-y-1">
                   <p className="text-slate-700 dark:text-slate-300 font-semibold">
                     {isScreenReady
-                      ? '✓ Entire Screen stream is successfully active and verified.'
-                      : screenStatus === 'invalid_surface'
+                      ? '✓ Entire Screen stream is verified and ready.'
+                      : isScreenRejected
                       ? '⚠ You shared a single window or tab. You MUST select and share your "Entire Screen".'
-                      : 'You must share your Entire Screen before you can enter the assessment.'}
+                      : 'Entire screen sharing will be requested seamlessly. You must choose "Entire Screen" in the prompt.'}
                   </p>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Sharing single application windows or browser tabs is automatically detected and blocked.
+                    Sharing single application windows or browser tabs is automatically blocked by the proctoring engine.
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={initScreenShare}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center gap-1.5 ${
-                    isScreenReady
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
-                >
-                  <Monitor className="w-4 h-4" />
-                  <span>{isScreenReady ? 'Re-Share / Change Screen' : 'Share Entire Screen Now'}</span>
-                </button>
+                {!isScreenReady ? (
+                  <button
+                    type="button"
+                    onClick={initScreenShare}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                  >
+                    <Monitor className="w-4 h-4" />
+                    <span>Verify Screen Share Now</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={initScreenShare}
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
+                  >
+                    Change Screen
+                  </button>
+                )}
               </div>
             </div>
 
           </div>
 
-          {/* Assessment Protection System Guard (Browser Extension & Devtools Checker) */}
+          {/* Assessment Protection System Guard (Browser Extension & Sandbox Checker) */}
           <AssessmentProtectionGuard
             onProtectionStatusChange={(report) => setProtectionPassed(report.passed)}
           />
 
           {/* Candidate Rules Agreement Checkbox */}
           <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-4">
-            <label className="flex items-start gap-3 cursor-pointer p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <label className="flex items-start gap-3 cursor-pointer p-3.5 bg-slate-50/80 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
               <input
                 type="checkbox"
                 checked={agreedToRules}
                 onChange={(e) => setAgreedToRules(e.target.checked)}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 mt-0.5"
+                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 mt-0.5 cursor-pointer"
               />
               <span className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
                 I understand and agree that this assessment is strictly proctored with full-screen lockdown, continuous camera & microphone recording, entire screen telemetry, and automatic zero-tolerance violation reporting.
@@ -2578,9 +2585,21 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
             </label>
 
             {startError && (
-              <div className="p-3.5 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-900 rounded-2xl text-xs text-rose-800 dark:text-rose-300 font-semibold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>{startError}</span>
+              <div className="p-4 bg-rose-50 dark:bg-rose-950/70 border-2 border-rose-300 dark:border-rose-900 rounded-2xl text-xs text-rose-900 dark:text-rose-200 font-medium flex items-start justify-between gap-3 shadow-sm animate-fadeIn">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <strong className="font-bold text-rose-950 dark:text-rose-100 block">Assessment Access Notice:</strong>
+                    <p className="leading-relaxed">{startError}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStartError(null)}
+                  className="px-2.5 py-1 bg-rose-200 dark:bg-rose-900 hover:bg-rose-300 dark:hover:bg-rose-800 text-rose-900 dark:text-rose-100 rounded-lg text-[10px] font-bold shrink-0 transition-colors cursor-pointer"
+                >
+                  Dismiss
+                </button>
               </div>
             )}
 
@@ -2589,7 +2608,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               <button
                 type="button"
                 onClick={onCancel}
-                className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Cancel & Return to Portal
               </button>
@@ -2598,18 +2617,30 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                 <button
                   type="button"
                   onClick={handleEnableFullscreenAndStart}
-                  disabled={!allChecksReady || loading}
-                  className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg flex items-center justify-center gap-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  disabled={!canInitiateStart || loading}
+                  className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   <ShieldCheck className="w-4 h-4 text-emerald-300" />
-                  <span>{loading ? 'Starting Examination...' : 'Start Proctored Examination'}</span>
+                  <span>
+                    {loading
+                      ? 'Starting Examination...'
+                      : isScreenReady
+                      ? 'Start Proctored Examination'
+                      : 'Share Entire Screen & Begin Examination'}
+                  </span>
                 </button>
 
-                {!allChecksReady && (
+                {!canInitiateStart && (
                   <div className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1">
                     <Lock className="w-3 h-3" />
                     <span>
-                      Complete all 4 verification steps above to unlock examination start
+                      {!agreedToRules
+                        ? 'Please acknowledge the proctoring agreement above'
+                        : !protectionPassed
+                        ? 'Deactivate unauthorized browser extensions to proceed'
+                        : isScreenRejected
+                        ? 'Please re-share your Entire Screen (not a window or tab)'
+                        : 'Verify Camera & Microphone access to unlock assessment'}
                     </span>
                   </div>
                 )}
