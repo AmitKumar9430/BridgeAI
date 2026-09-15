@@ -12,7 +12,8 @@ import {
   Sun, Moon, Copy, CheckSquare, ListOrdered, MessageSquare, GripHorizontal,
   HelpCircle, Layers, ArrowRight, CornerDownLeft,
   Building2, Award, ShieldCheck, BarChart3, Keyboard, Filter,
-  ChevronDown, ChevronUp, Circle, Trash2, Eraser, Lightbulb, Columns, PanelBottomClose, PanelBottomOpen
+  ChevronDown, ChevronUp, Circle, Trash2, Eraser, Lightbulb, Columns, PanelBottomClose, PanelBottomOpen,
+  Mic, MicOff, VideoOff, Wifi, WifiOff
 } from 'lucide-react';
 
 import { AssessmentProtectionGuard } from '../components/AssessmentProtectionGuard';
@@ -160,6 +161,25 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
 
   // Reload interception warning modal state
   const [showReloadWarningModal, setShowReloadWarningModal] = useState(false);
+
+  // Strict Proctored Verification & Interruption States
+  const [cameraStatus, setCameraStatus] = useState('checking'); // 'checking' | 'active' | 'denied' | 'error'
+  const [micStatus, setMicStatus] = useState('checking'); // 'checking' | 'active' | 'denied' | 'error'
+  const [screenStatus, setScreenStatus] = useState('idle'); // 'idle' | 'checking' | 'active' | 'invalid_surface' | 'denied' | 'error'
+  const [micLiveLevel, setMicLiveLevel] = useState(0);
+  const [interruptionModal, setInterruptionModal] = useState(null); // null | 'SCREEN_LOST' | 'CAMERA_LOST' | 'MIC_LOST' | 'FULLSCREEN_LOST'
+  const [isNetworkOnline, setIsNetworkOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  useEffect(() => {
+    const handleOnline = () => setIsNetworkOnline(true);
+    const handleOffline = () => setIsNetworkOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Draggable position for Proctor Chat widget (button & drawer)
   const [chatPosition, setChatPosition] = useState(() => {
@@ -359,7 +379,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               sum += dataArray[i];
             }
             const avg = sum / dataArray.length;
-            currentAudioLevelRef.current = Math.min(100, Math.round((avg / 128) * 100));
+            const level = Math.min(100, Math.round((avg / 128) * 100));
+            currentAudioLevelRef.current = level;
+            setMicLiveLevel(level);
             requestAnimationFrame(checkLevel);
           };
           requestAnimationFrame(checkLevel);
@@ -462,77 +484,147 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   };
 
   const initCamera = async () => {
+    setCameraStatus('checking');
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        let stream = null;
-        try {
-          // Request both video and live audio for authentic proctoring
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+        });
+
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.onended = () => {
+            setCameraStream(null);
+            cameraStreamRef.current = null;
+            setCameraStatus('denied');
+            if (examStartedRef.current) {
+              setInterruptionModal('CAMERA_LOST');
+              reportViolation('CAMERA_DISCONNECTED', 'Candidate camera video feed disconnected or stopped.');
             }
-          });
-        } catch (mediaErr) {
-          console.warn('Microphone permission not granted, falling back to video only:', mediaErr);
-          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          };
+          videoTrack.onmute = () => {
+            if (examStartedRef.current && (!videoTrack.enabled || videoTrack.muted)) {
+              setInterruptionModal('CAMERA_LOST');
+              reportViolation('CAMERA_DISCONNECTED', 'Candidate camera hardware muted or interrupted.');
+            }
+          };
         }
 
         setCameraStream(stream);
+        cameraStreamRef.current = stream;
+        setCameraStatus('active');
 
-        // Check and setup live audio capture if audio track exists
-        const audioTracks = stream.getAudioTracks();
-        if (audioTracks.length > 0) {
-          const aStream = new MediaStream(audioTracks);
-          setAudioStream(aStream);
-          audioStreamRef.current = aStream;
-          setupAudioCapture(aStream);
-        }
-
-        if (previewVideoRef.current) {
-          previewVideoRef.current.srcObject = stream;
-        }
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-        if (pipVideoRef.current) {
-          pipVideoRef.current.srcObject = stream;
-        }
-        if (modalVideoRef.current) {
-          modalVideoRef.current.srcObject = stream;
-        }
-        if (streamCamVideoRef.current) {
-          streamCamVideoRef.current.srcObject = stream;
-        }
+        [previewVideoRef, videoRef, pipVideoRef, modalVideoRef, streamCamVideoRef].forEach((r) => {
+          if (r.current) r.current.srcObject = stream;
+        });
+        return stream;
+      } else {
+        setCameraStatus('denied');
       }
     } catch (err) {
-      console.warn('Webcam feed unavailable or permission dismissed:', err);
+      console.warn('Camera permission denied or device missing:', err);
+      setCameraStatus('denied');
     }
+    return null;
+  };
+
+  const initMicrophone = async () => {
+    setMicStatus('checking');
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const aStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+
+        const audioTrack = aStream.getAudioTracks()[0];
+        if (audioTrack) {
+          audioTrack.onended = () => {
+            setAudioStream(null);
+            audioStreamRef.current = null;
+            setMicStatus('denied');
+            if (examStartedRef.current) {
+              setInterruptionModal('MIC_LOST');
+              reportViolation('MICROPHONE_DISCONNECTED', 'Candidate microphone feed disconnected or stopped.');
+            }
+          };
+          audioTrack.onmute = () => {
+            if (examStartedRef.current && (!audioTrack.enabled || audioTrack.muted)) {
+              setInterruptionModal('MIC_LOST');
+              reportViolation('MICROPHONE_DISCONNECTED', 'Candidate microphone muted or interrupted.');
+            }
+          };
+        }
+
+        setAudioStream(aStream);
+        audioStreamRef.current = aStream;
+        setMicStatus('active');
+        setupAudioCapture(aStream);
+        return aStream;
+      } else {
+        setMicStatus('denied');
+      }
+    } catch (err) {
+      console.warn('Microphone permission denied or device missing:', err);
+      setMicStatus('denied');
+    }
+    return null;
+  };
+
+  const initCameraAndMic = async () => {
+    await Promise.all([initCamera(), initMicrophone()]);
   };
 
   const initScreenShare = async () => {
+    setScreenStatus('checking');
     try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: { cursor: 'always' },
-          audio: false
-        });
-        setScreenStream(stream);
-        screenStreamRef.current = stream;
-        if (screenVideoRef.current) {
-          screenVideoRef.current.srcObject = stream;
-          screenVideoRef.current.play().catch(() => {});
-        }
-        stream.getVideoTracks()[0].onended = () => {
-          setScreenStream(null);
-          screenStreamRef.current = null;
-        };
-        return stream;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        setScreenStatus('error');
+        throw new Error('Screen sharing is not supported by your browser. Please use Chrome, Edge, or Firefox on desktop.');
       }
+
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { cursor: 'always', displaySurface: 'monitor' },
+        audio: false
+      });
+
+      const screenTrack = stream.getVideoTracks()[0];
+      const settings = screenTrack?.getSettings ? screenTrack.getSettings() : {};
+
+      // Check if user shared a single tab or single window instead of Entire Screen
+      if (settings.displaySurface && settings.displaySurface !== 'monitor') {
+        stream.getTracks().forEach((t) => t.stop());
+        setScreenStream(null);
+        screenStreamRef.current = null;
+        setScreenStatus('invalid_surface');
+        return null;
+      }
+
+      screenTrack.onended = () => {
+        setScreenStream(null);
+        screenStreamRef.current = null;
+        setScreenStatus('idle');
+        if (examStartedRef.current) {
+          setInterruptionModal('SCREEN_LOST');
+          reportViolation('SCREEN_SHARE_STOPPED', 'Candidate terminated screen sharing during live examination.');
+        }
+      };
+
+      setScreenStream(stream);
+      screenStreamRef.current = stream;
+      setScreenStatus('active');
+
+      if (screenVideoRef.current) {
+        screenVideoRef.current.srcObject = stream;
+        screenVideoRef.current.play().catch(() => {});
+      }
+      return stream;
     } catch (err) {
       console.warn('Screen share dismissed or not supported:', err);
+      setScreenStatus('denied');
     }
     return null;
   };
@@ -1729,9 +1821,12 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     setSuggestions([]);
   };
 
-  // Keyboard navigation for suggestions & tab indentation
+  // VS Code-like Keyboard Navigation, Auto-closing pairs, Smart Indent, Comment Toggle, and Duplication
   const handleCodeKeyDown = (e, questionId) => {
-    // If autocomplete suggestions popover is active
+    const textarea = editorTextareaRef.current;
+    if (!textarea) return;
+
+    // 1. If autocomplete suggestions popover is active
     if (suggestions.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -1755,18 +1850,256 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       }
     }
 
-    // Tab Key indentation support in code editor (4 spaces)
-    if (e.key === 'Tab') {
+    const { selectionStart, selectionEnd, value } = textarea;
+    const lang = codingAnswers[questionId]?.language || 'python';
+    const commentPrefix = lang === 'python' ? '#' : '//';
+
+    // 2. Comment Toggle: Ctrl+/ or Cmd+/ (Single line or multi-line block)
+    if ((e.ctrlKey || e.metaKey) && (e.key === '/' || e.key === '?')) {
       e.preventDefault();
-      const { selectionStart, selectionEnd, value } = e.target;
-      const newValue = value.substring(0, selectionStart) + '    ' + value.substring(selectionEnd);
-      handleCodeChange(questionId, newValue, selectionStart + 4);
+      const startLineIndex = value.lastIndexOf('\n', selectionStart - 1) + 1;
+      let endLineIndex = value.indexOf('\n', selectionEnd);
+      if (endLineIndex === -1) endLineIndex = value.length;
+
+      const block = value.substring(startLineIndex, endLineIndex);
+      const lines = block.split('\n');
+      const allCommented = lines.every((l) => !l.trim() || l.trim().startsWith(commentPrefix));
+
+      const transformedLines = lines.map((l) => {
+        if (!l.trim()) return l;
+        if (allCommented) {
+          // Uncomment line
+          const regex = new RegExp(`^(\\s*)${commentPrefix.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\s?`);
+          return l.replace(regex, '$1');
+        } else {
+          // Comment line
+          const indentMatch = l.match(/^\s*/);
+          const indent = indentMatch ? indentMatch[0] : '';
+          return indent + commentPrefix + ' ' + l.substring(indent.length);
+        }
+      });
+
+      const newBlock = transformedLines.join('\n');
+      const newValue = value.substring(0, startLineIndex) + newBlock + value.substring(endLineIndex);
+      handleCodeChange(questionId, newValue, startLineIndex + newBlock.length);
       setTimeout(() => {
-        if (e.target) {
-          e.target.selectionStart = e.target.selectionEnd = selectionStart + 4;
-          updateCursorPosition(e);
+        if (editorTextareaRef.current) {
+          editorTextareaRef.current.selectionStart = startLineIndex;
+          editorTextareaRef.current.selectionEnd = startLineIndex + newBlock.length;
+          updateCursorPosition({ target: editorTextareaRef.current });
         }
       }, 0);
+      return;
+    }
+
+    // 3. Line / Block Duplicate: Alt+Shift+Down or Ctrl+D
+    if ((e.altKey && e.shiftKey && e.key === 'ArrowDown') || (e.ctrlKey && (e.key === 'd' || e.key === 'D') && !e.shiftKey)) {
+      e.preventDefault();
+      if (selectionStart !== selectionEnd) {
+        const selected = value.substring(selectionStart, selectionEnd);
+        const newValue = value.substring(0, selectionEnd) + '\n' + selected + value.substring(selectionEnd);
+        handleCodeChange(questionId, newValue, selectionEnd + 1 + selected.length);
+        setTimeout(() => {
+          if (editorTextareaRef.current) {
+            editorTextareaRef.current.selectionStart = selectionEnd + 1;
+            editorTextareaRef.current.selectionEnd = selectionEnd + 1 + selected.length;
+            updateCursorPosition({ target: editorTextareaRef.current });
+          }
+        }, 0);
+      } else {
+        const startLineIndex = value.lastIndexOf('\n', selectionStart - 1) + 1;
+        let endLineIndex = value.indexOf('\n', selectionStart);
+        if (endLineIndex === -1) endLineIndex = value.length;
+        const currentLine = value.substring(startLineIndex, endLineIndex);
+        const newValue = value.substring(0, endLineIndex) + '\n' + currentLine + value.substring(endLineIndex);
+        const newPos = selectionStart + currentLine.length + 1;
+        handleCodeChange(questionId, newValue, newPos);
+        setTimeout(() => {
+          if (editorTextareaRef.current) {
+            editorTextareaRef.current.selectionStart = editorTextareaRef.current.selectionEnd = newPos;
+            updateCursorPosition({ target: editorTextareaRef.current });
+          }
+        }, 0);
+      }
+      return;
+    }
+
+    // 4. Tab / Shift+Tab Indentation & Outdentation
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (selectionStart !== selectionEnd && value.substring(selectionStart, selectionEnd).includes('\n')) {
+        // Multi-line selection block indent / outdent
+        const startLineIndex = value.lastIndexOf('\n', selectionStart - 1) + 1;
+        let endLineIndex = value.indexOf('\n', selectionEnd);
+        if (endLineIndex === -1) endLineIndex = value.length;
+
+        const block = value.substring(startLineIndex, endLineIndex);
+        const lines = block.split('\n');
+
+        const transformedLines = lines.map((l) => {
+          if (e.shiftKey) {
+            return l.replace(/^ {1,4}/, '');
+          } else {
+            return '    ' + l;
+          }
+        });
+
+        const newBlock = transformedLines.join('\n');
+        const newValue = value.substring(0, startLineIndex) + newBlock + value.substring(endLineIndex);
+        handleCodeChange(questionId, newValue, startLineIndex + newBlock.length);
+        setTimeout(() => {
+          if (editorTextareaRef.current) {
+            editorTextareaRef.current.selectionStart = startLineIndex;
+            editorTextareaRef.current.selectionEnd = startLineIndex + newBlock.length;
+            updateCursorPosition({ target: editorTextareaRef.current });
+          }
+        }, 0);
+        return;
+      }
+
+      if (e.shiftKey) {
+        // Shift+Tab single line outdent (remove up to 4 leading spaces)
+        const startLineIndex = value.lastIndexOf('\n', selectionStart - 1) + 1;
+        const lineBeforeCursor = value.substring(startLineIndex, selectionStart);
+        const matchLeading = lineBeforeCursor.match(/^ {1,4}/);
+        if (matchLeading) {
+          const removedLen = matchLeading[0].length;
+          const newValue = value.substring(0, startLineIndex) + lineBeforeCursor.substring(removedLen) + value.substring(selectionStart);
+          const newPos = Math.max(startLineIndex, selectionStart - removedLen);
+          handleCodeChange(questionId, newValue, newPos);
+          setTimeout(() => {
+            if (editorTextareaRef.current) {
+              editorTextareaRef.current.selectionStart = editorTextareaRef.current.selectionEnd = newPos;
+              updateCursorPosition({ target: editorTextareaRef.current });
+            }
+          }, 0);
+        }
+        return;
+      }
+
+      // Normal Tab: insert 4 spaces at cursor
+      const newValue = value.substring(0, selectionStart) + '    ' + value.substring(selectionEnd);
+      const newPos = selectionStart + 4;
+      handleCodeChange(questionId, newValue, newPos);
+      setTimeout(() => {
+        if (editorTextareaRef.current) {
+          editorTextareaRef.current.selectionStart = editorTextareaRef.current.selectionEnd = newPos;
+          updateCursorPosition({ target: editorTextareaRef.current });
+        }
+      }, 0);
+      return;
+    }
+
+    // 5. Auto-closing pairs: (), [], {}, "", '', ``
+    const pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`' };
+    const closingChars = [')', ']', '}', '"', "'", '`'];
+
+    // Skip over closing character if typed directly before it
+    if (closingChars.includes(e.key) && selectionStart === selectionEnd && value[selectionStart] === e.key) {
+      e.preventDefault();
+      const newPos = selectionStart + 1;
+      setTimeout(() => {
+        if (editorTextareaRef.current) {
+          editorTextareaRef.current.selectionStart = editorTextareaRef.current.selectionEnd = newPos;
+          updateCursorPosition({ target: editorTextareaRef.current });
+        }
+      }, 0);
+      return;
+    }
+
+    // Insert matching pair when opening character is typed
+    if (pairs[e.key] && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      const openChar = e.key;
+      const closeChar = pairs[openChar];
+
+      if (selectionStart !== selectionEnd) {
+        // Wrap selected text with pairs
+        const selected = value.substring(selectionStart, selectionEnd);
+        const newValue = value.substring(0, selectionStart) + openChar + selected + closeChar + value.substring(selectionEnd);
+        handleCodeChange(questionId, newValue, selectionStart + 1);
+        setTimeout(() => {
+          if (editorTextareaRef.current) {
+            editorTextareaRef.current.selectionStart = selectionStart + 1;
+            editorTextareaRef.current.selectionEnd = selectionStart + 1 + selected.length;
+            updateCursorPosition({ target: editorTextareaRef.current });
+          }
+        }, 0);
+      } else {
+        // Insert pair and place cursor between
+        const newValue = value.substring(0, selectionStart) + openChar + closeChar + value.substring(selectionEnd);
+        handleCodeChange(questionId, newValue, selectionStart + 1);
+        setTimeout(() => {
+          if (editorTextareaRef.current) {
+            editorTextareaRef.current.selectionStart = editorTextareaRef.current.selectionEnd = selectionStart + 1;
+            updateCursorPosition({ target: editorTextareaRef.current });
+          }
+        }, 0);
+      }
+      return;
+    }
+
+    // 6. Smart Backspace: Delete matching pair if cursor is between them
+    if (e.key === 'Backspace' && selectionStart === selectionEnd && selectionStart > 0) {
+      const prevChar = value[selectionStart - 1];
+      const nextChar = value[selectionStart];
+      if (pairs[prevChar] && pairs[prevChar] === nextChar) {
+        e.preventDefault();
+        const newValue = value.substring(0, selectionStart - 1) + value.substring(selectionStart + 1);
+        handleCodeChange(questionId, newValue, selectionStart - 1);
+        setTimeout(() => {
+          if (editorTextareaRef.current) {
+            editorTextareaRef.current.selectionStart = editorTextareaRef.current.selectionEnd = selectionStart - 1;
+            updateCursorPosition({ target: editorTextareaRef.current });
+          }
+        }, 0);
+        return;
+      }
+    }
+
+    // 7. Smart Auto-indent on Enter
+    if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      const startLineIndex = value.lastIndexOf('\n', selectionStart - 1) + 1;
+      const currentLine = value.substring(startLineIndex, selectionStart);
+      const indentMatch = currentLine.match(/^\s*/);
+      const baseIndent = indentMatch ? indentMatch[0] : '';
+
+      const charBefore = value[selectionStart - 1];
+      const charAfter = value[selectionStart];
+
+      if (charBefore === '{' && charAfter === '}') {
+        // Enter between { and }: insert newline + indent + 4, newline + baseIndent
+        const extraIndent = baseIndent + '    ';
+        const insertText = '\n' + extraIndent + '\n' + baseIndent;
+        const newValue = value.substring(0, selectionStart) + insertText + value.substring(selectionEnd);
+        const targetPos = selectionStart + 1 + extraIndent.length;
+        handleCodeChange(questionId, newValue, targetPos);
+        setTimeout(() => {
+          if (editorTextareaRef.current) {
+            editorTextareaRef.current.selectionStart = editorTextareaRef.current.selectionEnd = targetPos;
+            updateCursorPosition({ target: editorTextareaRef.current });
+          }
+        }, 0);
+        return;
+      }
+
+      // If line ends with ':' (Python) or '{' or '(' or '['
+      const trimmedLine = currentLine.trim();
+      const shouldAddIndent = trimmedLine.endsWith(':') || trimmedLine.endsWith('{') || trimmedLine.endsWith('(') || trimmedLine.endsWith('[');
+      const finalIndent = shouldAddIndent ? baseIndent + '    ' : baseIndent;
+
+      const insertText = '\n' + finalIndent;
+      const newValue = value.substring(0, selectionStart) + insertText + value.substring(selectionEnd);
+      const targetPos = selectionStart + insertText.length;
+      handleCodeChange(questionId, newValue, targetPos);
+      setTimeout(() => {
+        if (editorTextareaRef.current) {
+          editorTextareaRef.current.selectionStart = editorTextareaRef.current.selectionEnd = targetPos;
+          updateCursorPosition({ target: editorTextareaRef.current });
+        }
+      }, 0);
+      return;
     }
   };
 
@@ -2036,29 +2369,59 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   // PHASE 1: PRE-EXAM PROCTORING CHECK & ENVIRONMENT SETUP
   // =========================================================================
   if (!examStarted) {
+    const isCamReady = cameraStatus === 'active' && !!cameraStream;
+    const isMicReady = micStatus === 'active' && !!audioStream;
+    const isScreenReady = screenStatus === 'active' && !!screenStream;
+    const allChecksReady = isCamReady && isMicReady && isScreenReady && agreedToRules && protectionPassed;
+
     return (
       <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] text-[#0F172A] dark:text-[#F8FAFC] flex items-center justify-center p-4 sm:p-6 select-none font-sans transition-colors">
-        <div className="max-w-2xl w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-xl space-y-6">
+        <div className="max-w-3xl w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+          {/* Header */}
           <div className="flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
-            <div className="w-12 h-12 rounded-2xl bg-[#0F172A] text-white flex items-center justify-center font-black shadow-md">
-              <ShieldAlert className="w-6 h-6 text-rose-500" />
+            <div className="w-12 h-12 rounded-2xl bg-[#0F172A] dark:bg-blue-600 text-white flex items-center justify-center font-black shadow-md shrink-0">
+              <ShieldAlert className="w-6 h-6 text-rose-400 dark:text-white" />
             </div>
             <div>
-              <span className="text-[11px] font-bold tracking-wider text-rose-600 uppercase bg-rose-50 dark:bg-rose-950/50 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-900">
-                Institutional Examination Integrity
-              </span>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
-                Proctored Assessment Pre-Check
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold tracking-wider text-rose-600 uppercase bg-rose-50 dark:bg-rose-950/50 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-900">
+                  Strict Security Protocol
+                </span>
+                <span className="text-[11px] font-bold tracking-wider text-blue-600 dark:text-blue-400 uppercase bg-blue-50 dark:bg-blue-950/50 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-900">
+                  AI & Vigilance Proctoring
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
+                Mandatory Proctored Assessment Pre-Check
               </h1>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
-                Camera Stream Verification
-              </span>
-              <div className="w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 relative flex items-center justify-center shadow-inner">
+          {/* 4-Item Grid of Mandatory Requirements */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* 1. Camera Verification Box */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+                  <Video className="w-4 h-4 text-blue-500" />
+                  <span>1. Mandatory Camera</span>
+                </span>
+                {isCamReady ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Verified Active
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1">
+                    <XCircle className="w-3 h-3" />
+                    Camera Required
+                  </span>
+                )}
+              </div>
+
+              {/* Video Preview */}
+              <div className="w-full aspect-video bg-black rounded-xl overflow-hidden border border-slate-300 dark:border-slate-700 relative flex items-center justify-center">
                 <video
                   ref={previewVideoRef}
                   autoPlay
@@ -2066,49 +2429,143 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                   muted
                   className="w-full h-full object-cover"
                 />
-                {!cameraStream && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-4 text-center">
-                    <Video className="w-8 h-8 mb-2 text-slate-500 animate-pulse" />
-                    <span className="text-xs font-semibold">Requesting Video Camera Permission...</span>
+                {!isCamReady && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-4 text-center bg-slate-950/80">
+                    <VideoOff className="w-7 h-7 mb-2 text-rose-400 animate-pulse" />
+                    <span className="text-xs font-semibold text-rose-300">Camera Feed Not Available</span>
+                    <button
+                      type="button"
+                      onClick={initCamera}
+                      className="mt-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
+                    >
+                      Enable Camera
+                    </button>
                   </div>
                 )}
-                {cameraStream && (
-                  <div className="absolute top-2 right-2 bg-emerald-500/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
-                    ACTIVE
+                {isCamReady && (
+                  <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                    FEED LIVE
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="space-y-2.5 text-xs text-slate-600 dark:text-slate-400">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
-                Exam Lockdown Protocols
-              </span>
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-                <div className="flex items-start gap-2">
-                  <Monitor className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span><strong>Entire Screen Share & Fullscreen:</strong> Entire screen sharing and fullscreen lockdown are enforced. Exiting is logged as a violation.</span>
+            {/* 2. Microphone Verification Box */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+                    <Mic className="w-4 h-4 text-purple-500" />
+                    <span>2. Mandatory Microphone</span>
+                  </span>
+                  {isMicReady ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Verified Active
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1">
+                      <XCircle className="w-3 h-3" />
+                      Mic Required
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <span><strong>Tab Switch Guard:</strong> Leaving this browser tab is automatically logged.</span>
+
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Audio streaming is recorded to ensure acoustic room integrity and speech proctoring compliance.
+                </p>
+              </div>
+
+              {/* VU / Mic Activity Level Meter */}
+              <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Live Audio Input Level:</span>
+                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{isMicReady ? `${micLiveLevel}%` : '0%'}</span>
                 </div>
-                <div className="flex items-start gap-2">
-                  <Lock className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                  <span><strong>Clipboard Protection:</strong> You may copy within the editor, but external paste is blocked.</span>
+                {/* Level Meter Bar */}
+                <div className="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden p-0.5">
+                  <div
+                    className="h-full bg-gradient-to-r from-emerald-500 via-yellow-500 to-rose-500 rounded-full transition-all duration-100"
+                    style={{ width: `${isMicReady ? Math.max(8, micLiveLevel) : 0}%` }}
+                  />
                 </div>
+                {!isMicReady && (
+                  <button
+                    type="button"
+                    onClick={initMicrophone}
+                    className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
+                  >
+                    Enable Microphone Access
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* 3. Entire Screen Sharing Box */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 md:col-span-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+                  <Monitor className="w-4 h-4 text-emerald-500" />
+                  <span>3. Mandatory Entire Screen Sharing</span>
+                </span>
+                {isScreenReady ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Entire Screen Verified
+                  </span>
+                ) : screenStatus === 'invalid_surface' ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    Window / Tab Rejected
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1">
+                    <XCircle className="w-3 h-3" />
+                    Entire Screen Share Required
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div className="text-xs space-y-1">
+                  <p className="text-slate-700 dark:text-slate-300 font-semibold">
+                    {isScreenReady
+                      ? '✓ Entire Screen stream is successfully active and verified.'
+                      : screenStatus === 'invalid_surface'
+                      ? '⚠ You shared a single window or tab. You MUST select and share your "Entire Screen".'
+                      : 'You must share your Entire Screen before you can enter the assessment.'}
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Sharing single application windows or browser tabs is automatically detected and blocked.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={initScreenShare}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center gap-1.5 ${
+                    isScreenReady
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  <Monitor className="w-4 h-4" />
+                  <span>{isScreenReady ? 'Re-Share / Change Screen' : 'Share Entire Screen Now'}</span>
+                </button>
+              </div>
+            </div>
+
           </div>
 
-          {/* Assessment Protection System Guard (Extension & Sandbox Checker) */}
+          {/* Assessment Protection System Guard (Browser Extension & Devtools Checker) */}
           <AssessmentProtectionGuard
             onProtectionStatusChange={(report) => setProtectionPassed(report.passed)}
           />
 
+          {/* Candidate Rules Agreement Checkbox */}
           <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-4">
-            <label className="flex items-start gap-3 cursor-pointer p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <label className="flex items-start gap-3 cursor-pointer p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
               <input
                 type="checkbox"
                 checked={agreedToRules}
@@ -2116,17 +2573,18 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                 className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 mt-0.5"
               />
               <span className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
-                I understand that this assessment is strictly proctored with online code compilation, live integrity monitoring, and automatic violation reporting.
+                I understand and agree that this assessment is strictly proctored with full-screen lockdown, continuous camera & microphone recording, entire screen telemetry, and automatic zero-tolerance violation reporting.
               </span>
             </label>
 
             {startError && (
-              <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-900 rounded-xl text-xs text-rose-800 dark:text-rose-300 font-semibold flex items-center gap-2">
+              <div className="p-3.5 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-900 rounded-2xl text-xs text-rose-800 dark:text-rose-300 font-semibold flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>{startError}</span>
               </div>
             )}
 
+            {/* Action Bar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
               <button
                 type="button"
@@ -2140,18 +2598,20 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                 <button
                   type="button"
                   onClick={handleEnableFullscreenAndStart}
-                  disabled={!agreedToRules || !protectionPassed || loading}
-                  className="w-full sm:w-auto px-7 py-3.5 bg-[#0F172A] dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  disabled={!allChecksReady || loading}
+                  className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg flex items-center justify-center gap-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
-                  <Monitor className="w-4 h-4 text-emerald-400" />
-                  <span>{loading ? 'Starting Examination...' : 'Share Entire Screen & Begin Examination'}</span>
+                  <ShieldCheck className="w-4 h-4 text-emerald-300" />
+                  <span>{loading ? 'Starting Examination...' : 'Start Proctored Examination'}</span>
                 </button>
 
-                {!protectionPassed && (
-                  <span className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1">
+                {!allChecksReady && (
+                  <div className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1">
                     <Lock className="w-3 h-3" />
-                    Locked: Deactivate browser extensions above to enable examination
-                  </span>
+                    <span>
+                      Complete all 4 verification steps above to unlock examination start
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
@@ -2203,6 +2663,60 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       editorTheme === 'dark' ? 'bg-[#0B1220] text-slate-100' : 'bg-white text-slate-900'
     }`}>
       
+      {/* 0. TOP GLOBAL PROCTORED STATUS HUD */}
+      <div className="w-full bg-slate-950 text-slate-200 px-4 sm:px-6 py-1.5 border-b border-slate-800 text-[11px] font-mono flex flex-wrap items-center justify-between gap-2 z-50 select-none">
+        <div className="flex items-center gap-1.5 font-bold text-slate-300">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="tracking-wider uppercase">SECURE EXAM MODE:</span>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+          <span className="flex items-center gap-1">
+            <span>📷 Camera</span>
+            {cameraStream && cameraStream.getVideoTracks().some((t) => t.readyState === 'live') ? (
+              <span className="text-emerald-400 font-bold">🟢 Active</span>
+            ) : (
+              <span className="text-rose-400 font-bold animate-pulse">🔴 Disconnected</span>
+            )}
+          </span>
+          <span className="text-slate-700">•</span>
+          <span className="flex items-center gap-1">
+            <span>🎤 Microphone</span>
+            {audioStream && audioStream.getAudioTracks().some((t) => t.readyState === 'live') ? (
+              <span className="text-emerald-400 font-bold">🟢 Active ({currentAudioLevelRef.current || 0}%)</span>
+            ) : (
+              <span className="text-rose-400 font-bold animate-pulse">🔴 Disconnected</span>
+            )}
+          </span>
+          <span className="text-slate-700">•</span>
+          <span className="flex items-center gap-1">
+            <span>🖥 Screen</span>
+            {screenStream && screenStream.getVideoTracks().some((t) => t.readyState === 'live') ? (
+              <span className="text-emerald-400 font-bold">🟢 Shared</span>
+            ) : (
+              <span className="text-rose-400 font-bold animate-pulse">🔴 Stopped</span>
+            )}
+          </span>
+          <span className="text-slate-700">•</span>
+          <span className="flex items-center gap-1">
+            <span>⛶ Fullscreen</span>
+            {isFullscreen ? (
+              <span className="text-emerald-400 font-bold">🟢 Locked</span>
+            ) : (
+              <span className="text-rose-400 font-bold animate-pulse">🔴 Exited</span>
+            )}
+          </span>
+          <span className="text-slate-700">•</span>
+          <span className="flex items-center gap-1">
+            <span>🌐 Connection</span>
+            {isNetworkOnline ? (
+              <span className="text-emerald-400 font-bold">🟢 Online</span>
+            ) : (
+              <span className="text-rose-400 font-bold animate-pulse">🔴 Offline</span>
+            )}
+          </span>
+        </div>
+      </div>
+
       {/* 1. MANDATORY FULLSCREEN LOCKOUT OVERLAY */}
       {!isFullscreen && (
         <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
@@ -2221,10 +2735,115 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
             </div>
             <button
               onClick={handleReEnterFullscreen}
-              className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <Maximize2 className="w-4 h-4" />
               <span>Re-Enter Fullscreen & Resume Examination</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 1B. SCREEN SHARE TERMINATED LOCKOUT MODAL */}
+      {interruptionModal === 'SCREEN_LOST' && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="max-w-md w-full bg-slate-900 border-2 border-rose-600 rounded-3xl p-7 text-center space-y-5 text-white shadow-2xl">
+            <div className="w-16 h-16 rounded-full bg-rose-500/10 border-2 border-rose-500 flex items-center justify-center mx-auto">
+              <Monitor className="w-8 h-8 text-rose-500 animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 uppercase tracking-wider">
+                Critical Proctoring Interruption
+              </span>
+              <h2 className="text-xl font-black text-white mt-2">
+                Screen Sharing Terminated
+              </h2>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+              Entire screen sharing is strictly mandatory. You cannot continue the examination until screen sharing is restored.
+            </p>
+            <button
+              type="button"
+              onClick={async () => {
+                const s = await initScreenShare();
+                if (s && s.getVideoTracks().some((t) => t.readyState === 'live')) {
+                  setInterruptionModal(null);
+                }
+              }}
+              className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer uppercase tracking-wider"
+            >
+              <Monitor className="w-4 h-4" />
+              <span>Restore Entire Screen Sharing</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 1C. CAMERA DISCONNECTED LOCKOUT MODAL */}
+      {interruptionModal === 'CAMERA_LOST' && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="max-w-md w-full bg-slate-900 border-2 border-rose-600 rounded-3xl p-7 text-center space-y-5 text-white shadow-2xl">
+            <div className="w-16 h-16 rounded-full bg-rose-500/10 border-2 border-rose-500 flex items-center justify-center mx-auto">
+              <VideoOff className="w-8 h-8 text-rose-500 animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 uppercase tracking-wider">
+                Hardware Interruption
+              </span>
+              <h2 className="text-xl font-black text-white mt-2">
+                Camera Feed Disconnected
+              </h2>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+              Live camera monitoring was stopped or lost. Continuous facial presence is required for assessment integrity.
+            </p>
+            <button
+              type="button"
+              onClick={async () => {
+                const s = await initCamera();
+                if (s && s.getVideoTracks().some((t) => t.readyState === 'live')) {
+                  setInterruptionModal(null);
+                }
+              }}
+              className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer uppercase tracking-wider"
+            >
+              <Video className="w-4 h-4" />
+              <span>Reconnect Camera Feed</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 1D. MICROPHONE DISCONNECTED LOCKOUT MODAL */}
+      {interruptionModal === 'MIC_LOST' && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="max-w-md w-full bg-slate-900 border-2 border-rose-600 rounded-3xl p-7 text-center space-y-5 text-white shadow-2xl">
+            <div className="w-16 h-16 rounded-full bg-rose-500/10 border-2 border-rose-500 flex items-center justify-center mx-auto">
+              <MicOff className="w-8 h-8 text-rose-500 animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 uppercase tracking-wider">
+                Hardware Interruption
+              </span>
+              <h2 className="text-xl font-black text-white mt-2">
+                Microphone Feed Disconnected
+              </h2>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+              Live microphone audio stream was stopped or lost. Continuous audio telemetry is required for acoustic proctoring compliance.
+            </p>
+            <button
+              type="button"
+              onClick={async () => {
+                const s = await initMicrophone();
+                if (s && s.getAudioTracks().some((t) => t.readyState === 'live')) {
+                  setInterruptionModal(null);
+                }
+              }}
+              className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer uppercase tracking-wider"
+            >
+              <Mic className="w-4 h-4" />
+              <span>Reconnect Microphone Feed</span>
             </button>
           </div>
         </div>
