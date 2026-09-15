@@ -82,7 +82,7 @@ public class ExamService {
         }
 
         // Check existing attempt (fetch all attempts for this student and exam)
-        List<ExamAttempt> allStudentAttempts = attemptRepository.findByExamIdAndStudentId(examId, studentId);
+        List<ExamAttempt> allStudentAttempts = attemptRepository.findByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
         Optional<ExamAttempt> existingOpt = attemptRepository.findTopByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
 
         if (existingOpt.isPresent() || !allStudentAttempts.isEmpty()) {
@@ -741,7 +741,7 @@ public class ExamService {
                 .orElseThrow(() -> new IllegalArgumentException("Attempt not found: " + attemptId));
         attempt.setCanReattempt(allow);
         if (attempt.getExamId() != null && attempt.getStudentId() != null) {
-            List<ExamAttempt> all = attemptRepository.findByExamIdAndStudentId(attempt.getExamId(), attempt.getStudentId());
+            List<ExamAttempt> all = attemptRepository.findByExamIdAndStudentIdOrderByStartedAtDesc(attempt.getExamId(), attempt.getStudentId());
             for (ExamAttempt a : all) {
                 a.setCanReattempt(allow);
             }
