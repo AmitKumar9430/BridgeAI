@@ -269,6 +269,14 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   const wasDocumentHiddenRef = useRef(false);
   const handleSubmitExamRef = useRef(null);
 
+  // 15-second grace period countdown timer for smartphone 3rd-angle camera disconnection
+  const [phoneDisconnectCountdown, setPhoneDisconnectCountdown] = useState(null);
+  const phoneDisconnectTimerRef = useRef(null);
+  const phoneDisconnectDeadlineRef = useRef(null);
+  const examStartedRef = useRef(false);
+  useEffect(() => { examStartedRef.current = examStarted; }, [examStarted]);
+  const lastPhoneFrameTimeRef = useRef(Date.now());
+
   // Anti-cheat synchronizing refs
   const violationsRef = useRef([]);
   useEffect(() => { violationsRef.current = violations; }, [violations]);
@@ -315,11 +323,6 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
 
   const gutterRef = useRef(null);
   const editorTextareaRef = useRef(null);
-
-  const examStartedRef = useRef(examStarted);
-  useEffect(() => {
-    examStartedRef.current = examStarted;
-  }, [examStarted]);
 
   // Mobile / Tablet lockdown restriction
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
@@ -373,6 +376,10 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         if (data.examId && String(data.examId) !== String(examId)) return;
         if (data.phoneFrame) {
           setPhoneStreamFrame(data.phoneFrame);
+          lastPhoneFrameTimeRef.current = Date.now();
+          if (phoneDisconnectDeadlineRef.current) {
+            handlePhoneDisconnectReturn();
+          }
         }
         if (data.phoneConnected !== undefined) {
           setPhoneConnected(Boolean(data.phoneConnected));
@@ -392,6 +399,16 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
           setPhonePositionValid(Boolean(data.phonePositionValid));
         }
         setPhoneConnected(true);
+      } else if (data.type === 'PHONE_CAMERA_TERMINATED') {
+        if (examStartedRef.current && !submittingRef.current) {
+          handlePhoneCameraTerminated(data.reason || 'You closed the smartphone camera during the active assessment.');
+        }
+      } else if (data.type === 'PHONE_CAMERA_CLOSED_WARNING') {
+        if (examStartedRef.current && !submittingRef.current) {
+          triggerPhoneDisconnectGracePeriod(data.reason || 'Smartphone camera minimized or switched tab');
+        }
+      } else if (data.type === 'PHONE_CAMERA_RESTORED') {
+        handlePhoneDisconnectReturn();
       }
     };
 
@@ -441,6 +458,10 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
           if (res.data.phoneFrame) {
             setPhoneStreamFrame(res.data.phoneFrame);
             setPhoneConnected(true);
+            lastPhoneFrameTimeRef.current = Date.now();
+            if (phoneDisconnectDeadlineRef.current) {
+              handlePhoneDisconnectReturn();
+            }
           }
           if (res.data.phoneConnected !== undefined) {
             setPhoneConnected(Boolean(res.data.phoneConnected));
@@ -451,6 +472,14 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         }
       } catch (e) {
         // Silent poll error
+      }
+
+      // Check if phone has stopped sending frames during an active proctored exam
+      if (examStartedRef.current && !submittingRef.current && isPhoneReq) {
+        const timeSinceLastFrame = Date.now() - lastPhoneFrameTimeRef.current;
+        if (timeSinceLastFrame > 18000 && !phoneDisconnectDeadlineRef.current) {
+          triggerPhoneDisconnectGracePeriod('Smartphone 3rd-angle camera feed lost or disconnected for > 15s');
+        }
       }
     }, 1200);
 
@@ -1862,6 +1891,107 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     reportViolation('TAB_SWITCH', `Switched away from examination window (Re-entered within grace period: ${remainingSec}s remaining)`);
   };
 
+  // 15-Second Smartphone Camera Disconnect Grace Period & Auto-Termination
+  const handlePhoneCameraTerminated = async (reason = 'You closed the smartphone camera during the active assessment.') => {
+    if (submittingRef.current) return;
+
+    playAlertTone();
+
+    if (phoneDisconnectTimerRef.current) {
+      clearInterval(phoneDisconnectTimerRef.current);
+      phoneDisconnectTimerRef.current = null;
+    }
+    phoneDisconnectDeadlineRef.current = null;
+    setPhoneDisconnectCountdown(null);
+
+    const maxStrikes = Number(examDataRef.current?.maxStrikesAllowed || examDataRef.current?.maxViolations) || 3;
+    const strikeNum = (violationsRef.current?.length || 0) + 1;
+
+    setViolationModal({
+      strike: strikeNum,
+      max: maxStrikes,
+      type: 'PHONE_CAMERA_CLOSED',
+      details: reason || 'You closed or disconnected the smartphone camera. Exam automatically submitted.',
+      time: new Date().toLocaleTimeString(),
+      terminated: true
+    });
+
+    try {
+      const currentExam = examDataRef.current;
+      if (currentExam?.attemptId) {
+        await api.post('/exams/violation', {
+          attemptId: currentExam.attemptId,
+          violationType: 'PHONE_CAMERA_CLOSED',
+          details: reason || 'Smartphone 3rd-angle camera closed or disconnected. Exam automatically terminated.',
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to dispatch terminal phone violation:', e);
+    }
+
+    if (handleSubmitExamRef.current) {
+      handleSubmitExamRef.current(true);
+    } else {
+      handleSubmitExam(true);
+    }
+  };
+
+  const triggerPhoneDisconnectGracePeriod = (reason = 'Smartphone camera connection lost or minimized') => {
+    if (submittingRef.current || !antiCheatArmed) return;
+    if (phoneDisconnectDeadlineRef.current) return;
+
+    const deadline = Date.now() + 15000;
+    phoneDisconnectDeadlineRef.current = deadline;
+    setPhoneDisconnectCountdown(15);
+    playAlertTone();
+
+    if (phoneDisconnectTimerRef.current) {
+      clearInterval(phoneDisconnectTimerRef.current);
+    }
+
+    phoneDisconnectTimerRef.current = setInterval(() => {
+      if (!phoneDisconnectDeadlineRef.current) {
+        clearInterval(phoneDisconnectTimerRef.current);
+        return;
+      }
+      const msLeft = phoneDisconnectDeadlineRef.current - Date.now();
+      const secondsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      setPhoneDisconnectCountdown(secondsLeft);
+
+      if (msLeft <= 0) {
+        clearInterval(phoneDisconnectTimerRef.current);
+        phoneDisconnectTimerRef.current = null;
+        phoneDisconnectDeadlineRef.current = null;
+        setPhoneDisconnectCountdown(0);
+        handlePhoneCameraTerminated('Smartphone camera grace period expired (15 seconds without camera feed). Session automatically submitted.');
+      }
+    }, 250);
+  };
+
+  const handlePhoneDisconnectReturn = () => {
+    if (!phoneDisconnectDeadlineRef.current) return;
+
+    const now = Date.now();
+    if (now >= phoneDisconnectDeadlineRef.current) {
+      clearInterval(phoneDisconnectTimerRef.current);
+      phoneDisconnectTimerRef.current = null;
+      phoneDisconnectDeadlineRef.current = null;
+      setPhoneDisconnectCountdown(0);
+      handlePhoneCameraTerminated('Smartphone camera grace period expired. Session automatically submitted.');
+      return;
+    }
+
+    // Restored in time!
+    clearInterval(phoneDisconnectTimerRef.current);
+    phoneDisconnectTimerRef.current = null;
+    const remainingSec = Math.max(1, Math.ceil((phoneDisconnectDeadlineRef.current - now) / 1000));
+    phoneDisconnectDeadlineRef.current = null;
+    setPhoneDisconnectCountdown(null);
+
+    // Record violation strike
+    reportViolation('PHONE_CAMERA_WARNING', `Smartphone camera temporarily disconnected/minimized (Restored within grace period: ${remainingSec}s remaining)`);
+  };
+
   // MCQ Selection Handler
   const handleSelectOption = (questionId, optionKey) => {
     setAnswers((prev) => ({
@@ -2463,6 +2593,13 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     }
     tabSwitchDeadlineRef.current = null;
     setTabSwitchCountdown(null);
+
+    if (phoneDisconnectTimerRef.current) {
+      clearInterval(phoneDisconnectTimerRef.current);
+      phoneDisconnectTimerRef.current = null;
+    }
+    phoneDisconnectDeadlineRef.current = null;
+    setPhoneDisconnectCountdown(null);
 
     try {
       const codingSubmissions = Object.entries(codingAnswers).map(([qId, data]) => ({
@@ -5220,6 +5357,70 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               >
                 <ShieldCheck className="w-4 h-4" />
                 Re-enter Examination Window Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. CRITICAL SMARTPHONE CAMERA DISCONNECT 15-SECOND COUNTDOWN OVERLAY */}
+      {phoneDisconnectCountdown !== null && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn select-none"
+        >
+          <div
+            className="bg-slate-900 border-2 border-rose-600 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl text-center space-y-5 animate-scaleUp text-white"
+          >
+            <div className="w-20 h-20 mx-auto rounded-full bg-rose-500/10 border-2 border-rose-500 flex items-center justify-center shadow-lg shadow-rose-950/50">
+              <Smartphone className="w-10 h-10 text-rose-500 animate-pulse" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="px-3.5 py-1 bg-rose-500/20 text-rose-300 text-xs font-black rounded-full border border-rose-500/40 uppercase tracking-widest inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                Critical Proctoring Alert
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                Smartphone Camera Disconnected / Closed
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
+                The mandatory 3rd-angle smartphone camera stream has been closed, minimized, or lost connection.
+              </p>
+            </div>
+
+            {/* Countdown Box */}
+            <div className="p-5 bg-slate-950/90 border-2 border-rose-500/50 rounded-2xl space-y-3 shadow-inner">
+              <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider flex items-center justify-center gap-2">
+                <Clock className="w-3.5 h-3.5 text-rose-400 animate-spin" />
+                <span>Camera Reconnection Grace Countdown</span>
+              </div>
+              <div className="text-5xl sm:text-6xl font-black font-mono tracking-tight text-rose-500 tabular-nums">
+                00:{phoneDisconnectCountdown.toString().padStart(2, '0')}
+              </div>
+              {/* Progress bar */}
+              <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                <div
+                  className="h-full bg-rose-600 transition-all duration-300 rounded-full shadow-sm shadow-rose-500"
+                  style={{ width: `${Math.max(0, Math.min(100, (phoneDisconnectCountdown / 15) * 100))}%` }}
+                />
+              </div>
+              <div className="text-[11px] font-semibold text-rose-400 leading-snug">
+                {phoneDisconnectCountdown > 0
+                  ? `Re-open and bring your smartphone camera into view within ${phoneDisconnectCountdown}s or your exam will be automatically submitted.`
+                  : '15-second grace period expired! Assessment is being automatically submitted.'}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  handlePhoneDisconnectReturn();
+                }}
+                className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Phone Stream Restored &mdash; Resume Exam
               </button>
             </div>
           </div>

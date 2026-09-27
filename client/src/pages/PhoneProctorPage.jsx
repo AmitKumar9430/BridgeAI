@@ -41,6 +41,9 @@ export const PhoneProctorPage = () => {
   const [fpsCount, setFpsCount] = useState(0);
   const [lastPingTime, setLastPingTime] = useState(null);
   const [isExamCompleted, setIsExamCompleted] = useState(false);
+  const [showPhoneLeaveWarning, setShowPhoneLeaveWarning] = useState(false);
+  const [phoneLeaveCountdown, setPhoneLeaveCountdown] = useState(10);
+  const leaveCountdownTimerRef = useRef(null);
 
   // Position Checklist States (Default true so exam is unlocked once streaming)
   const [checklist, setChecklist] = useState({
@@ -79,9 +82,124 @@ export const PhoneProctorPage = () => {
     }
   }, []);
 
+  // Detect tab-switch, minimizing, or closing phone camera during active exam
+  useEffect(() => {
+    if (isExamCompleted) return;
+
+    const handleVisibilityChange = () => {
+      if (isExamCompleted) return;
+      if (document.hidden) {
+        // Phone camera was minimized / backgrounded
+        setShowPhoneLeaveWarning(true);
+        setPhoneLeaveCountdown(10);
+
+        if (bcRef.current) {
+          try {
+            bcRef.current.postMessage({
+              type: 'PHONE_CAMERA_CLOSED_WARNING',
+              attemptId: params.attemptId,
+              examId: params.examId,
+              reason: 'Student minimized or switched tab on smartphone',
+              timestamp: Date.now()
+            });
+          } catch (e) {}
+        }
+
+        // Start 10-second countdown for auto-submission
+        if (leaveCountdownTimerRef.current) clearInterval(leaveCountdownTimerRef.current);
+        let count = 10;
+        leaveCountdownTimerRef.current = setInterval(() => {
+          count -= 1;
+          setPhoneLeaveCountdown(count);
+          if (count <= 0) {
+            clearInterval(leaveCountdownTimerRef.current);
+            leaveCountdownTimerRef.current = null;
+            if (bcRef.current) {
+              try {
+                bcRef.current.postMessage({
+                  type: 'PHONE_CAMERA_TERMINATED',
+                  attemptId: params.attemptId,
+                  examId: params.examId,
+                  reason: 'You closed or minimized the 3rd-angle phone camera during the proctored exam.',
+                  timestamp: Date.now()
+                });
+              } catch (e) {}
+            }
+          }
+        }, 1000);
+      } else {
+        // Returned to screen
+        if (leaveCountdownTimerRef.current) {
+          clearInterval(leaveCountdownTimerRef.current);
+          leaveCountdownTimerRef.current = null;
+        }
+        setShowPhoneLeaveWarning(false);
+        if (bcRef.current) {
+          try {
+            bcRef.current.postMessage({
+              type: 'PHONE_CAMERA_RESTORED',
+              attemptId: params.attemptId,
+              examId: params.examId,
+              timestamp: Date.now()
+            });
+          } catch (e) {}
+        }
+      }
+    };
+
+    const handleBeforeUnload = (e) => {
+      if (!isExamCompleted) {
+        if (bcRef.current) {
+          try {
+            bcRef.current.postMessage({
+              type: 'PHONE_CAMERA_TERMINATED',
+              attemptId: params.attemptId,
+              examId: params.examId,
+              reason: 'Phone camera page closed by candidate',
+              timestamp: Date.now()
+            });
+          } catch (err) {}
+        }
+        e.preventDefault();
+        e.returnValue = 'WARNING: Closing your phone camera will automatically terminate and submit your examination.';
+        return e.returnValue;
+      }
+    };
+
+    const handlePageHide = () => {
+      if (!isExamCompleted && bcRef.current) {
+        try {
+          bcRef.current.postMessage({
+            type: 'PHONE_CAMERA_TERMINATED',
+            attemptId: params.attemptId,
+            examId: params.examId,
+            reason: 'Phone camera page hidden or closed',
+            timestamp: Date.now()
+          });
+        } catch (err) {}
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+      if (leaveCountdownTimerRef.current) clearInterval(leaveCountdownTimerRef.current);
+    };
+  }, [isExamCompleted, params.attemptId, params.examId]);
+
   // Stop camera tracks and timers when exam is completed
   const handleExamFinished = () => {
     setIsExamCompleted(true);
+    setShowPhoneLeaveWarning(false);
+    if (leaveCountdownTimerRef.current) {
+      clearInterval(leaveCountdownTimerRef.current);
+      leaveCountdownTimerRef.current = null;
+    }
     if (streamRef.current) {
       try {
         streamRef.current.getTracks().forEach((t) => t.stop());
@@ -99,6 +217,7 @@ export const PhoneProctorPage = () => {
   // Restart camera tracks and streaming when trainer permits re-attempt
   const handleRestartStreaming = () => {
     setIsExamCompleted(false);
+    setShowPhoneLeaveWarning(false);
     api.post(`/vigilance/feed/exam-status/${params.attemptId}/reset`).catch(() => {});
     startCamera(cameraFacing);
   };
@@ -521,6 +640,61 @@ export const PhoneProctorPage = () => {
           Leave smartphone propped at 45° angle facing you &amp; your laptop.
         </p>
       </div>
+
+      {/* 5. HIGH-PRIORITY PHONE LEAVE / CAMERA CLOSED WARNING OVERLAY */}
+      {showPhoneLeaveWarning && !isExamCompleted && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none animate-fadeIn">
+          <div className="w-20 h-20 rounded-3xl bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-rose-500 mb-4 shadow-2xl shadow-rose-500/30 animate-pulse">
+            <AlertTriangle className="w-10 h-10" />
+          </div>
+
+          <div className="text-[10px] font-black uppercase tracking-widest text-rose-400 bg-rose-950/90 px-3 py-1 rounded-full border border-rose-800 mb-3">
+            CRITICAL PROCTORING WARNING
+          </div>
+
+          <h2 className="text-xl font-black text-white mb-2">
+            DO NOT CLOSE PHONE CAMERA!
+          </h2>
+
+          <p className="text-xs text-slate-300 max-w-xs mb-5 leading-relaxed">
+            You switched away or minimized the 3rd-angle smartphone camera. Closing or leaving this screen during an active proctored exam is strictly prohibited.
+          </p>
+
+          <div className="p-4 bg-rose-950/70 rounded-2xl border-2 border-rose-600 max-w-xs w-full mb-6 space-y-2">
+            <div className="text-xs text-slate-300 font-semibold">Automatic Exam Submission In:</div>
+            <div className="text-4xl font-black font-mono text-rose-400 animate-pulse">
+              {phoneLeaveCountdown}s
+            </div>
+            <div className="text-[10px] text-rose-300">
+              Return to camera view immediately to avoid automatic disqualification!
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowPhoneLeaveWarning(false);
+              if (leaveCountdownTimerRef.current) {
+                clearInterval(leaveCountdownTimerRef.current);
+                leaveCountdownTimerRef.current = null;
+              }
+              if (bcRef.current) {
+                try {
+                  bcRef.current.postMessage({
+                    type: 'PHONE_CAMERA_RESTORED',
+                    attemptId: params.attemptId,
+                    examId: params.examId,
+                    timestamp: Date.now()
+                  });
+                } catch (e) {}
+              }
+            }}
+            className="w-full max-w-xs py-3.5 px-4 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-600/30 transition-all cursor-pointer"
+          >
+            I am Back — Keep Streaming
+          </button>
+        </div>
+      )}
     </div>
   );
 };
