@@ -65,6 +65,8 @@ export const PhoneProctorPage = () => {
         bc.onmessage = (e) => {
           if (e.data?.type === 'EXAM_COMPLETED' || e.data?.type === 'EXAM_SUBMITTED' || e.data?.type === 'EXAM_TERMINATED') {
             handleExamFinished();
+          } else if (e.data?.type === 'EXAM_REATTEMPT_STARTED' || e.data?.type === 'EXAM_RESET') {
+            handleRestartStreaming();
           }
         };
         return () => {
@@ -90,36 +92,43 @@ export const PhoneProctorPage = () => {
       clearInterval(frameTimerRef.current);
       frameTimerRef.current = null;
     }
-    if (pollCompletionTimerRef.current) {
-      clearInterval(pollCompletionTimerRef.current);
-      pollCompletionTimerRef.current = null;
-    }
     setStream(null);
     setIsTransmitting(false);
   };
 
-  // Poll server to check if exam is completed
-  useEffect(() => {
-    if (isExamCompleted || !params.attemptId) return;
+  // Restart camera tracks and streaming when trainer permits re-attempt
+  const handleRestartStreaming = () => {
+    setIsExamCompleted(false);
+    api.post(`/vigilance/feed/exam-status/${params.attemptId}/reset`).catch(() => {});
+    startCamera(cameraFacing);
+  };
 
-    const checkCompletion = async () => {
+  // Poll server to check if exam is completed OR if a re-attempt has been started
+  useEffect(() => {
+    if (!params.attemptId) return;
+
+    const checkStatus = async () => {
       try {
         const res = await api.get(`/vigilance/feed/phone-stream/${params.attemptId}`);
-        if (res.data?.examCompleted) {
-          handleExamFinished();
+        if (res.data) {
+          if (res.data.examCompleted && !isExamCompleted) {
+            handleExamFinished();
+          } else if (!res.data.examCompleted && isExamCompleted) {
+            handleRestartStreaming();
+          }
         }
       } catch (e) {
         // ignore
       }
     };
 
-    pollCompletionTimerRef.current = setInterval(checkCompletion, 2000);
+    pollCompletionTimerRef.current = setInterval(checkStatus, 2000);
     return () => {
       if (pollCompletionTimerRef.current) {
         clearInterval(pollCompletionTimerRef.current);
       }
     };
-  }, [params.attemptId, isExamCompleted]);
+  }, [params.attemptId, isExamCompleted, cameraFacing]);
 
   // Initialize / Switch Camera with fallback chain
   const startCamera = async (facing = cameraFacing) => {
@@ -364,16 +373,24 @@ export const PhoneProctorPage = () => {
         <div className="space-y-3 w-full max-w-xs">
           <button
             type="button"
+            onClick={handleRestartStreaming}
+            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Restart Camera Stream (Re-Attempt)</span>
+          </button>
+          <button
+            type="button"
             onClick={() => {
               try { window.close(); } catch (e) {}
               window.location.href = '/';
             }}
-            className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/25 transition-all cursor-pointer"
+            className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition-all cursor-pointer"
           >
             Close Streaming Window
           </button>
           <p className="text-[11px] text-slate-500">
-            You may now safely close this browser tab.
+            If your trainer granted a re-attempt, tap &quot;Restart Camera Stream&quot; above.
           </p>
         </div>
       </div>

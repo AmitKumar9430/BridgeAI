@@ -402,6 +402,22 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     };
   }, [examId]);
 
+  // Reset previous completion status for this session so re-attempts start freshly
+  useEffect(() => {
+    const sid = `pre_${user?.id || 1}_${examId}`;
+    api.post(`/vigilance/feed/exam-status/${sid}/reset`).catch(() => {});
+    if (examData?.attemptId) {
+      api.post(`/vigilance/feed/exam-status/${examData.attemptId}/reset`).catch(() => {});
+    }
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        const bc = new BroadcastChannel('bridgeai_surveillance_feed');
+        bc.postMessage({ type: 'EXAM_REATTEMPT_STARTED', attemptId: sid, examId });
+        bc.close();
+      } catch (e) {}
+    }
+  }, [examId, user?.id, examData?.attemptId]);
+
   // Poll phone stream from server for cross-device remote phone streaming
   useEffect(() => {
     const isPhoneReq = Boolean(examMeta?.phoneProtectionEnabled || examData?.phoneProtectionEnabled);

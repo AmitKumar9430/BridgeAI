@@ -316,6 +316,25 @@ public class VigilanceService {
                     completedSessions.add("pre_" + att.getStudentId() + "_" + att.getExamId());
                 }
             } catch (Exception ignored) {}
+        }
+    }
+
+    public void clearAttemptCompleted(String sessionKey) {
+        if (sessionKey == null || sessionKey.isBlank()) return;
+        completedSessions.remove(sessionKey);
+        Long numericAttemptId = null;
+        try {
+            numericAttemptId = Long.parseLong(sessionKey);
+        } catch (Exception ignored) {}
+
+        if (numericAttemptId != null) {
+            try {
+                Optional<ExamAttempt> opt = examAttemptRepository.findById(numericAttemptId);
+                if (opt.isPresent()) {
+                    ExamAttempt att = opt.get();
+                    completedSessions.remove("pre_" + att.getStudentId() + "_" + att.getExamId());
+                }
+            } catch (Exception ignored) {}
         } else if (sessionKey.startsWith("pre_")) {
             String[] parts = sessionKey.split("_");
             if (parts.length >= 3) {
@@ -324,7 +343,7 @@ public class VigilanceService {
                     Long examId = Long.parseLong(parts[2]);
                     List<ExamAttempt> attempts = examAttemptRepository.findByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
                     for (ExamAttempt att : attempts) {
-                        completedSessions.add(String.valueOf(att.getId()));
+                        completedSessions.remove(String.valueOf(att.getId()));
                     }
                 } catch (Exception ignored) {}
             }
@@ -333,7 +352,6 @@ public class VigilanceService {
 
     public boolean isAttemptCompleted(String sessionKey) {
         if (sessionKey == null || sessionKey.isBlank()) return false;
-        if (completedSessions.contains(sessionKey)) return true;
 
         Long numericAttemptId = null;
         try {
@@ -343,7 +361,13 @@ public class VigilanceService {
         if (numericAttemptId != null) {
             Optional<ExamAttempt> opt = examAttemptRepository.findById(numericAttemptId);
             if (opt.isPresent()) {
-                String status = opt.get().getStatus();
+                ExamAttempt att = opt.get();
+                String status = att.getStatus();
+                // If attempt is currently IN_PROGRESS or student is allowed to reattempt, it is NOT completed
+                if ("IN_PROGRESS".equalsIgnoreCase(status) || att.isCanReattempt()) {
+                    completedSessions.remove(sessionKey);
+                    return false;
+                }
                 if ("SUBMITTED".equalsIgnoreCase(status) || 
                     "COMPLETED".equalsIgnoreCase(status) || 
                     "TERMINATED_BY_VIOLATION".equalsIgnoreCase(status) || 
@@ -351,33 +375,49 @@ public class VigilanceService {
                     completedSessions.add(sessionKey);
                     return true;
                 }
-                String preKey = "pre_" + opt.get().getStudentId() + "_" + opt.get().getExamId();
-                if (completedSessions.contains(preKey)) {
-                    completedSessions.add(sessionKey);
-                    return true;
-                }
             }
-        } else if (sessionKey.startsWith("pre_")) {
+            return completedSessions.contains(sessionKey);
+        }
+
+        if (sessionKey.startsWith("pre_")) {
             String[] parts = sessionKey.split("_");
             if (parts.length >= 3) {
                 try {
                     Long studentId = Long.parseLong(parts[1]);
                     Long examId = Long.parseLong(parts[2]);
                     List<ExamAttempt> attempts = examAttemptRepository.findByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
-                    for (ExamAttempt att : attempts) {
-                        String status = att.getStatus();
-                        if ("SUBMITTED".equalsIgnoreCase(status) || 
-                            "COMPLETED".equalsIgnoreCase(status) || 
-                            "TERMINATED_BY_VIOLATION".equalsIgnoreCase(status) || 
-                            "EXPIRED".equalsIgnoreCase(status)) {
-                            completedSessions.add(sessionKey);
-                            return true;
-                        }
+                    
+                    if (attempts.isEmpty()) {
+                        completedSessions.remove(sessionKey);
+                        return false;
+                    }
+
+                    ExamAttempt latest = attempts.get(0);
+                    // If latest attempt is currently IN_PROGRESS or can be reattempted, it's NOT completed
+                    if ("IN_PROGRESS".equalsIgnoreCase(latest.getStatus()) || latest.isCanReattempt()) {
+                        completedSessions.remove(sessionKey);
+                        return false;
+                    }
+
+                    // Check if exam allows multiple attempts or self assessment
+                    Optional<Exam> examOpt = examRepository.findById(examId);
+                    if (examOpt.isPresent() && (examOpt.get().isAllowMultipleAttempts() || "SELF_ASSESSMENT".equalsIgnoreCase(examOpt.get().getAssessmentType()))) {
+                        completedSessions.remove(sessionKey);
+                        return false;
+                    }
+
+                    String status = latest.getStatus();
+                    if ("SUBMITTED".equalsIgnoreCase(status) || 
+                        "COMPLETED".equalsIgnoreCase(status) || 
+                        "TERMINATED_BY_VIOLATION".equalsIgnoreCase(status) || 
+                        "EXPIRED".equalsIgnoreCase(status)) {
+                        return completedSessions.contains(sessionKey);
                     }
                 } catch (Exception ignored) {}
             }
         }
-        return false;
+
+        return completedSessions.contains(sessionKey);
     }
 
     @Transactional

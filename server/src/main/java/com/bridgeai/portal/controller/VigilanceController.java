@@ -216,8 +216,19 @@ public class VigilanceController {
     public ResponseEntity<Map<String, Object>> markExamStatus(
             @PathVariable String attemptId,
             @RequestBody(required = false) Map<String, Object> payload) {
-        vigilanceService.markAttemptCompleted(attemptId);
-        return ResponseEntity.ok(Map.of("status", "EXAM_STATUS_UPDATED", "attemptId", attemptId, "examCompleted", true));
+        boolean completed = payload == null || !Boolean.FALSE.equals(payload.get("isCompleted"));
+        if (completed) {
+            vigilanceService.markAttemptCompleted(attemptId);
+        } else {
+            vigilanceService.clearAttemptCompleted(attemptId);
+        }
+        return ResponseEntity.ok(Map.of("status", "EXAM_STATUS_UPDATED", "attemptId", attemptId, "examCompleted", completed));
+    }
+
+    @PostMapping("/vigilance/feed/exam-status/{attemptId}/reset")
+    public ResponseEntity<Map<String, Object>> resetExamStatus(@PathVariable String attemptId) {
+        vigilanceService.clearAttemptCompleted(attemptId);
+        return ResponseEntity.ok(Map.of("status", "EXAM_STATUS_RESET", "attemptId", attemptId, "examCompleted", false));
     }
 
     @GetMapping("/vigilance/feed/stream/{attemptId}")
