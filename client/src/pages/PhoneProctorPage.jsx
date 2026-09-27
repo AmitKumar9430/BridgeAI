@@ -43,9 +43,45 @@ export const PhoneProctorPage = () => {
   const [fpsCount, setFpsCount] = useState(0);
   const [lastPingTime, setLastPingTime] = useState(null);
   const [isExamCompleted, setIsExamCompleted] = useState(false);
+  const [isReloadTerminated, setIsReloadTerminated] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const search = new URLSearchParams(window.location.search);
+      const attemptId = search.get('attemptId') || '1';
+      const key = `phone_streaming_active_${attemptId}`;
+      return sessionStorage.getItem(key) === 'active';
+    }
+    return false;
+  });
   const [showPhoneLeaveWarning, setShowPhoneLeaveWarning] = useState(false);
   const [phoneLeaveCountdown, setPhoneLeaveCountdown] = useState(10);
   const leaveCountdownTimerRef = useRef(null);
+
+  // If reload was detected on mount, immediately terminate and signal server & desktop
+  useEffect(() => {
+    if (isReloadTerminated) {
+      const reason = 'You reloaded or refreshed the smartphone camera during the active assessment. Exam automatically submitted.';
+      if (typeof BroadcastChannel !== 'undefined') {
+        try {
+          const bc = new BroadcastChannel('bridgeai_surveillance_feed');
+          bc.postMessage({
+            type: 'PHONE_CAMERA_TERMINATED',
+            attemptId: params.attemptId,
+            examId: params.examId,
+            reason,
+            timestamp: Date.now()
+          });
+          bc.close();
+        } catch (e) {}
+      }
+
+      api.post(`/vigilance/feed/phone-stream/${params.attemptId}/terminate`, { reason }).catch(() => {});
+      api.post('/exams/violation', {
+        attemptId: params.attemptId,
+        violationType: 'PHONE_CAMERA_CLOSED',
+        details: reason
+      }).catch(() => {});
+    }
+  }, [isReloadTerminated, params.attemptId, params.examId]);
 
   // Position Checklist States (Default true so exam is unlocked once streaming)
   const [checklist, setChecklist] = useState({
@@ -278,7 +314,9 @@ export const PhoneProctorPage = () => {
   // Stop camera tracks and timers when exam is completed
   const handleExamFinished = () => {
     setIsExamCompleted(true);
+    setIsReloadTerminated(false);
     setShowPhoneLeaveWarning(false);
+    sessionStorage.removeItem(`phone_streaming_active_${params.attemptId}`);
     if (leaveCountdownTimerRef.current) {
       clearInterval(leaveCountdownTimerRef.current);
       leaveCountdownTimerRef.current = null;
@@ -299,6 +337,8 @@ export const PhoneProctorPage = () => {
 
   // Restart camera tracks and streaming when trainer permits re-attempt
   const handleRestartStreaming = () => {
+    sessionStorage.removeItem(`phone_streaming_active_${params.attemptId}`);
+    setIsReloadTerminated(false);
     setIsExamCompleted(false);
     setShowPhoneLeaveWarning(false);
     api.post(`/vigilance/feed/exam-status/${params.attemptId}/reset`).catch(() => {});
@@ -513,16 +553,25 @@ export const PhoneProctorPage = () => {
           studentName: params.studentName,
           examId: params.examId
         }).catch(() => {});
+
+        // Mark as actively streaming in sessionStorage to detect page reloads
+        sessionStorage.setItem(`phone_streaming_active_${params.attemptId}`, 'active');
       } catch (err) {
         console.warn('Frame capture error:', err);
       }
     };
 
     // Push initial frame
-    captureAndSend();
+    if (!isReloadTerminated) {
+      captureAndSend();
+    }
 
     // Stream continuously every 1000ms
-    frameTimerRef.current = setInterval(captureAndSend, 1000);
+    frameTimerRef.current = setInterval(() => {
+      if (!isReloadTerminated) {
+        captureAndSend();
+      }
+    }, 1000);
 
     // FPS Meter
     const fpsTimer = setInterval(() => {
@@ -534,7 +583,7 @@ export const PhoneProctorPage = () => {
       clearInterval(frameTimerRef.current);
       clearInterval(fpsTimer);
     };
-  }, [permissionStatus, params.attemptId, params.examId, params.studentName, checklist, cameraFacing, isExamCompleted]);
+  }, [permissionStatus, params.attemptId, params.examId, params.studentName, checklist, cameraFacing, isExamCompleted, isReloadTerminated]);
 
   const toggleCameraFacing = (e) => {
     if (e) e.stopPropagation();
@@ -547,6 +596,58 @@ export const PhoneProctorPage = () => {
       videoRef.current.play().catch(() => {});
     }
   };
+
+  // =========================================================================
+  // VIEW: RELOAD TERMINATED SCREEN (Strict Integrity Violation Screen)
+  // =========================================================================
+  if (isReloadTerminated) {
+    return (
+      <div className="fixed inset-0 w-full h-full bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center select-none font-sans z-50">
+        <div className="w-20 h-20 rounded-3xl bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-rose-500 mb-5 shadow-2xl shadow-rose-500/30 animate-pulse">
+          <AlertTriangle className="w-10 h-10" />
+        </div>
+
+        <div className="text-[10px] font-black uppercase tracking-widest text-rose-400 bg-rose-950/90 px-3 py-1 rounded-full border border-rose-800 mb-3">
+          SECURITY PROTOCOL VIOLATION
+        </div>
+
+        <h1 className="text-2xl font-bold text-white mb-2">Exam Terminated</h1>
+        <p className="text-sm text-rose-300 font-semibold max-w-xs mb-2 leading-relaxed">
+          Camera Reload / Refresh Detected
+        </p>
+        <p className="text-xs text-slate-300 max-w-xs mb-6 leading-relaxed">
+          You refreshed or reloaded the smartphone camera page during the active examination. To protect proctoring integrity, the exam on your computer has been automatically submitted.
+        </p>
+
+        <div className="p-4 bg-slate-900/90 rounded-2xl border border-rose-800/80 text-xs font-mono text-slate-300 max-w-xs w-full space-y-2 mb-6 text-left shadow-lg">
+          <div><span className="text-slate-500">Student:</span> <span className="text-white font-bold">{params.studentName}</span></div>
+          <div><span className="text-slate-500">Exam:</span> <span className="text-sky-300 font-bold">{params.examTitle}</span></div>
+          <div><span className="text-slate-500">Reason:</span> <span className="text-rose-400 font-bold">Camera Reloaded During Exam</span></div>
+        </div>
+
+        <div className="space-y-3 w-full max-w-xs">
+          <button
+            type="button"
+            onClick={handleRestartStreaming}
+            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Restart Camera Stream (Re-Attempt)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              try { window.close(); } catch (e) {}
+              window.location.href = '/';
+            }}
+            className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition-all cursor-pointer"
+          >
+            Close Streaming Window
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // =========================================================================
   // VIEW: EXAM COMPLETED SCREEN (Clean, simple, friendly message)

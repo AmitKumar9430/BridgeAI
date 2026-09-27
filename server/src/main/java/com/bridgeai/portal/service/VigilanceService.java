@@ -239,6 +239,55 @@ public class VigilanceService {
                     .timestamp(System.currentTimeMillis())
                     .build());
         }
+
+        // Cross-propagate termination between pre-check session and numeric attempt session
+        try {
+            if (sessionKey.startsWith("pre_")) {
+                String[] parts = sessionKey.split("_");
+                if (parts.length >= 3) {
+                    Long studentId = Long.parseLong(parts[1]);
+                    Long examId = Long.parseLong(parts[2]);
+                    List<ExamAttempt> attempts = examAttemptRepository.findByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
+                    for (ExamAttempt att : attempts) {
+                        String attKey = String.valueOf(att.getId());
+                        LiveStreamFrame attFrame = liveStreamFrames.get(attKey);
+                        if (attFrame != null) {
+                            attFrame.setPhoneTerminated(true);
+                            attFrame.setPhoneTerminationReason(reason);
+                            attFrame.setPhoneConnected(false);
+                        } else {
+                            liveStreamFrames.put(attKey, LiveStreamFrame.builder()
+                                    .attemptId(att.getId())
+                                    .phoneTerminated(true)
+                                    .phoneTerminationReason(reason)
+                                    .phoneConnected(false)
+                                    .timestamp(System.currentTimeMillis())
+                                    .build());
+                        }
+                    }
+                }
+            } else {
+                Long numericAttemptId = Long.parseLong(sessionKey);
+                Optional<ExamAttempt> opt = examAttemptRepository.findById(numericAttemptId);
+                if (opt.isPresent()) {
+                    ExamAttempt att = opt.get();
+                    String preKey = "pre_" + att.getStudentId() + "_" + att.getExamId();
+                    LiveStreamFrame preFrame = liveStreamFrames.get(preKey);
+                    if (preFrame != null) {
+                        preFrame.setPhoneTerminated(true);
+                        preFrame.setPhoneTerminationReason(reason);
+                        preFrame.setPhoneConnected(false);
+                    } else {
+                        liveStreamFrames.put(preKey, LiveStreamFrame.builder()
+                                .phoneTerminated(true)
+                                .phoneTerminationReason(reason)
+                                .phoneConnected(false)
+                                .timestamp(System.currentTimeMillis())
+                                .build());
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     public LiveStreamFrame getLiveStreamFrame(String sessionKey) {
@@ -252,15 +301,29 @@ public class VigilanceService {
         } catch (Exception ignored) {}
 
         if (numericAttemptId != null) {
-            boolean phoneMissingOrStale = (frame == null || frame.getPhoneFrame() == null || frame.getPhoneFrame().isBlank() || (now - frame.getPhoneTimestamp() > 60000));
-            if (phoneMissingOrStale) {
-                try {
-                    Optional<ExamAttempt> opt = examAttemptRepository.findById(numericAttemptId);
-                    if (opt.isPresent()) {
-                        ExamAttempt att = opt.get();
-                        String preKey = "pre_" + att.getStudentId() + "_" + att.getExamId();
-                        LiveStreamFrame preFrame = liveStreamFrames.get(preKey);
-                        if (preFrame != null && preFrame.getPhoneFrame() != null && !preFrame.getPhoneFrame().isBlank() && (now - preFrame.getPhoneTimestamp() < 60000)) {
+            try {
+                Optional<ExamAttempt> opt = examAttemptRepository.findById(numericAttemptId);
+                if (opt.isPresent()) {
+                    ExamAttempt att = opt.get();
+                    String preKey = "pre_" + att.getStudentId() + "_" + att.getExamId();
+                    LiveStreamFrame preFrame = liveStreamFrames.get(preKey);
+                    if (preFrame != null) {
+                        if (preFrame.isPhoneTerminated()) {
+                            if (frame == null) {
+                                frame = LiveStreamFrame.builder()
+                                        .attemptId(numericAttemptId)
+                                        .phoneTerminated(true)
+                                        .phoneTerminationReason(preFrame.getPhoneTerminationReason())
+                                        .phoneConnected(false)
+                                        .timestamp(now)
+                                        .build();
+                                liveStreamFrames.put(sessionKey, frame);
+                            } else {
+                                frame.setPhoneTerminated(true);
+                                frame.setPhoneTerminationReason(preFrame.getPhoneTerminationReason());
+                                frame.setPhoneConnected(false);
+                            }
+                        } else if (preFrame.getPhoneFrame() != null && !preFrame.getPhoneFrame().isBlank() && (now - preFrame.getPhoneTimestamp() < 60000)) {
                             if (frame == null) {
                                 frame = LiveStreamFrame.builder()
                                         .attemptId(numericAttemptId)
@@ -279,35 +342,47 @@ public class VigilanceService {
                             }
                         }
                     }
-                } catch (Exception ignored) {}
-            }
+                }
+            } catch (Exception ignored) {}
         } else if (sessionKey.startsWith("pre_")) {
-            boolean phoneMissingOrStale = (frame == null || frame.getPhoneFrame() == null || frame.getPhoneFrame().isBlank() || (now - frame.getPhoneTimestamp() > 60000));
-            if (phoneMissingOrStale) {
-                String[] parts = sessionKey.split("_");
-                if (parts.length >= 3) {
-                    try {
-                        Long studentId = Long.parseLong(parts[1]);
-                        Long examId = Long.parseLong(parts[2]);
-                        List<ExamAttempt> attempts = examAttemptRepository.findByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
-                        for (ExamAttempt att : attempts) {
-                            if ("IN_PROGRESS".equalsIgnoreCase(att.getStatus())) {
-                                LiveStreamFrame attFrame = liveStreamFrames.get(String.valueOf(att.getId()));
-                                if (attFrame != null && attFrame.getPhoneFrame() != null && !attFrame.getPhoneFrame().isBlank() && (now - attFrame.getPhoneTimestamp() < 60000)) {
-                                    if (frame == null) {
-                                        frame = attFrame;
-                                    } else {
-                                        frame.setPhoneFrame(attFrame.getPhoneFrame());
-                                        frame.setPhoneConnected(attFrame.isPhoneConnected());
-                                        frame.setPhonePositionValid(attFrame.isPhonePositionValid());
-                                        frame.setPhoneTimestamp(attFrame.getPhoneTimestamp());
-                                    }
-                                    break;
+            String[] parts = sessionKey.split("_");
+            if (parts.length >= 3) {
+                try {
+                    Long studentId = Long.parseLong(parts[1]);
+                    Long examId = Long.parseLong(parts[2]);
+                    List<ExamAttempt> attempts = examAttemptRepository.findByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
+                    for (ExamAttempt att : attempts) {
+                        if ("IN_PROGRESS".equalsIgnoreCase(att.getStatus())) {
+                            LiveStreamFrame attFrame = liveStreamFrames.get(String.valueOf(att.getId()));
+                            if (attFrame != null && attFrame.isPhoneTerminated()) {
+                                if (frame == null) {
+                                    frame = LiveStreamFrame.builder()
+                                            .phoneTerminated(true)
+                                            .phoneTerminationReason(attFrame.getPhoneTerminationReason())
+                                            .phoneConnected(false)
+                                            .timestamp(now)
+                                            .build();
+                                    liveStreamFrames.put(sessionKey, frame);
+                                } else {
+                                    frame.setPhoneTerminated(true);
+                                    frame.setPhoneTerminationReason(attFrame.getPhoneTerminationReason());
+                                    frame.setPhoneConnected(false);
                                 }
+                                break;
+                            } else if (attFrame != null && attFrame.getPhoneFrame() != null && !attFrame.getPhoneFrame().isBlank() && (now - attFrame.getPhoneTimestamp() < 60000)) {
+                                if (frame == null) {
+                                    frame = attFrame;
+                                } else {
+                                    frame.setPhoneFrame(attFrame.getPhoneFrame());
+                                    frame.setPhoneConnected(attFrame.isPhoneConnected());
+                                    frame.setPhonePositionValid(attFrame.isPhonePositionValid());
+                                    frame.setPhoneTimestamp(attFrame.getPhoneTimestamp());
+                                }
+                                break;
                             }
                         }
-                    } catch (Exception ignored) {}
-                }
+                    }
+                } catch (Exception ignored) {}
             }
         }
 

@@ -447,36 +447,40 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     const interval = setInterval(async () => {
       try {
         let res = await api.get(`/vigilance/feed/phone-stream/${currentAttemptId}`);
-        if (!res.data?.phoneFrame && currentAttemptId !== preCheckSessionId) {
+        let fallbackRes = null;
+        if (currentAttemptId !== preCheckSessionId) {
           try {
-            const fallbackRes = await api.get(`/vigilance/feed/phone-stream/${preCheckSessionId}`);
-            if (fallbackRes.data?.phoneFrame) {
-              res = fallbackRes;
-            }
+            fallbackRes = await api.get(`/vigilance/feed/phone-stream/${preCheckSessionId}`);
           } catch (ignored) {}
         }
 
-        if (res.data) {
-          if (res.data.phoneTerminated) {
-            if (examStartedRef.current && !submittingRef.current) {
-              handlePhoneCameraTerminated(res.data.phoneTerminationReason || 'You closed or reloaded the smartphone camera during the active assessment.');
-              return;
-            }
+        const data = res.data;
+        const fallbackData = fallbackRes?.data;
+
+        // Check if phone was terminated/reloaded on either session key
+        if (data?.phoneTerminated || fallbackData?.phoneTerminated) {
+          if (examStartedRef.current && !submittingRef.current) {
+            const termReason = data?.phoneTerminationReason || fallbackData?.phoneTerminationReason || 'You closed or reloaded the smartphone camera during the active assessment.';
+            handlePhoneCameraTerminated(termReason);
+            return;
           }
-          if (res.data.phoneFrame) {
-            setPhoneStreamFrame(res.data.phoneFrame);
-            setPhoneConnected(true);
-            lastPhoneFrameTimeRef.current = Date.now();
-            if (phoneDisconnectDeadlineRef.current) {
-              handlePhoneDisconnectReturn();
-            }
+        }
+
+        const activeData = (data?.phoneFrame ? data : (fallbackData?.phoneFrame ? fallbackData : data)) || {};
+
+        if (activeData.phoneFrame) {
+          setPhoneStreamFrame(activeData.phoneFrame);
+          setPhoneConnected(true);
+          lastPhoneFrameTimeRef.current = Date.now();
+          if (phoneDisconnectDeadlineRef.current) {
+            handlePhoneDisconnectReturn();
           }
-          if (res.data.phoneConnected !== undefined) {
-            setPhoneConnected(Boolean(res.data.phoneConnected));
-          }
-          if (res.data.phonePositionValid !== undefined) {
-            setPhonePositionValid(Boolean(res.data.phonePositionValid));
-          }
+        }
+        if (activeData.phoneConnected !== undefined) {
+          setPhoneConnected(Boolean(activeData.phoneConnected));
+        }
+        if (activeData.phonePositionValid !== undefined) {
+          setPhonePositionValid(Boolean(activeData.phonePositionValid));
         }
       } catch (e) {
         // Silent poll error
@@ -485,11 +489,11 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       // Check if phone has stopped sending frames during an active proctored exam
       if (examStartedRef.current && !submittingRef.current && isPhoneReq) {
         const timeSinceLastFrame = Date.now() - lastPhoneFrameTimeRef.current;
-        if (timeSinceLastFrame > 18000 && !phoneDisconnectDeadlineRef.current) {
-          triggerPhoneDisconnectGracePeriod('Smartphone 3rd-angle camera feed lost or disconnected for > 15s');
+        if (timeSinceLastFrame > 6000 && !phoneDisconnectDeadlineRef.current) {
+          triggerPhoneDisconnectGracePeriod('Smartphone 3rd-angle camera feed lost, turned off, or disconnected for > 5s');
         }
       }
-    }, 1200);
+    }, 750);
 
     return () => clearInterval(interval);
   }, [examMeta?.phoneProtectionEnabled, examData?.phoneProtectionEnabled, examData?.attemptId, examId, user?.id]);
