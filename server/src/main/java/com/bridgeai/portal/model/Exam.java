@@ -74,5 +74,9 @@ public class Exam {
 
     @Column(nullable = false)
     @Builder.Default
+    private boolean phoneProtectionEnabled = false;
+
+    @Column(nullable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

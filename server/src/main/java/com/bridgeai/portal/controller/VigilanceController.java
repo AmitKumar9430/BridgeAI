@@ -172,13 +172,42 @@ public class VigilanceController {
             @RequestBody Map<String, Object> payload) {
         String cameraFrame = (String) payload.get("cameraFrame");
         String screenFrame = (String) payload.get("screenFrame");
+        String phoneFrame = (String) payload.get("phoneFrame");
         String audioChunk = (String) payload.get("audioChunk");
         boolean camOn = Boolean.TRUE.equals(payload.get("cameraConnected"));
         boolean scrOn = Boolean.TRUE.equals(payload.get("screenConnected"));
+        Boolean phoneOn = payload.containsKey("phoneConnected") ? Boolean.TRUE.equals(payload.get("phoneConnected")) : null;
+        Boolean phoneValid = payload.containsKey("phonePositionValid") ? Boolean.TRUE.equals(payload.get("phonePositionValid")) : null;
         boolean audioOn = payload.containsKey("audioConnected") ? Boolean.TRUE.equals(payload.get("audioConnected")) : true;
         int audioLevel = payload.get("audioLevel") != null ? ((Number) payload.get("audioLevel")).intValue() : 0;
-        vigilanceService.saveLiveStreamFrame(attemptId, cameraFrame, screenFrame, camOn, scrOn, audioChunk, audioOn, audioLevel);
+        vigilanceService.saveLiveStreamFrame(attemptId, cameraFrame, screenFrame, camOn, scrOn, audioChunk, audioOn, audioLevel, phoneFrame, phoneOn, phoneValid);
         return ResponseEntity.ok(Map.of("status", "STREAM_INGESTED", "attemptId", attemptId));
+    }
+
+    @PostMapping("/vigilance/feed/phone-stream/{attemptId}")
+    public ResponseEntity<Map<String, Object>> pushPhoneStream(
+            @PathVariable Long attemptId,
+            @RequestBody Map<String, Object> payload) {
+        String phoneFrame = (String) payload.get("phoneFrame");
+        boolean phoneConnected = payload.containsKey("phoneConnected") ? Boolean.TRUE.equals(payload.get("phoneConnected")) : true;
+        boolean phonePositionValid = payload.containsKey("phonePositionValid") ? Boolean.TRUE.equals(payload.get("phonePositionValid")) : true;
+        vigilanceService.savePhoneStreamFrame(attemptId, phoneFrame, phoneConnected, phonePositionValid);
+        return ResponseEntity.ok(Map.of("status", "PHONE_STREAM_INGESTED", "attemptId", attemptId));
+    }
+
+    @GetMapping("/vigilance/feed/phone-stream/{attemptId}")
+    public ResponseEntity<Map<String, Object>> getPhoneStream(@PathVariable Long attemptId) {
+        VigilanceService.LiveStreamFrame frame = vigilanceService.getLiveStreamFrame(attemptId);
+        boolean isConnected = frame != null && frame.isPhoneConnected() && (System.currentTimeMillis() - frame.getPhoneTimestamp() < 15000);
+        boolean isValid = frame != null && frame.isPhonePositionValid();
+        String phoneFrame = (frame != null) ? frame.getPhoneFrame() : null;
+        return ResponseEntity.ok(Map.of(
+                "attemptId", attemptId,
+                "phoneConnected", isConnected,
+                "phonePositionValid", isValid,
+                "phoneFrame", phoneFrame != null ? phoneFrame : "",
+                "timestamp", frame != null ? frame.getPhoneTimestamp() : 0L
+        ));
     }
 
     @GetMapping("/vigilance/feed/stream/{attemptId}")
@@ -189,8 +218,11 @@ public class VigilanceController {
                     .attemptId(attemptId)
                     .cameraFrame(null)
                     .screenFrame(null)
+                    .phoneFrame(null)
                     .cameraConnected(false)
                     .screenConnected(false)
+                    .phoneConnected(false)
+                    .phonePositionValid(false)
                     .audioChunk(null)
                     .audioConnected(false)
                     .audioLevel(0)

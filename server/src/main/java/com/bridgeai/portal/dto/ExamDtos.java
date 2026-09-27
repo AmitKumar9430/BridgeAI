@@ -138,6 +138,7 @@ public class ExamDtos {
         private int maxStrikesAllowed;
         private String assessmentType;
         private boolean allowMultipleAttempts;
+        private boolean phoneProtectionEnabled;
         private String institutionName;
         private List<QuestionPublicDto> questions;
     }
@@ -213,6 +214,7 @@ public class ExamDtos {
         private boolean canReattempt;
         private String assessmentType;
         private boolean allowMultipleAttempts;
+        private boolean phoneProtectionEnabled;
         private String institutionName;
         private List<AnswerBreakdownDto> breakdowns;
     }
@@ -236,6 +238,7 @@ public class ExamDtos {
         private String status;
         private int violationCount;
         private boolean canReattempt;
+        private boolean phoneProtectionEnabled;
     }
 
     @Data
@@ -288,6 +291,7 @@ public class ExamDtos {
         private Long institutionId;
         private String institutionName;
         private boolean allowMultipleAttempts;
+        private boolean phoneProtectionEnabled;
         private List<CreateQuestionDto> questions;
     }
 }

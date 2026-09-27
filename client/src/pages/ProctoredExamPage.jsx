@@ -18,6 +18,7 @@ import {
 
 import { AssessmentProtectionGuard } from '../components/AssessmentProtectionGuard';
 import { startRuntimeProtectionObserver, checkApiIntegrity, checkDomInjections } from '../security/AssessmentProtectionSystem';
+import QrCodeDisplay from '../components/common/QrCodeDisplay';
 
 export const FALLBACK_STARTER_CODES = {
   python: `# Python 3 Solution
@@ -88,10 +89,25 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   const [agreedToRules, setAgreedToRules] = useState(false);
   const [protectionPassed, setProtectionPassed] = useState(false);
   
+  const [examMeta, setExamMeta] = useState(null);
   const [examData, setExamData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [startError, setStartError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Smartphone Camera Proctoring States
+  const [phoneConnected, setPhoneConnected] = useState(false);
+  const [phonePositionValid, setPhonePositionValid] = useState(false);
+  const [phoneStreamFrame, setPhoneStreamFrame] = useState(null);
+  const [phoneFacingMode, setPhoneFacingMode] = useState('environment');
+  const [phoneCopiedNotice, setPhoneCopiedNotice] = useState(false);
+  const [phoneChecklist, setPhoneChecklist] = useState({
+    studentFaceVisible: false,
+    screenKeyboardVisible: false,
+    workspaceVisible: false
+  });
+  const phoneFrameRef = useRef(null);
+  useEffect(() => { phoneFrameRef.current = phoneStreamFrame; }, [phoneStreamFrame]);
 
   // Exam operational state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -321,6 +337,108 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     window.addEventListener('resize', checkDevice);
     return () => window.removeEventListener('resize', checkDevice);
   }, []);
+
+  // Fetch Exam Metadata on Mount to detect phoneProtectionEnabled
+  useEffect(() => {
+    if (!examId) return;
+    let isMounted = true;
+    api.get(`/exams/${examId}`)
+      .then((res) => {
+        if (isMounted && res.data) {
+          setExamMeta(res.data);
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to fetch exam metadata:', err);
+      });
+    return () => { isMounted = false; };
+  }, [examId]);
+
+  // Compute Pairing URL for phone proctor connection
+  const phonePairingAttemptId = examData?.attemptId || `pre_${user?.id || 1}_${examId}`;
+  const phonePairingUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/?phoneProctor=true&attemptId=${phonePairingAttemptId}&examId=${examId || 1}&examTitle=${encodeURIComponent(examMeta?.title || 'Proctored Exam')}&studentName=${encodeURIComponent(user?.fullName || 'Student')}`
+    : '';
+
+  // Listen to BroadcastChannel for local/paired phone proctor updates
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return;
+    const bc = new BroadcastChannel('bridgeai_surveillance_feed');
+
+    const handleMessage = (e) => {
+      const data = e.data;
+      if (!data) return;
+
+      if (data.type === 'PHONE_FRAME_UPDATE') {
+        if (data.examId && String(data.examId) !== String(examId)) return;
+        if (data.phoneFrame) {
+          setPhoneStreamFrame(data.phoneFrame);
+        }
+        if (data.phoneConnected !== undefined) {
+          setPhoneConnected(Boolean(data.phoneConnected));
+        }
+        if (data.phonePositionValid !== undefined) {
+          setPhonePositionValid(Boolean(data.phonePositionValid));
+        }
+        if (data.facingMode) {
+          setPhoneFacingMode(data.facingMode);
+        }
+      } else if (data.type === 'PHONE_CHECKLIST_UPDATE') {
+        if (data.examId && String(data.examId) !== String(examId)) return;
+        if (data.checklist) {
+          setPhoneChecklist(data.checklist);
+        }
+        if (data.phonePositionValid !== undefined) {
+          setPhonePositionValid(Boolean(data.phonePositionValid));
+        }
+        setPhoneConnected(true);
+      }
+    };
+
+    bc.addEventListener('message', handleMessage);
+    return () => {
+      bc.removeEventListener('message', handleMessage);
+      bc.close();
+    };
+  }, [examId]);
+
+  // Poll phone stream from server for cross-device remote phone streaming
+  useEffect(() => {
+    const isPhoneReq = Boolean(examMeta?.phoneProtectionEnabled || examData?.phoneProtectionEnabled);
+    if (!isPhoneReq) return;
+
+    const currentAttemptId = examData?.attemptId || `pre_${user?.id || 1}_${examId}`;
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get(`/vigilance/feed/phone-stream/${currentAttemptId}`);
+        if (res.data) {
+          if (res.data.phoneFrame) {
+            setPhoneStreamFrame(res.data.phoneFrame);
+          }
+          if (res.data.phoneConnected !== undefined) {
+            setPhoneConnected(Boolean(res.data.phoneConnected));
+          }
+          if (res.data.phonePositionValid !== undefined) {
+            setPhonePositionValid(Boolean(res.data.phonePositionValid));
+          }
+        }
+      } catch (e) {
+        // Silent poll error
+      }
+    }, 1800);
+
+    return () => clearInterval(interval);
+  }, [examMeta?.phoneProtectionEnabled, examData?.phoneProtectionEnabled, examData?.attemptId, examId, user?.id]);
+
+  // Copy phone pairing link handler
+  const handleCopyPhoneLink = () => {
+    if (phonePairingUrl && navigator.clipboard) {
+      navigator.clipboard.writeText(phonePairingUrl).then(() => {
+        setPhoneCopiedNotice(true);
+        setTimeout(() => setPhoneCopiedNotice(false), 3000);
+      });
+    }
+  };
 
   // Initialize camera for pre-check
   useEffect(() => {
@@ -1004,6 +1122,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
           latestAudioChunkRef.current = null;
         }
 
+        const currentPhoneFrame = phoneFrameRef.current || phoneStreamFrame;
+        const isPhoneActive = Boolean(currentPhoneFrame || phoneConnected);
+
         if (bc) {
           try {
             bc.postMessage({
@@ -1011,6 +1132,10 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               attemptId: examData.attemptId,
               cameraFrame: camFrame,
               screenFrame: scrFrame,
+              phoneFrame: currentPhoneFrame,
+              phoneConnected: isPhoneActive,
+              phonePositionValid: phonePositionValid,
+              phoneProtectionEnabled: Boolean(examData.phoneProtectionEnabled || examMeta?.phoneProtectionEnabled),
               cameraConnected: isCamActive,
               screenConnected: isScrActive,
               audioConnected: isAudioActive,
@@ -1024,6 +1149,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         api.post(`/vigilance/feed/stream/${examData.attemptId}`, {
           cameraFrame: camFrame,
           screenFrame: scrFrame,
+          phoneFrame: currentPhoneFrame,
+          phoneConnected: isPhoneActive,
+          phonePositionValid: phonePositionValid,
           cameraConnected: isCamActive,
           screenConnected: isScrActive,
           audioConnected: isAudioActive,
@@ -1046,7 +1174,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       if (bc) bc.close();
       bcRef.current = null;
     };
-  }, [examStarted, examData?.attemptId, cameraStream, screenStream, audioStream]);
+  }, [examStarted, examData?.attemptId, cameraStream, screenStream, audioStream, phoneStreamFrame, phoneConnected, phonePositionValid]);
 
   // MCQ Keyboard Navigation and Shortcut Support
   useEffect(() => {
@@ -2401,7 +2529,9 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     const isMicReady = micStatus === 'active' && !!audioStream;
     const isScreenReady = screenStatus === 'active' && !!screenStream;
     const isScreenRejected = screenStatus === 'invalid_surface';
-    const canInitiateStart = isCamReady && isMicReady && !isScreenRejected && agreedToRules && protectionPassed;
+    const isPhoneRequired = Boolean(examMeta?.phoneProtectionEnabled);
+    const isPhoneReady = !isPhoneRequired || (phoneConnected && phonePositionValid);
+    const canInitiateStart = isCamReady && isMicReady && !isScreenRejected && agreedToRules && protectionPassed && isPhoneReady;
 
     return (
       <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#080D1A] text-[#0F172A] dark:text-[#F8FAFC] flex flex-col items-center justify-center p-4 sm:p-6 py-10 pb-36 sm:pb-32 select-none font-sans transition-colors overflow-y-auto">
@@ -2412,13 +2542,24 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] font-extrabold tracking-wider text-rose-600 uppercase bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-900">
                   Strict Secure Protocol
                 </span>
                 <span className="text-[10px] font-extrabold tracking-wider text-blue-600 dark:text-blue-400 uppercase bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-900">
                   AI & Live Proctoring
                 </span>
+                {isPhoneRequired ? (
+                  <span className="text-[10px] font-extrabold tracking-wider text-emerald-700 dark:text-emerald-300 uppercase bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                    <Smartphone className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <span>Mode 2: Enhanced Phone Protection (3 Feeds)</span>
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-extrabold tracking-wider text-slate-700 dark:text-slate-300 uppercase bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full border border-slate-300 dark:border-slate-700 flex items-center gap-1">
+                    <Monitor className="w-3 h-3 text-slate-500" />
+                    <span>Mode 1: Standard Protection (2 Feeds)</span>
+                  </span>
+                )}
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
                 Mandatory Assessment Pre-Check
@@ -2591,6 +2732,143 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               </div>
             </div>
 
+            {/* 4. OPTIONAL SMARTPHONE PROCTORING CARD (Only rendered when Mode 2 is enabled) */}
+            {isPhoneRequired && (
+              <div className="p-4 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-2xl border-2 border-emerald-500/40 space-y-4 shadow-sm md:col-span-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5 uppercase tracking-wider">
+                    <Smartphone className="w-4 h-4 text-emerald-500" />
+                    <span>4. Mandatory Smartphone Pairing &amp; Setup (3-Feed Mode)</span>
+                  </span>
+                  {phoneConnected && phonePositionValid ? (
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Camera Connected &amp; Angle Verified
+                    </span>
+                  ) : phoneConnected ? (
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 animate-pulse">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      Connected — Verify 3 Checklist Items
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1">
+                      <Smartphone className="w-3.5 h-3.5 animate-pulse" />
+                      Awaiting Smartphone Pairing
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Left: QR Code Pairing Box */}
+                  <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-between text-center space-y-3">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Step A: Scan QR Code with Phone Camera
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        Opens the live surveillance camera client in your mobile browser.
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 bg-white rounded-xl shadow-inner border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                      <QrCodeDisplay value={phonePairingUrl} size={150} />
+                    </div>
+
+                    <div className="w-full space-y-1.5">
+                      <button
+                        type="button"
+                        onClick={handleCopyPhoneLink}
+                        className="w-full py-1.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>{phoneCopiedNotice ? 'Pairing Link Copied!' : 'Copy Mobile Pairing Link'}</span>
+                      </button>
+                      <p className="text-[10px] text-slate-400">
+                        Place your smartphone to your side at a 45° angle facing you &amp; your laptop.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right: Live Phone Stream & Angle Checklist */}
+                  <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-between space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                          Step B: Smartphone Camera Live View
+                        </h4>
+                        {phoneConnected && (
+                          <span className="text-[9px] font-bold uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">
+                            Feed Active
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="w-full aspect-video bg-slate-950 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 relative flex items-center justify-center">
+                        {phoneStreamFrame ? (
+                          <img
+                            src={phoneStreamFrame}
+                            alt="Smartphone Proctor Stream"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-slate-500 p-4 text-center">
+                            <Smartphone className="w-8 h-8 mb-2 text-slate-600 animate-bounce" />
+                            <span className="text-xs font-semibold text-slate-400">Scan QR code to stream phone feed</span>
+                            <span className="text-[10px] text-slate-500 mt-0.5">Stream will appear automatically</span>
+                          </div>
+                        )}
+                        {phoneConnected && phonePositionValid && (
+                          <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                            VALIDATED
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 3-Point Positioning Checklist */}
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60 space-y-1.5">
+                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">
+                        Position Verification Checklist:
+                      </span>
+                      <div className="space-y-1 text-[11px]">
+                        <div className="flex items-center gap-2">
+                          {phoneChecklist.studentFaceVisible ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          ) : (
+                            <Circle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          )}
+                          <span className={phoneChecklist.studentFaceVisible ? 'text-emerald-700 dark:text-emerald-300 font-medium' : 'text-slate-500 dark:text-slate-400'}>
+                            Candidate Face &amp; Hands Visible
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {phoneChecklist.screenKeyboardVisible ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          ) : (
+                            <Circle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          )}
+                          <span className={phoneChecklist.screenKeyboardVisible ? 'text-emerald-700 dark:text-emerald-300 font-medium' : 'text-slate-500 dark:text-slate-400'}>
+                            Laptop Screen &amp; Keyboard Visible
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {phoneChecklist.workspaceVisible ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          ) : (
+                            <Circle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          )}
+                          <span className={phoneChecklist.workspaceVisible ? 'text-emerald-700 dark:text-emerald-300 font-medium' : 'text-slate-500 dark:text-slate-400'}>
+                            Desk Surroundings Clear of Forbidden Items
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
 
           {/* Assessment Protection System Guard (Browser Extension & Sandbox Checker) */}
@@ -2668,6 +2946,10 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                         ? 'Deactivate unauthorized browser extensions to proceed'
                         : isScreenRejected
                         ? 'Please re-share your Entire Screen (not a window or tab)'
+                        : isPhoneRequired && !phoneConnected
+                        ? 'Scan QR code with your smartphone to connect camera stream'
+                        : isPhoneRequired && !phonePositionValid
+                        ? 'Complete all 3 positioning checklist items on your smartphone'
                         : 'Verify Camera & Microphone access to unlock assessment'}
                     </span>
                   </div>
@@ -2803,6 +3085,23 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
               </span>
             )}
           </div>
+
+          {/* Smartphone Camera Status (Enhanced 3-Feed Mode) */}
+          {(examData?.phoneProtectionEnabled || examMeta?.phoneProtectionEnabled) && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800">
+              <Smartphone className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-slate-300 font-medium">Phone:</span>
+              {phoneConnected ? (
+                <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                </span>
+              ) : (
+                <span className="text-rose-400 font-semibold inline-flex items-center gap-1 animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Disconnected
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

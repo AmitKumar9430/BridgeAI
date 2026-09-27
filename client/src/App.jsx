@@ -14,11 +14,17 @@ import { VigilanceDashboard } from './pages/VigilanceDashboard';
 import { CourseDetailsPage } from './pages/CourseDetailsPage';
 import { ProctoredExamPage } from './pages/ProctoredExamPage';
 import { ExamResultPage } from './pages/ExamResultPage';
+import { PhoneProctorPage } from './pages/PhoneProctorPage';
 import { Footer } from './components/common/Footer';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 function AppContent() {
   const { user, switchRoleDemo, isBossAdmin, isSuperAdmin, isTrainer, isVigilanceOfficer } = useAuth();
+  const isPhoneProctor = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('phoneProctor') === 'true';
+
+  if (isPhoneProctor) {
+    return <PhoneProctorPage />;
+  }
   const {
     view,
     tab,

@@ -36,6 +36,11 @@ public class ExamController {
         return ResponseEntity.ok(examService.getAvailableExams(user));
     }
 
+    @GetMapping("/{examId}")
+    public ResponseEntity<Exam> getExam(@PathVariable Long examId) {
+        return ResponseEntity.ok(examService.getExamById(examId));
+    }
+
     private User resolveCandidate(Authentication auth) {
         String email = (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser"))
                 ? auth.getName() : "rahul.student@bridgeai.edu";

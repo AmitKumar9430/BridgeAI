@@ -258,6 +258,7 @@ export const TrainerDashboard = ({
       totalMarks: exam.totalMarks || 100,
       passingMarks: exam.passingMarks || 40,
       assessmentType: exam.assessmentType || 'TRAINER_ASSIGNED',
+      phoneProtectionEnabled: Boolean(exam.phoneProtectionEnabled),
       scheduledStartTime: exam.scheduledStartTime ? exam.scheduledStartTime.substring(0, 16) : '',
       scheduledEndTime: exam.scheduledEndTime ? exam.scheduledEndTime.substring(0, 16) : '',
       active: exam.active !== false
@@ -275,6 +276,7 @@ export const TrainerDashboard = ({
         totalMarks: Number(editingExam.totalMarks),
         passingMarks: Number(editingExam.passingMarks),
         assessmentType: editingExam.assessmentType,
+        phoneProtectionEnabled: Boolean(editingExam.phoneProtectionEnabled),
         scheduledStartTime: editingExam.scheduledStartTime ? new Date(editingExam.scheduledStartTime).toISOString() : null,
         scheduledEndTime: editingExam.scheduledEndTime ? new Date(editingExam.scheduledEndTime).toISOString() : null,
         active: editingExam.active
@@ -384,6 +386,7 @@ export const TrainerDashboard = ({
     passingPercentage: 60,
     maxViolations: 3,
     totalMarks: 30,
+    phoneProtectionEnabled: false,
     questions: [
       {
         questionText: 'What is the primary benefit of deploying microservices behind a Least-Connection load balancer?',
@@ -1231,6 +1234,7 @@ public class OrderEventPublisher {
 
       await api.post('/exams/schedule', {
         ...examForm,
+        phoneProtectionEnabled: Boolean(examForm.phoneProtectionEnabled),
         questions: cleanedQuestions,
         courseId: selectedCourseId,
         totalMarks: computedTotal,
@@ -2470,6 +2474,7 @@ public class OrderEventPublisher {
                     <th className="p-3 font-semibold">#</th>
                     <th className="p-3 font-semibold">Exam Title</th>
                     <th className="p-3 font-semibold">Type</th>
+                    <th className="p-3 font-semibold">Protection Level</th>
                     <th className="p-3 font-semibold">Total Marks</th>
                     <th className="p-3 font-semibold">Duration</th>
                     <th className="p-3 font-semibold">Start Window</th>
@@ -2515,6 +2520,19 @@ public class OrderEventPublisher {
                           }`}>
                             {exam.assessmentType === 'SELF_ASSESSMENT' ? 'Self-Practice' : 'Trainer Assigned'}
                           </span>
+                        </td>
+                        <td className="p-3">
+                          {exam.phoneProtectionEnabled ? (
+                            <span className="px-2 py-1 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800 inline-flex items-center gap-1">
+                              <Smartphone className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                              <span>Enhanced (3 Feeds)</span>
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1">
+                              <Monitor className="w-3 h-3 text-slate-500" />
+                              <span>Standard (2 Feeds)</span>
+                            </span>
+                          )}
                         </td>
                         <td className="p-3 font-semibold text-slate-700">{exam.totalMarks} marks</td>
                         <td className="p-3 text-slate-600 dark:text-slate-300">{exam.durationMinutes} min</td>
@@ -3776,6 +3794,81 @@ public class OrderEventPublisher {
                 <p className="text-[11px] text-rose-600 font-medium">
                   • Automatic Deadline Enforcement: If a student does not submit before the End Deadline, the assessment is automatically locked as <strong>MISSED</strong> (0 marks).
                 </p>
+              </div>
+
+              {/* SECTION: PROCTORING & SECURITY CONFIGURATION */}
+              <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-3.5">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span>Proctoring &amp; Security Configuration</span>
+                  </h4>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                    {examForm.phoneProtectionEnabled ? 'Enhanced 3-Source Mode' : 'Standard 2-Source Mode'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <div>
+                      <span className="font-bold block text-[11px]">Webcam Monitoring</span>
+                      <span className="text-[10px] text-slate-500">Live facial surveillance</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <div>
+                      <span className="font-bold block text-[11px]">Screen Share Monitoring</span>
+                      <span className="text-[10px] text-slate-500">Full computer display</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <div>
+                      <span className="font-bold block text-[11px]">Protected Lockdown</span>
+                      <span className="text-[10px] text-slate-500">Tab switch &amp; copy guard</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Optional Phone Protection Toggle Card */}
+                <div className={`p-3.5 rounded-xl border transition-all ${
+                  examForm.phoneProtectionEnabled
+                    ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-300 dark:border-blue-700 shadow-2xs'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
+                }`}>
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(examForm.phoneProtectionEnabled)}
+                      onChange={(e) => setExamForm(prev => ({ ...prev, phoneProtectionEnabled: e.target.checked }))}
+                      className="mt-1 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <Smartphone className="w-4 h-4 text-indigo-500" />
+                          <span>Enable Phone Protection</span>
+                        </span>
+                        {examForm.phoneProtectionEnabled ? (
+                          <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-blue-600 text-white shadow-2xs">
+                            Enhanced 3-Feed Proctoring ON
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                            OFF (Standard 2-Feed Mode)
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                        When enabled, students <strong>must pair their smartphone via QR code</strong> to stream a 3rd live camera angle showing candidate + laptop + screen before entering the exam. When OFF, the standard exam workflow applies (Webcam + Screen Share only).
+                      </p>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               {/* SECTION 2: CSV UPLOAD IN PRECISE ORDER */}
@@ -5565,6 +5658,28 @@ public class OrderEventPublisher {
                 <label htmlFor="editExamActive" className="font-semibold text-slate-700 dark:text-slate-300">
                   Assessment Active & Visible to Students
                 </label>
+              </div>
+
+              {/* Phone Protection Toggle */}
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-emerald-500" />
+                    <span className="font-bold text-slate-800 dark:text-slate-100">
+                      Enable Phone Protection (3-Feed Mode)
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    id="editPhoneProtection"
+                    checked={editingExam.phoneProtectionEnabled || false}
+                    onChange={(e) => setEditingExam({ ...editingExam, phoneProtectionEnabled: e.target.checked })}
+                    className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Requires candidates to scan a QR code and connect their smartphone camera as a 3rd surveillance stream (Webcam + Screen + Phone).
+                </p>
               </div>
               <div className="flex gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <button

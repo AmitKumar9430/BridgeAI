@@ -10,7 +10,7 @@ import {
   Users, UserPlus, Check, X, Shield, Edit3, Monitor, ShieldAlert, Target,
   Globe, Building2, Layers, PanelLeftOpen, PanelLeftClose,
   Printer, Download, Search, Copy, Sparkles, GraduationCap, Bell, Camera, Ban,
-  FileCheck
+  FileCheck, Smartphone
 } from 'lucide-react';
 import { DashboardSidebar } from '../components/common/DashboardSidebar';
 import { LiveSessionsTab } from '../components/common/LiveSessionsTab';
@@ -1757,6 +1757,17 @@ export const StudentDashboard = ({
                               }`}>
                                 <Clock className="w-3 h-3" />
                                 <span>Deadline: {new Date(ex.scheduledEndTime).toLocaleString()}</span>
+                              </span>
+                            )}
+                            {ex.phoneProtectionEnabled ? (
+                              <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                                <Smartphone className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                <span>Enhanced (Phone Required)</span>
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                                <Monitor className="w-3 h-3 text-slate-500" />
+                                <span>Standard Protection</span>
                               </span>
                             )}
                             {isRecentlyTriggered && (

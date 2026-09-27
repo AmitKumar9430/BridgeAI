@@ -29,8 +29,6 @@ public class VigilanceService {
     private final InstitutionRepository institutionRepository;
     private final AuthService authService;
 
-    @Getter
-    @Setter
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -41,6 +39,10 @@ public class VigilanceService {
         private String screenFrame;
         private boolean cameraConnected;
         private boolean screenConnected;
+        private String phoneFrame;
+        private boolean phoneConnected;
+        private boolean phonePositionValid;
+        private long phoneTimestamp;
         private String audioChunk;
         private boolean audioConnected;
         private int audioLevel;
@@ -52,18 +54,29 @@ public class VigilanceService {
 
     public void saveLiveStreamFrame(Long attemptId, String cameraFrame, String screenFrame, 
                                     boolean cameraConnected, boolean screenConnected, 
-                                    String audioChunk, boolean audioConnected, int audioLevel) {
+                                    String audioChunk, boolean audioConnected, int audioLevel,
+                                    String phoneFrame, Boolean phoneConnected, Boolean phonePositionValid) {
         if (attemptId == null) return;
         LiveStreamFrame prev = liveStreamFrames.get(attemptId);
         boolean hasNewAudio = audioChunk != null && !audioChunk.isBlank();
         String finalAudio = hasNewAudio ? audioChunk : (prev != null ? prev.getAudioChunk() : null);
         long finalAudioTimestamp = hasNewAudio ? System.currentTimeMillis() : (prev != null ? prev.getAudioTimestamp() : 0L);
+
+        boolean finalPhoneConnected = phoneConnected != null ? phoneConnected : (prev != null && prev.isPhoneConnected());
+        boolean finalPhonePositionValid = phonePositionValid != null ? phonePositionValid : (prev != null && prev.isPhonePositionValid());
+        String finalPhoneFrame = (phoneFrame != null && !phoneFrame.isBlank()) ? phoneFrame : (prev != null ? prev.getPhoneFrame() : null);
+        long finalPhoneTimestamp = (phoneFrame != null && !phoneFrame.isBlank()) ? System.currentTimeMillis() : (prev != null ? prev.getPhoneTimestamp() : 0L);
+
         liveStreamFrames.put(attemptId, LiveStreamFrame.builder()
                 .attemptId(attemptId)
                 .cameraFrame(cameraFrame != null ? cameraFrame : (prev != null ? prev.getCameraFrame() : null))
                 .screenFrame(screenFrame != null ? screenFrame : (prev != null ? prev.getScreenFrame() : null))
                 .cameraConnected(cameraConnected)
                 .screenConnected(screenConnected)
+                .phoneFrame(finalPhoneFrame)
+                .phoneConnected(finalPhoneConnected)
+                .phonePositionValid(finalPhonePositionValid)
+                .phoneTimestamp(finalPhoneTimestamp)
                 .audioChunk(finalAudio)
                 .audioConnected(audioConnected)
                 .audioLevel(audioLevel)
@@ -72,8 +85,37 @@ public class VigilanceService {
                 .build());
     }
 
+    public void saveLiveStreamFrame(Long attemptId, String cameraFrame, String screenFrame, 
+                                    boolean cameraConnected, boolean screenConnected, 
+                                    String audioChunk, boolean audioConnected, int audioLevel) {
+        saveLiveStreamFrame(attemptId, cameraFrame, screenFrame, cameraConnected, screenConnected, audioChunk, audioConnected, audioLevel, null, null, null);
+    }
+
     public void saveLiveStreamFrame(Long attemptId, String cameraFrame, String screenFrame, boolean cameraConnected, boolean screenConnected) {
-        saveLiveStreamFrame(attemptId, cameraFrame, screenFrame, cameraConnected, screenConnected, null, true, 0);
+        saveLiveStreamFrame(attemptId, cameraFrame, screenFrame, cameraConnected, screenConnected, null, true, 0, null, null, null);
+    }
+
+    public void savePhoneStreamFrame(Long attemptId, String phoneFrame, boolean phoneConnected, boolean phonePositionValid) {
+        if (attemptId == null) return;
+        LiveStreamFrame prev = liveStreamFrames.get(attemptId);
+        long now = System.currentTimeMillis();
+        if (prev != null) {
+            prev.setPhoneFrame(phoneFrame != null ? phoneFrame : prev.getPhoneFrame());
+            prev.setPhoneConnected(phoneConnected);
+            prev.setPhonePositionValid(phonePositionValid);
+            prev.setPhoneTimestamp(now);
+            prev.setTimestamp(now);
+            liveStreamFrames.put(attemptId, prev);
+        } else {
+            liveStreamFrames.put(attemptId, LiveStreamFrame.builder()
+                    .attemptId(attemptId)
+                    .phoneFrame(phoneFrame)
+                    .phoneConnected(phoneConnected)
+                    .phonePositionValid(phonePositionValid)
+                    .phoneTimestamp(now)
+                    .timestamp(now)
+                    .build());
+        }
     }
 
     public LiveStreamFrame getLiveStreamFrame(Long attemptId) {
@@ -437,10 +479,14 @@ public class VigilanceService {
             studentMap.put("isLive", isLive);
             studentMap.put("hasActiveStream", hasActiveStream);
 
+            studentMap.put("phoneProtectionEnabled", exam != null && exam.isPhoneProtectionEnabled());
             int audioLevel = 0;
             if (hasActiveStream && streamFrame != null) {
                 studentMap.put("cameraFrame", streamFrame.getCameraFrame());
                 studentMap.put("screenFrame", streamFrame.getScreenFrame());
+                studentMap.put("phoneFrame", streamFrame.getPhoneFrame());
+                studentMap.put("phoneConnected", streamFrame.isPhoneConnected());
+                studentMap.put("phonePositionValid", streamFrame.isPhonePositionValid());
                 studentMap.put("audioChunk", streamFrame.getAudioChunk());
                 studentMap.put("audioTimestamp", streamFrame.getAudioTimestamp());
                 if (streamFrame.isCameraConnected()) cameraConnected = true;
@@ -450,12 +496,16 @@ public class VigilanceService {
             } else {
                 studentMap.put("cameraFrame", null);
                 studentMap.put("screenFrame", null);
+                studentMap.put("phoneFrame", null);
+                studentMap.put("phoneConnected", false);
+                studentMap.put("phonePositionValid", false);
                 studentMap.put("audioChunk", null);
                 studentMap.put("audioTimestamp", 0L);
             }
 
             studentMap.put("cameraConnected", cameraConnected);
             studentMap.put("screenConnected", screenConnected);
+            studentMap.put("phoneConnected", (streamFrame != null && streamFrame.isPhoneConnected()));
             studentMap.put("audioConnected", audioConnected);
             studentMap.put("audioLevel", audioLevel);
             studentMap.put("networkConnected", networkConnected);
@@ -577,6 +627,7 @@ public class VigilanceService {
                 examObj.put("examId", examId);
                 examObj.put("examTitle", ex != null ? ex.getTitle() : "Proctored Examination");
                 examObj.put("durationMinutes", ex != null ? ex.getDurationMinutes() : 45);
+                examObj.put("phoneProtectionEnabled", ex != null && ex.isPhoneProtectionEnabled());
                 examObj.put("liveStudentsCount", eLive);
                 examObj.put("warningCount", eWarn);
                 examObj.put("criticalCount", eCrit);

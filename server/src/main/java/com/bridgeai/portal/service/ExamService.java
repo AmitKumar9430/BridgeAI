@@ -204,6 +204,7 @@ public class ExamService {
                 .maxStrikesAllowed(effectiveMaxViolations)
                 .assessmentType(exam.getAssessmentType() != null ? exam.getAssessmentType() : "TRAINER_ASSIGNED")
                 .allowMultipleAttempts("SELF_ASSESSMENT".equalsIgnoreCase(exam.getAssessmentType()) || exam.isAllowMultipleAttempts())
+                .phoneProtectionEnabled(exam.isPhoneProtectionEnabled())
                 .institutionName(exam.getInstitutionName())
                 .questions(publicQuestions)
                 .build();
@@ -430,6 +431,7 @@ public class ExamService {
                 .canReattempt(attempt.isCanReattempt() || "SELF_ASSESSMENT".equalsIgnoreCase(exam.getAssessmentType()))
                 .assessmentType(exam.getAssessmentType() != null ? exam.getAssessmentType() : "TRAINER_ASSIGNED")
                 .allowMultipleAttempts("SELF_ASSESSMENT".equalsIgnoreCase(exam.getAssessmentType()) || exam.isAllowMultipleAttempts())
+                .phoneProtectionEnabled(exam.isPhoneProtectionEnabled())
                 .institutionName(exam.getInstitutionName())
                 .breakdowns(breakdowns)
                 .build();
@@ -640,6 +642,7 @@ public class ExamService {
                 .institutionName(instName)
                 .assessmentType(req.getAssessmentType() != null ? req.getAssessmentType() : "TRAINER_ASSIGNED")
                 .allowMultipleAttempts("SELF_ASSESSMENT".equalsIgnoreCase(req.getAssessmentType()) || req.isAllowMultipleAttempts())
+                .phoneProtectionEnabled(req.isPhoneProtectionEnabled())
                 .scheduledStartTime(req.getScheduledStartTime())
                 .scheduledEndTime(req.getScheduledEndTime())
                 .durationMinutes(req.getDurationMinutes() > 0 ? req.getDurationMinutes() : 45)
@@ -823,6 +826,7 @@ public class ExamService {
             map.put("institutionId", exam.getInstitutionId());
             map.put("institutionName", exam.getInstitutionName());
             map.put("allowMultipleAttempts", "SELF_ASSESSMENT".equalsIgnoreCase(exam.getAssessmentType()) || exam.isAllowMultipleAttempts());
+            map.put("phoneProtectionEnabled", exam.isPhoneProtectionEnabled());
             map.put("createdAt", exam.getCreatedAt());
 
             ExamAttempt att = attemptMap.get(exam.getId());
@@ -921,6 +925,7 @@ public class ExamService {
         if (req.getScheduledEndTime() != null) {
             exam.setScheduledEndTime(req.getScheduledEndTime());
         }
+        exam.setPhoneProtectionEnabled(req.isPhoneProtectionEnabled());
         // If institution max strikes was configured by Boss Admin, maintain synchronization
         if (exam.getInstitutionId() != null) {
             institutionRepository.findById(exam.getInstitutionId())

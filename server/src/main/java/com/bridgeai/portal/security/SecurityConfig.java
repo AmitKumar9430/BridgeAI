@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/audit/**", "/audit/**").permitAll()
                         .requestMatchers("/api/files/**", "/files/**").permitAll()
                         .requestMatchers("/api/vigilance/feed/stream/**", "/vigilance/feed/stream/**").permitAll()
+                        .requestMatchers("/api/vigilance/feed/phone-stream/**", "/vigilance/feed/phone-stream/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

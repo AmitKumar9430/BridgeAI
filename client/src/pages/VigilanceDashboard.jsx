@@ -1356,12 +1356,12 @@ export const VigilanceDashboard = ({
                                                     </span>
                                                   </div>
 
-                                                   <div className="flex items-center justify-between text-[10px] text-slate-300">
+                                                    <div className="flex items-center justify-between text-[10px] text-slate-300">
                                                       <div className="flex items-center gap-1.5 pointer-events-auto">
                                                         <span className="font-mono bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-slate-800">
                                                           Att #{st.attemptId}
                                                         </span>
-                                                        {/* Interactive Stream Switcher: Cam vs Screen */}
+                                                        {/* Interactive Stream Switcher: Cam vs Screen vs Phone */}
                                                         <div className="flex items-center bg-black/80 backdrop-blur-xs p-0.5 rounded border border-slate-700">
                                                           <button
                                                             type="button"
@@ -1395,6 +1395,24 @@ export const VigilanceDashboard = ({
                                                             <Monitor className="w-2.5 h-2.5" />
                                                             <span>Scr</span>
                                                           </button>
+                                                          {(st.phoneProtectionEnabled || exam.phoneProtectionEnabled) && (
+                                                            <button
+                                                              type="button"
+                                                              onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setCardStreamModes(prev => ({ ...prev, [st.attemptId]: 'phone' }));
+                                                              }}
+                                                              title="View Candidate Smartphone Feed"
+                                                              className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all cursor-pointer flex items-center gap-0.5 ${
+                                                                (cardStreamModes[st.attemptId] || globalSurveillanceFeedMode) === 'phone'
+                                                                  ? 'bg-emerald-600 text-white'
+                                                                  : 'text-slate-400 hover:text-white'
+                                                              }`}
+                                                            >
+                                                              <Smartphone className="w-2.5 h-2.5" />
+                                                              <span>Phone</span>
+                                                            </button>
+                                                          )}
                                                         </div>
                                                       </div>
                                                       <span className="font-mono bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-slate-800 text-amber-300">
@@ -1403,11 +1421,46 @@ export const VigilanceDashboard = ({
                                                     </div>
                                                   </div>
 
-                                                  {/* Candidate Stream Video Visual: Camera or Live Screen */}
+                                                  {/* Candidate Stream Video Visual: Camera or Live Screen or Phone */}
                                                   {(() => {
                                                     const cardMode = cardStreamModes[st.attemptId] || globalSurveillanceFeedMode;
                                                     const camFrame = liveFrames[st.attemptId]?.cameraFrame || st.cameraFrame;
                                                     const scrFrame = liveFrames[st.attemptId]?.screenFrame || st.screenFrame;
+                                                    const phFrame = liveFrames[st.attemptId]?.phoneFrame || st.phoneFrame;
+
+                                                    if (cardMode === 'phone') {
+                                                      if (phFrame) {
+                                                        return (
+                                                          <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+                                                            <img
+                                                              src={phFrame}
+                                                              alt={`Live smartphone stream of ${st.studentName}`}
+                                                              className="w-full h-full object-cover"
+                                                            />
+                                                            <div className="absolute top-2 right-2 bg-emerald-950/90 text-emerald-300 border border-emerald-700 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold flex items-center gap-1 z-10">
+                                                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                                              <span>PHONE LIVE</span>
+                                                            </div>
+                                                          </div>
+                                                        );
+                                                      }
+                                                      return (
+                                                        <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-950 p-4 text-center overflow-hidden">
+                                                          <div className="relative flex items-center justify-center">
+                                                            <span className="absolute w-12 h-12 rounded-full bg-emerald-500 opacity-25 animate-ping"></span>
+                                                            <div className="w-11 h-11 rounded-xl bg-emerald-950/90 border border-emerald-500/60 flex items-center justify-center text-emerald-400 shadow-md">
+                                                              <Smartphone className="w-5 h-5" />
+                                                            </div>
+                                                          </div>
+                                                          <span className="text-[10px] font-mono text-slate-300 font-bold mt-2 z-0">
+                                                            Phone Stream Connecting...
+                                                          </span>
+                                                          <span className="text-[9px] font-mono text-slate-500 z-0">
+                                                            Exam #{st.examId} · Att #{st.attemptId}
+                                                          </span>
+                                                        </div>
+                                                      );
+                                                    }
 
                                                     if (cardMode === 'screen') {
                                                       if (scrFrame) {
@@ -1926,14 +1979,14 @@ export const VigilanceDashboard = ({
 
               {/* Main Split Screen Media Stage */}
               <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1 bg-slate-900/50">
-                {/* 2-Column Split: Live Camera Stream (Left) + Live Student Screen (Right) */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* 2-Column or 3-Column Split depending on Phone Protection */}
+                <div className={`grid grid-cols-1 ${selectedStudent.phoneProtectionEnabled ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4`}>
                   {/* Panel 1: Live Candidate Camera Stream */}
                   <div className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden flex flex-col shadow-lg">
                     <div className="px-3.5 py-2.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-xs font-semibold">
                       <div className="flex items-center gap-2">
                         <Video className="w-4 h-4 text-emerald-400" />
-                        <span className="text-slate-200 font-bold tracking-wide">Live Candidate Camera Stream</span>
+                        <span className="text-slate-200 font-bold tracking-wide">Live Candidate Webcam</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 flex items-center gap-1.5">
@@ -2053,6 +2106,73 @@ export const VigilanceDashboard = ({
                       )}
                     </div>
                   </div>
+
+                  {/* Panel 3: Live Smartphone Camera Stream (Optional 3rd Feed for Enhanced Mode) */}
+                  {selectedStudent.phoneProtectionEnabled && (
+                    <div className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden flex flex-col shadow-lg">
+                      <div className="px-3.5 py-2.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-xs font-semibold">
+                        <div className="flex items-center gap-2">
+                          <Smartphone className="w-4 h-4 text-emerald-400" />
+                          <span className="text-slate-200 font-bold tracking-wide">Live Smartphone Stream</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border flex items-center gap-1.5 ${
+                            liveFrames[selectedStudent.attemptId]?.phoneFrame || selectedStudent.phoneFrame || liveFrames[selectedStudent.attemptId]?.phoneConnected
+                              ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800/80'
+                              : 'bg-amber-950/80 text-amber-300 border-amber-800/80'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${
+                              liveFrames[selectedStudent.attemptId]?.phoneFrame || selectedStudent.phoneFrame || liveFrames[selectedStudent.attemptId]?.phoneConnected
+                                ? 'bg-emerald-400 animate-ping'
+                                : 'bg-amber-400'
+                            }`}></span>
+                            {liveFrames[selectedStudent.attemptId]?.phoneFrame || selectedStudent.phoneFrame || liveFrames[selectedStudent.attemptId]?.phoneConnected
+                              ? 'Phone Camera Active'
+                              : 'Connecting Phone...'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleEnterFullscreen('phone')}
+                            title="View Smartphone Feed in Fullscreen"
+                            className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-semibold border border-slate-700 cursor-pointer"
+                          >
+                            <Maximize2 className="w-3 h-3 text-slate-300" />
+                            <span className="hidden sm:inline">Fullscreen</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
+                        {liveFrames[selectedStudent.attemptId]?.phoneFrame || selectedStudent.phoneFrame ? (
+                          <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+                            <img
+                              src={liveFrames[selectedStudent.attemptId]?.phoneFrame || selectedStudent.phoneFrame}
+                              alt={`Live Smartphone Stream of ${selectedStudent.studentName}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-3 left-3 bg-black/70 px-2 py-1 rounded text-[10px] font-mono text-emerald-400 border border-emerald-900/60 flex items-center gap-1.5 z-10">
+                              <Smartphone className="w-3 h-3" />
+                              <span>3RD ANGLE PROCTOR</span>
+                            </div>
+                            {liveFrames[selectedStudent.attemptId]?.phonePositionValid && (
+                              <div className="absolute bottom-3 right-3 bg-emerald-600/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-full z-10">
+                                ANGLE VERIFIED
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center space-y-2 text-slate-500 p-4 text-center">
+                            <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center">
+                              <Smartphone className="w-8 h-8 text-emerald-400 animate-pulse" />
+                            </div>
+                            <span className="text-xs font-mono text-slate-400">
+                              Smartphone Camera Connecting...
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Real-time Candidate Microphone Audio Streaming Strip */}
@@ -2822,14 +2942,18 @@ export const VigilanceDashboard = ({
             <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 px-4 py-3 rounded-2xl mb-3 text-white shadow-xl">
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold ${
-                  fullScreenStream === 'camera' ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'
+                  fullScreenStream === 'phone'
+                    ? 'bg-emerald-600 text-white'
+                    : fullScreenStream === 'camera'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-blue-600 text-white'
                 }`}>
-                  {fullScreenStream === 'camera' ? <Video className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
+                  {fullScreenStream === 'phone' ? <Smartphone className="w-5 h-5" /> : fullScreenStream === 'camera' ? <Video className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-indigo-300 border border-slate-700">
-                      Fullscreen {fullScreenStream === 'camera' ? 'Webcam Feed' : 'Candidate Screen Feed'}
+                      Fullscreen {fullScreenStream === 'phone' ? 'Smartphone Feed' : fullScreenStream === 'camera' ? 'Webcam Feed' : 'Candidate Screen Feed'}
                     </span>
                     <span className="text-xs font-mono text-slate-400">
                       Candidate: #{selectedStudent.studentId} · Attempt #{selectedStudent.attemptId}
@@ -2846,23 +2970,40 @@ export const VigilanceDashboard = ({
 
               {/* Stream Switcher and Exit Button */}
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFullScreenStream(fullScreenStream === 'camera' ? 'screen' : 'camera')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  {fullScreenStream === 'camera' ? (
-                    <>
-                      <Monitor className="w-3.5 h-3.5 text-blue-400" />
-                      <span className="hidden sm:inline">Switch to Candidate Screen</span>
-                    </>
-                  ) : (
-                    <>
-                      <Video className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="hidden sm:inline">Switch to Candidate Webcam</span>
-                    </>
+                <div className="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => setFullScreenStream('camera')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                      fullScreenStream === 'camera' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    <span>Webcam</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFullScreenStream('screen')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                      fullScreenStream === 'screen' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Monitor className="w-3.5 h-3.5" />
+                    <span>Screen</span>
+                  </button>
+                  {selectedStudent.phoneProtectionEnabled && (
+                    <button
+                      type="button"
+                      onClick={() => setFullScreenStream('phone')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                        fullScreenStream === 'phone' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <Smartphone className="w-3.5 h-3.5" />
+                      <span>Phone</span>
+                    </button>
                   )}
-                </button>
+                </div>
 
                 <button
                   type="button"
@@ -2877,7 +3018,45 @@ export const VigilanceDashboard = ({
 
             {/* Fullscreen Video Canvas */}
             <div className="flex-1 rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 relative flex items-center justify-center">
-              {fullScreenStream === 'camera' ? (
+              {fullScreenStream === 'phone' ? (
+                <div className="w-full h-full flex flex-col items-center justify-center relative bg-black">
+                  <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-mono text-emerald-400 flex items-center gap-2 z-10">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>LIVE HD · SMARTPHONE PROCTOR STREAM (3RD ANGLE)</span>
+                  </div>
+
+                  <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 z-10">
+                    Exam: {selectedStudent.examTitle}
+                  </div>
+
+                  <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 space-y-0.5 z-10">
+                    <div>Candidate: {selectedStudent.studentName} (ID: #{selectedStudent.studentId})</div>
+                    <div className="text-emerald-400">Angle: Side 45° · Student + Screen + Surroundings</div>
+                  </div>
+
+                  {liveFrames[selectedStudent.attemptId]?.phoneFrame || selectedStudent.phoneFrame ? (
+                    <div className="w-full h-full flex items-center justify-center relative bg-black">
+                      <img
+                        src={liveFrames[selectedStudent.attemptId]?.phoneFrame || selectedStudent.phoneFrame}
+                        alt={`Fullscreen phone stream of ${selectedStudent.studentName}`}
+                        className="w-full h-full object-contain bg-black"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <div className="relative flex items-center justify-center">
+                        <span className="absolute w-36 h-36 rounded-full bg-emerald-500 opacity-20 animate-ping"></span>
+                        <div className="w-28 h-28 rounded-3xl bg-slate-900 border-2 border-emerald-500 flex items-center justify-center shadow-2xl text-emerald-400">
+                          <Smartphone className="w-14 h-14" />
+                        </div>
+                      </div>
+                      <div className="text-sm font-mono text-slate-300 font-bold">
+                        {selectedStudent.studentName} · Connecting to Smartphone Camera...
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : fullScreenStream === 'camera' ? (
                 <div className="w-full h-full flex flex-col items-center justify-center relative bg-black">
                   {/* Watermark Stamps */}
                   <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-mono text-emerald-400 flex items-center gap-2 z-10">
