@@ -358,9 +358,11 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
   }, [examId]);
 
   // Compute Pairing URL for phone proctor connection
+  const candidateDisplayName = user?.fullName || user?.name || user?.username || 'Student';
+  const currentExamTitle = examMeta?.title || examData?.title || 'Proctored Assessment';
   const phonePairingAttemptId = examData?.attemptId || `pre_${user?.id || 1}_${examId}`;
   const phonePairingUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/?phoneProctor=true&attemptId=${phonePairingAttemptId}&examId=${examId || 1}&examTitle=${encodeURIComponent(examMeta?.title || 'Proctored Exam')}&studentName=${encodeURIComponent(user?.fullName || 'Student')}`
+    ? `${window.location.origin}/?phoneProctor=true&attemptId=${phonePairingAttemptId}&examId=${examId || 1}&examTitle=${encodeURIComponent(currentExamTitle)}&studentName=${encodeURIComponent(candidateDisplayName)}`
     : '';
 
   // Listen to BroadcastChannel for local/paired phone proctor updates

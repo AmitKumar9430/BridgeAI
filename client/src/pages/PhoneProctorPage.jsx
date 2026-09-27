@@ -15,7 +15,9 @@ import {
   Sparkles,
   Check,
   XCircle,
-  Power
+  Power,
+  User,
+  BookOpen
 } from 'lucide-react';
 import api from '../services/api';
 
@@ -81,6 +83,22 @@ export const PhoneProctorPage = () => {
       // ignore
     }
   }, []);
+
+  // Fetch exam metadata dynamically if missing or default
+  useEffect(() => {
+    if (params.examId && (!params.examTitle || params.examTitle === 'Proctored Assessment')) {
+      api.get(`/exams/${params.examId}`)
+        .then((res) => {
+          if (res.data?.title) {
+            setParams((prev) => ({
+              ...prev,
+              examTitle: res.data.title
+            }));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [params.examId, params.examTitle]);
 
   // Detect tab-switch, minimizing, or closing phone camera during active exam
   useEffect(() => {
@@ -535,18 +553,56 @@ export const PhoneProctorPage = () => {
             className="w-full h-full object-cover"
           />
         ) : permissionStatus === 'checking' ? (
-          <div className="p-6 text-center space-y-3 z-10">
-            <RefreshCw className="w-10 h-10 text-blue-400 animate-spin mx-auto" />
-            <p className="text-sm font-bold text-white">Starting Smartphone Camera...</p>
-            <p className="text-xs text-slate-400">Please tap &quot;Allow&quot; if prompted by your mobile browser.</p>
+          <div className="p-6 text-center space-y-4 z-10 max-w-sm w-full mx-auto">
+            {/* Candidate & Exam Card */}
+            <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 shadow-xl text-left space-y-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-xl bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-400 shrink-0">
+                  <User className="w-4 h-4" />
+                </div>
+                <div className="overflow-hidden">
+                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Candidate</div>
+                  <div className="text-sm font-extrabold text-white truncate">{params.studentName}</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 border-t border-slate-800 pt-2.5">
+                <div className="w-7 h-7 rounded-xl bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-purple-400 shrink-0">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div className="overflow-hidden">
+                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Assessment</div>
+                  <div className="text-sm font-bold text-sky-300 truncate">{params.examTitle}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <RefreshCw className="w-10 h-10 text-blue-400 animate-spin mx-auto" />
+              <p className="text-sm font-bold text-white">Starting Smartphone Camera...</p>
+              <p className="text-xs text-slate-400">Please tap &quot;Allow&quot; if prompted by your mobile browser.</p>
+            </div>
           </div>
         ) : (
-          <div className="p-6 text-center space-y-3 z-10 max-w-sm mx-auto">
+          <div className="p-6 text-center space-y-4 z-10 max-w-sm mx-auto">
             <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto" />
             <p className="text-base font-bold text-rose-400">Camera Access Blocked</p>
             <p className="text-xs text-slate-300 leading-relaxed">
               {streamError || 'Please grant camera permissions to stream your 3rd-angle proctor feed.'}
             </p>
+
+            {/* Candidate & Exam Card */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-left space-y-1.5 text-xs">
+              <div className="flex items-center gap-2 text-slate-300">
+                <User className="w-3.5 h-3.5 text-blue-400" />
+                <span><strong className="text-white">Student:</strong> {params.studentName}</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-300">
+                <BookOpen className="w-3.5 h-3.5 text-purple-400" />
+                <span><strong className="text-white">Exam:</strong> {params.examTitle}</span>
+              </div>
+            </div>
+
             <button
               type="button"
               onClick={() => startCamera(cameraFacing)}
@@ -559,26 +615,52 @@ export const PhoneProctorPage = () => {
         )}
       </div>
 
-      {/* 2. TOP MINIMAL FLOATING HUD */}
-      <div className="relative z-20 p-3 bg-gradient-to-b from-black/85 via-black/40 to-transparent flex items-center justify-between text-xs backdrop-blur-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-          <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
-            3rd Angle Proctoring
-          </span>
-          <span className="text-slate-400 font-mono text-[11px] hidden sm:inline">
-            · {params.studentName}
-          </span>
+      {/* 2. TOP FLOATING HUD WITH CANDIDATE & EXAM INFO */}
+      <div className="relative z-20 p-3 pt-3.5 bg-gradient-to-b from-black/95 via-black/70 to-transparent space-y-2 backdrop-blur-xs">
+        {/* Top Control Bar: Stream Badge & Flip Camera */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-500/30 shadow-xs">
+              3rd-Angle Live Stream
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleCameraFacing}
+            className="px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700 flex items-center gap-1.5 text-[11px] font-semibold shadow-md active:scale-95 transition-all cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-sky-400" />
+            <span>{cameraFacing === 'environment' ? 'Flip to Front' : 'Flip to Rear'}</span>
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={toggleCameraFacing}
-          className="px-2.5 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-white border border-slate-700/80 flex items-center gap-1.5 text-xs font-semibold shadow-md active:scale-95 transition-all cursor-pointer"
-        >
-          <RotateCcw className="w-3.5 h-3.5 text-sky-400" />
-          <span>{cameraFacing === 'environment' ? 'Flip to Front' : 'Flip to Rear'}</span>
-        </button>
+        {/* Candidate & Exam Information Badge */}
+        <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-2.5 shadow-lg backdrop-blur-md flex flex-col gap-1.5 text-left">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-5 h-5 rounded-full bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-400 shrink-0">
+              <User className="w-3 h-3" />
+            </div>
+            <div className="truncate text-xs text-slate-300 flex items-center gap-1.5">
+              <span className="text-slate-400 text-[10px] uppercase font-bold">Student:</span>
+              <span className="text-white font-extrabold truncate">{params.studentName || 'Candidate'}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-hidden border-t border-slate-800/90 pt-1.5">
+            <div className="w-5 h-5 rounded-full bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-purple-400 shrink-0">
+              <BookOpen className="w-3 h-3" />
+            </div>
+            <div className="truncate text-xs text-slate-300 flex items-center gap-1.5">
+              <span className="text-slate-400 text-[10px] uppercase font-bold">Exam:</span>
+              <span className="text-sky-300 font-bold truncate">{params.examTitle || 'Proctored Assessment'}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 3. CENTER SUBTLE POSITIONING GUIDE */}
