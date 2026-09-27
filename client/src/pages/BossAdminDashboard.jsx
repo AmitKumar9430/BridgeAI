@@ -546,8 +546,8 @@ export const BossAdminDashboard = ({
 
   const handleOpenDeputeColleges = (officer) => {
     setSelectedOfficerForDepute(officer);
-    const assignedIds = officer.assignedInstitutionIds || (officer.assignedInstitutions ? officer.assignedInstitutions.map(i => i.id) : []);
-    setDeputeCollegesSelected(assignedIds || []);
+    const assignedIds = (officer.assignedInstitutionIds || (officer.assignedInstitutions ? officer.assignedInstitutions.map(i => i.id) : [])).map(Number);
+    setDeputeCollegesSelected(assignedIds);
     setDeputeSearch('');
     setDeputeError(null);
     setDeputeSuccess(null);
@@ -563,7 +563,7 @@ export const BossAdminDashboard = ({
 
     try {
       const res = await api.put(`/boss/vigilance/officers/${selectedOfficerForDepute.id}/institutions`, {
-        institutionIds: deputeCollegesSelected
+        institutionIds: deputeCollegesSelected.map(Number)
       });
       setDeputeSuccess(`Colleges successfully deputed to ${selectedOfficerForDepute.fullName} (${deputeCollegesSelected.length} assigned).`);
       setVigilanceOfficers(prev => prev.map(o => o.id === selectedOfficerForDepute.id ? { ...o, ...res.data } : o));
@@ -581,13 +581,17 @@ export const BossAdminDashboard = ({
   };
 
   const handleToggleCollegeDepute = (instId) => {
-    setDeputeCollegesSelected(prev =>
-      prev.includes(instId) ? prev.filter(id => id !== instId) : [...prev, instId]
-    );
+    const targetId = Number(instId);
+    setDeputeCollegesSelected(prev => {
+      const numList = (prev || []).map(Number);
+      return numList.includes(targetId)
+        ? numList.filter(id => id !== targetId)
+        : [...numList, targetId];
+    });
   };
 
   const handleSelectAllColleges = () => {
-    setDeputeCollegesSelected(institutions.map(i => i.id));
+    setDeputeCollegesSelected(institutions.map(i => Number(i.id)));
   };
 
   const handleDeselectAllColleges = () => {
@@ -2484,7 +2488,7 @@ export const BossAdminDashboard = ({
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => setAppointOfficerForm(p => ({ ...p, institutionIds: institutions.map(i => i.id) }))}
+                      onClick={() => setAppointOfficerForm(p => ({ ...p, institutionIds: institutions.map(i => Number(i.id)) }))}
                       className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline font-semibold"
                     >
                       Select All
@@ -2504,22 +2508,23 @@ export const BossAdminDashboard = ({
                     <p className="text-[11px] text-slate-400 p-1">No institutions registered yet.</p>
                   ) : (
                     institutions.map(inst => {
-                      const isChecked = appointOfficerForm.institutionIds?.includes(inst.id);
+                      const isChecked = (appointOfficerForm.institutionIds || []).some(id => Number(id) === Number(inst.id));
                       return (
-                        <label key={inst.id} className="flex items-center gap-2 p-1.5 hover:bg-white dark:hover:bg-slate-700/60 rounded cursor-pointer transition-colors text-xs">
+                        <label key={inst.id} className="flex items-center gap-2 p-1.5 hover:bg-white dark:hover:bg-slate-700/60 rounded cursor-pointer transition-colors text-xs select-none">
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => {
                               setAppointOfficerForm(prev => {
-                                const list = prev.institutionIds || [];
+                                const targetId = Number(inst.id);
+                                const list = (prev.institutionIds || []).map(Number);
                                 return {
                                   ...prev,
-                                  institutionIds: isChecked ? list.filter(id => id !== inst.id) : [...list, inst.id]
+                                  institutionIds: isChecked ? list.filter(id => id !== targetId) : [...list, targetId]
                                 };
                               });
                             }}
-                            className="rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                            className="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer"
                           />
                           <span className="font-medium text-slate-800 dark:text-slate-200">{inst.name}</span>
                           <span className="text-[10px] text-slate-400 ml-auto font-mono">({inst.code || 'INST'})</span>
@@ -2640,14 +2645,13 @@ export const BossAdminDashboard = ({
                              inst.city?.toLowerCase().includes(q);
                     })
                     .map(inst => {
-                      const isSelected = deputeCollegesSelected.includes(inst.id);
+                      const isSelected = deputeCollegesSelected.some(id => Number(id) === Number(inst.id));
                       return (
-                        <div
+                        <label
                           key={inst.id}
-                          onClick={() => handleToggleCollegeDepute(inst.id)}
-                          className={`p-3 flex items-center justify-between cursor-pointer transition-colors ${
+                          className={`p-3 flex items-center justify-between cursor-pointer transition-colors select-none ${
                             isSelected
-                              ? 'bg-blue-50/60 dark:bg-blue-950/30'
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-l-4 border-l-blue-600'
                               : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
                           }`}
                         >
@@ -2656,7 +2660,7 @@ export const BossAdminDashboard = ({
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => handleToggleCollegeDepute(inst.id)}
-                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                             />
                             <div>
                               <p className="text-xs font-bold text-slate-900 dark:text-white">{inst.name}</p>
@@ -2668,7 +2672,7 @@ export const BossAdminDashboard = ({
                           <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                             {inst.code || 'INST'}
                           </span>
-                        </div>
+                        </label>
                       );
                     })}
                   {institutions.length === 0 && (
