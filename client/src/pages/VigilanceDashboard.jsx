@@ -44,6 +44,7 @@ export const VigilanceDashboard = ({
   const [terminations, setTerminations] = useState([]);
   const [evidenceList, setEvidenceList] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
+  const [deputedInstitutions, setDeputedInstitutions] = useState([]);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
   // Filter & Hierarchy UI State
@@ -208,13 +209,18 @@ export const VigilanceDashboard = ({
     if (!isBackground) setLoading(true);
     setFeedRefreshing(true);
     try {
-      const [treeRes, warnRes, termRes, evidRes, actRes] = await Promise.all([
+      const [treeRes, warnRes, termRes, evidRes, actRes, depRes] = await Promise.all([
         api.get('/vigilance/surveillance-tree'),
         api.get('/boss/vigilance/warnings').catch(() => ({ data: [] })),
         api.get('/boss/vigilance/terminations').catch(() => ({ data: [] })),
         api.get('/vigilance/evidence').catch(() => ({ data: [] })),
-        api.get('/boss/vigilance/activity').catch(() => ({ data: [] }))
+        api.get('/boss/vigilance/activity').catch(() => ({ data: [] })),
+        api.get('/vigilance/my-deputed-institutions').catch(() => ({ data: [] }))
       ]);
+
+      if (depRes?.data) {
+        setDeputedInstitutions(depRes.data);
+      }
 
       if (treeRes.data) {
         setSurveillanceData(treeRes.data);
@@ -915,6 +921,52 @@ export const VigilanceDashboard = ({
             </div>
           </div>
         </div>
+
+        {/* DEPUTED INSTITUTIONS ACCESS SCOPE BANNER */}
+        {user?.role === 'ROLE_VIGILANCE_OFFICER' && (
+          <div className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+            deputedInstitutions.length > 0
+              ? 'bg-blue-50/60 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/60 text-blue-900 dark:text-blue-200'
+              : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900/60 text-amber-900 dark:text-amber-200'
+          }`}>
+            <div className="flex items-center gap-3">
+              <span className={`p-2 rounded-xl ${
+                deputedInstitutions.length > 0 ? 'bg-blue-100 dark:bg-blue-900/80 text-blue-700 dark:text-blue-300' : 'bg-amber-100 dark:bg-amber-900/80 text-amber-700 dark:text-amber-300'
+              }`}>
+                <Building2 className="w-5 h-5" />
+              </span>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider">
+                  {deputedInstitutions.length > 0
+                    ? `Deputed College Surveillance Scope (${deputedInstitutions.length} College${deputedInstitutions.length > 1 ? 's' : ''})`
+                    : 'No Colleges Deputed Yet'}
+                </h4>
+                <p className="text-[11px] opacity-80 mt-0.5">
+                  {deputedInstitutions.length > 0
+                    ? 'You have been granted access to monitor exams, candidates, and issue anti-fraud interventions exclusively for these colleges.'
+                    : 'You currently do not have access to any college surveillance feeds. Please contact Boss Admin for college deputation.'}
+                </p>
+              </div>
+            </div>
+
+            {deputedInstitutions.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5 self-start sm:self-auto">
+                {deputedInstitutions.map((inst, idx) => (
+                  <span
+                    key={inst.id || idx}
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-2xs"
+                  >
+                    🏛️ {inst.name} {inst.code ? `(${inst.code})` : ''}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className="px-3 py-1 rounded-lg text-xs font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                🔒 Restricted: Contact Boss Admin
+              </span>
+            )}
+          </div>
+        )}
 
         {/* TOP REAL-TIME SURVEILLANCE SUMMARY CARDS (6 METRICS) */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">

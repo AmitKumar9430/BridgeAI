@@ -27,6 +27,7 @@ public class VigilanceService {
     private final ExamViolationRepository examViolationRepository;
     private final ExamRepository examRepository;
     private final InstitutionRepository institutionRepository;
+    private final OfficerInstitutionRepository officerInstitutionRepository;
     private final AuthService authService;
 
     @Data
@@ -540,11 +541,85 @@ public class VigilanceService {
                 .build();
 
         User saved = userRepository.save(officer);
+
+        if (req.getInstitutionIds() != null && !req.getInstitutionIds().isEmpty()) {
+            for (Long instId : req.getInstitutionIds()) {
+                institutionRepository.findById(instId).ifPresent(inst -> {
+                    officerInstitutionRepository.save(OfficerInstitutionMapping.builder()
+                            .officerId(saved.getId())
+                            .institutionId(inst.getId())
+                            .institutionName(inst.getName())
+                            .institutionCode(inst.getCode())
+                            .assignedBy(bossAdminEmail)
+                            .assignedAt(LocalDateTime.now())
+                            .build());
+                });
+            }
+        }
+
         auditLogService.log(bossAdminEmail, "ROLE_BOSS_ADMIN", "VIGILANCE_OFFICER_APPOINTED", "User", saved.getId(),
                 "Appointed Vigilance Officer: " + saved.getFullName() + " (Staff ID: " + saved.getStaffId() + ", Email: " + saved.getEmail() + ")", ip);
 
         log.info("Boss Admin {} appointed new Vigilance Officer {} ({})", bossAdminEmail, saved.getFullName(), saved.getStaffId());
         return authService.toDto(saved);
+    }
+
+    @Transactional
+    public UserDto assignInstitutionsToOfficer(Long officerId, List<Long> institutionIds, String bossAdminEmail, String ip) {
+        User officer = userRepository.findById(officerId)
+                .orElseThrow(() -> new IllegalArgumentException("Vigilance Officer not found with id: " + officerId));
+
+        if (officer.getRole() != Role.ROLE_VIGILANCE_OFFICER) {
+            throw new IllegalArgumentException("User is not a Vigilance Officer.");
+        }
+
+        officerInstitutionRepository.deleteByOfficerId(officerId);
+
+        if (institutionIds != null && !institutionIds.isEmpty()) {
+            for (Long instId : institutionIds) {
+                institutionRepository.findById(instId).ifPresent(inst -> {
+                    officerInstitutionRepository.save(OfficerInstitutionMapping.builder()
+                            .officerId(officerId)
+                            .institutionId(inst.getId())
+                            .institutionName(inst.getName())
+                            .institutionCode(inst.getCode())
+                            .assignedBy(bossAdminEmail)
+                            .assignedAt(LocalDateTime.now())
+                            .build());
+                });
+            }
+        }
+
+        auditLogService.log(bossAdminEmail, "ROLE_BOSS_ADMIN", "VIGILANCE_OFFICER_DEPUTATION_UPDATED", "User", officerId,
+                "Updated college deputations for Vigilance Officer " + officer.getFullName() + " (" + officer.getStaffId() + ")", ip);
+
+        log.info("Boss Admin {} updated college deputations for Vigilance Officer {}", bossAdminEmail, officer.getStaffId());
+        return authService.toDto(officer);
+    }
+
+    public List<Map<String, Object>> getMyDeputedInstitutions(String officerEmail) {
+        if (officerEmail == null || officerEmail.isBlank()) return Collections.emptyList();
+        User user = userRepository.findByEmail(officerEmail).orElse(null);
+        if (user == null) return Collections.emptyList();
+
+        if (user.getRole() == Role.ROLE_BOSS_ADMIN || user.getRole() == Role.ROLE_SUPER_ADMIN) {
+            return institutionRepository.findAll().stream().map(inst -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("id", inst.getId());
+                m.put("name", inst.getName());
+                m.put("code", inst.getCode());
+                return m;
+            }).toList();
+        }
+
+        List<OfficerInstitutionMapping> mappings = officerInstitutionRepository.findByOfficerId(user.getId());
+        return mappings.stream().map(m -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", m.getInstitutionId());
+            map.put("name", m.getInstitutionName());
+            map.put("code", m.getInstitutionCode());
+            return map;
+        }).toList();
     }
 
     public List<UserDto> getAllVigilanceOfficers() {
@@ -658,12 +733,53 @@ public class VigilanceService {
         return saved;
     }
 
+    private Set<String> getOfficerAllowedInstitutions(String callerEmail) {
+        if (callerEmail == null || callerEmail.isBlank()) return null; // null means unrestricted
+        User user = userRepository.findByEmail(callerEmail).orElse(null);
+        if (user == null || user.getRole() != Role.ROLE_VIGILANCE_OFFICER) {
+            return null; // Boss admin / Super admin / unrestricted
+        }
+        List<OfficerInstitutionMapping> mappings = officerInstitutionRepository.findByOfficerId(user.getId());
+        Set<String> set = new HashSet<>();
+        for (OfficerInstitutionMapping m : mappings) {
+            if (m.getInstitutionName() != null && !m.getInstitutionName().isBlank()) {
+                set.add(m.getInstitutionName().trim().toLowerCase());
+            }
+        }
+        return set; // non-null means restricted
+    }
+
     public List<VigilanceRecord> getAllVigilanceReports() {
         return vigilanceRecordRepository.findAllByOrderByTimestampDesc();
     }
 
     public List<VigilanceRecord> getWarningsIssued() {
-        return vigilanceRecordRepository.findByActionTypeInOrderByTimestampDesc(List.of("ISSUE_WARNING", "WARNING", "WARN"));
+        return getWarningsIssued(null);
+    }
+
+    public List<VigilanceRecord> getWarningsIssued(String callerEmail) {
+        Set<String> allowedInsts = getOfficerAllowedInstitutions(callerEmail);
+        List<VigilanceRecord> records = vigilanceRecordRepository.findByActionTypeInOrderByTimestampDesc(List.of("ISSUE_WARNING", "WARNING", "WARN"));
+        if (allowedInsts == null) return records;
+        if (allowedInsts.isEmpty()) return Collections.emptyList();
+
+        return records.stream().filter(r -> {
+            if (r.getExamId() != null) {
+                Optional<Exam> examOpt = examRepository.findById(r.getExamId());
+                if (examOpt.isPresent() && examOpt.get().getInstitutionName() != null) {
+                    if (allowedInsts.contains(examOpt.get().getInstitutionName().trim().toLowerCase())) {
+                        return true;
+                    }
+                }
+            }
+            if (r.getStudentId() != null) {
+                Optional<User> uOpt = userRepository.findById(r.getStudentId());
+                if (uOpt.isPresent() && uOpt.get().getInstitutionName() != null) {
+                    return allowedInsts.contains(uOpt.get().getInstitutionName().trim().toLowerCase());
+                }
+            }
+            return false;
+        }).toList();
     }
 
     public List<VigilanceRecord> getTerminationsIssued() {
@@ -675,10 +791,33 @@ public class VigilanceService {
     }
 
     public List<Map<String, Object>> getStudentTerminations() {
+        return getStudentTerminations(null);
+    }
+
+    public List<Map<String, Object>> getStudentTerminations(String callerEmail) {
+        Set<String> allowedInsts = getOfficerAllowedInstitutions(callerEmail);
         List<ExamAttempt> terminatedAttempts = examAttemptRepository.findByStatusOrderByStartedAtDesc("TERMINATED_BY_VIOLATION");
         List<Map<String, Object>> result = new ArrayList<>();
 
         for (ExamAttempt att : terminatedAttempts) {
+            if (allowedInsts != null) {
+                if (allowedInsts.isEmpty()) continue;
+                String instName = null;
+                if (att.getExamId() != null) {
+                    Optional<Exam> eOpt = examRepository.findById(att.getExamId());
+                    if (eOpt.isPresent() && eOpt.get().getInstitutionName() != null) {
+                        instName = eOpt.get().getInstitutionName();
+                    }
+                }
+                if (instName == null && att.getStudentId() != null) {
+                    instName = userRepository.findById(att.getStudentId())
+                            .map(User::getInstitutionName).orElse(null);
+                }
+                if (instName == null || !allowedInsts.contains(instName.trim().toLowerCase())) {
+                    continue; // Skip because not deputed to this college
+                }
+            }
+
             Map<String, Object> item = new HashMap<>();
             item.put("attemptId", att.getId());
             item.put("examId", att.getExamId());
@@ -713,10 +852,33 @@ public class VigilanceService {
     }
 
     public List<Map<String, Object>> getLiveExamMonitoringFeed() {
+        return getLiveExamMonitoringFeed(null);
+    }
+
+    public List<Map<String, Object>> getLiveExamMonitoringFeed(String callerEmail) {
+        Set<String> allowedInsts = getOfficerAllowedInstitutions(callerEmail);
         List<ExamAttempt> recentAttempts = examAttemptRepository.findAllByOrderByStartedAtDesc();
         List<Map<String, Object>> feed = new ArrayList<>();
 
         for (ExamAttempt att : recentAttempts) {
+            if (allowedInsts != null) {
+                if (allowedInsts.isEmpty()) continue;
+                String instName = null;
+                if (att.getExamId() != null) {
+                    Optional<Exam> eOpt = examRepository.findById(att.getExamId());
+                    if (eOpt.isPresent() && eOpt.get().getInstitutionName() != null) {
+                        instName = eOpt.get().getInstitutionName();
+                    }
+                }
+                if (instName == null && att.getStudentId() != null) {
+                    instName = userRepository.findById(att.getStudentId())
+                            .map(User::getInstitutionName).orElse(null);
+                }
+                if (instName == null || !allowedInsts.contains(instName.trim().toLowerCase())) {
+                    continue;
+                }
+            }
+
             Map<String, Object> map = new HashMap<>();
             map.put("attemptId", att.getId());
             map.put("examId", att.getExamId());
@@ -742,6 +904,26 @@ public class VigilanceService {
     // =========================================================================
 
     public Map<String, Object> getSurveillanceTree() {
+        return getSurveillanceTree(null);
+    }
+
+    public Map<String, Object> getSurveillanceTree(String callerEmail) {
+        Set<String> allowedInsts = getOfficerAllowedInstitutions(callerEmail);
+        if (allowedInsts != null && allowedInsts.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("activeInstitutions", 0);
+            response.put("activeExams", 0);
+            response.put("liveStudents", 0);
+            response.put("warnings", 0);
+            response.put("criticalAlerts", 0);
+            response.put("disconnected", 0);
+            response.put("institutions", Collections.emptyList());
+            response.put("restricted", true);
+            response.put("deputedCollegesCount", 0);
+            response.put("message", "You are currently not deputed to any colleges. Please contact Boss Admin.");
+            return response;
+        }
+
         List<ExamAttempt> allAttempts = examAttemptRepository.findAllByOrderByStartedAtDesc();
         List<Exam> allExams = examRepository.findAll();
         Map<Long, Exam> examMap = new HashMap<>();
@@ -760,10 +942,13 @@ public class VigilanceService {
         // Aggregate by institutionName -> examId -> list of student attempts
         Map<String, Map<Long, List<Map<String, Object>>>> instExamTree = new LinkedHashMap<>();
 
-        // Ensure all active exams are pre-seeded in the surveillance hierarchy
+        // Ensure active exams belonging to deputed institutions are pre-seeded
         for (Exam ex : allExams) {
             String exInst = (ex.getInstitutionName() != null && !ex.getInstitutionName().isBlank())
                     ? ex.getInstitutionName() : "National Examination Board";
+            if (allowedInsts != null && !allowedInsts.contains(exInst.trim().toLowerCase())) {
+                continue; // Not deputed to this college
+            }
             instExamTree.computeIfAbsent(exInst, k -> new LinkedHashMap<>())
                     .computeIfAbsent(ex.getId(), k -> new ArrayList<>());
         }
@@ -788,6 +973,10 @@ public class VigilanceService {
                         .orElse("National Examination Board");
             } else {
                 instName = "National Examination Board";
+            }
+
+            if (allowedInsts != null && !allowedInsts.contains(instName.trim().toLowerCase())) {
+                continue; // Candidate not under deputed institution
             }
 
             Long examId = att.getExamId() != null ? att.getExamId() : 1L;

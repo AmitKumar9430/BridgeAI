@@ -147,7 +147,8 @@ export const BossAdminDashboard = ({
     mobileNumber: '',
     staffId: '',
     password: 'Password@123',
-    accountStatus: 'ACTIVE'
+    accountStatus: 'ACTIVE',
+    institutionIds: []
   });
   const [showResetOfficerPasswordModal, setShowResetOfficerPasswordModal] = useState(false);
   const [selectedOfficerForReset, setSelectedOfficerForReset] = useState(null);
@@ -157,6 +158,15 @@ export const BossAdminDashboard = ({
   const [resetOfficerSuccess, setResetOfficerSuccess] = useState(null);
   const [officerStatusToggleLoading, setOfficerStatusToggleLoading] = useState({});
   const [showEditSuperAdminModal, setShowEditSuperAdminModal] = useState(false);
+
+  // Depute Colleges Modal State
+  const [showDeputeCollegesModal, setShowDeputeCollegesModal] = useState(false);
+  const [selectedOfficerForDepute, setSelectedOfficerForDepute] = useState(null);
+  const [deputeCollegesSelected, setDeputeCollegesSelected] = useState([]);
+  const [deputeSearch, setDeputeSearch] = useState('');
+  const [deputeLoading, setDeputeLoading] = useState(false);
+  const [deputeError, setDeputeError] = useState(null);
+  const [deputeSuccess, setDeputeSuccess] = useState(null);
 
   // Institution CRUD Handlers
   const handleDeleteInstitution = async (id, name) => {
@@ -532,6 +542,56 @@ export const BossAdminDashboard = ({
     } finally {
       setResetOfficerLoading(false);
     }
+  };
+
+  const handleOpenDeputeColleges = (officer) => {
+    setSelectedOfficerForDepute(officer);
+    const assignedIds = officer.assignedInstitutionIds || (officer.assignedInstitutions ? officer.assignedInstitutions.map(i => i.id) : []);
+    setDeputeCollegesSelected(assignedIds || []);
+    setDeputeSearch('');
+    setDeputeError(null);
+    setDeputeSuccess(null);
+    setShowDeputeCollegesModal(true);
+  };
+
+  const handleSaveDeputeColleges = async (e) => {
+    e.preventDefault();
+    if (!selectedOfficerForDepute) return;
+    setDeputeLoading(true);
+    setDeputeError(null);
+    setDeputeSuccess(null);
+
+    try {
+      const res = await api.put(`/boss/vigilance/officers/${selectedOfficerForDepute.id}/institutions`, {
+        institutionIds: deputeCollegesSelected
+      });
+      setDeputeSuccess(`Colleges successfully deputed to ${selectedOfficerForDepute.fullName} (${deputeCollegesSelected.length} assigned).`);
+      setVigilanceOfficers(prev => prev.map(o => o.id === selectedOfficerForDepute.id ? { ...o, ...res.data } : o));
+      setTimeout(() => {
+        setShowDeputeCollegesModal(false);
+        setDeputeSuccess(null);
+        setSelectedOfficerForDepute(null);
+      }, 1200);
+      fetchVigilanceData();
+    } catch (err) {
+      setDeputeError(err.response?.data?.message || err.message || 'Failed to update college deputations');
+    } finally {
+      setDeputeLoading(false);
+    }
+  };
+
+  const handleToggleCollegeDepute = (instId) => {
+    setDeputeCollegesSelected(prev =>
+      prev.includes(instId) ? prev.filter(id => id !== instId) : [...prev, instId]
+    );
+  };
+
+  const handleSelectAllColleges = () => {
+    setDeputeCollegesSelected(institutions.map(i => i.id));
+  };
+
+  const handleDeselectAllColleges = () => {
+    setDeputeCollegesSelected([]);
   };
 
   const openProfileModal = (userId, initialObj = null) => {
@@ -1763,7 +1823,8 @@ export const BossAdminDashboard = ({
                   mobileNumber: '',
                   staffId: 'VO-' + String(vigilanceOfficers.length + 1).padStart(3, '0'),
                   password: 'Password@123',
-                  accountStatus: 'ACTIVE'
+                  accountStatus: 'ACTIVE',
+                  institutionIds: []
                 });
                 setShowAppointOfficerModal(true);
               }}
@@ -1809,7 +1870,7 @@ export const BossAdminDashboard = ({
               <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">Active Vigilance Officer Roster</h3>
-                  <p className="text-xs text-slate-500">Each officer logs in via Unified Staff Login using Staff ID or Email.</p>
+                  <p className="text-xs text-slate-500">Each officer logs in via Unified Staff Login and has access exclusively to their deputed institutions.</p>
                 </div>
                 <span className="text-xs font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
                   Total Officers: {vigilanceOfficers.length}
@@ -1824,7 +1885,7 @@ export const BossAdminDashboard = ({
                       <th className="p-3">Officer Name</th>
                       <th className="p-3">Official Email</th>
                       <th className="p-3">Mobile Phone</th>
-                      <th className="p-3">Assigned Role</th>
+                      <th className="p-3">Deputed Colleges</th>
                       <th className="p-3">Status</th>
                       <th className="p-3 text-right">Governance Actions</th>
                     </tr>
@@ -1839,6 +1900,7 @@ export const BossAdminDashboard = ({
                     ) : (
                       vigilanceOfficers.map(officer => {
                         const isToggleLoading = officerStatusToggleLoading[officer.id];
+                        const deputedColleges = officer.assignedInstitutions || [];
                         return (
                           <tr key={officer.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                             <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">
@@ -1856,9 +1918,23 @@ export const BossAdminDashboard = ({
                               {officer.phone || officer.mobileNumber || '+91-9876500000'}
                             </td>
                             <td className="p-3">
-                              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-900">
-                                VIGILANCE_OFFICER
-                              </span>
+                              {deputedColleges.length > 0 ? (
+                                <div className="flex flex-wrap gap-1 max-w-xs">
+                                  {deputedColleges.map((inst, i) => (
+                                    <span
+                                      key={inst.id || i}
+                                      className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                                      title={inst.name}
+                                    >
+                                      {inst.code || inst.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                  0 Colleges (No Access)
+                                </span>
+                              )}
                             </td>
                             <td className="p-3">
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
@@ -1872,6 +1948,15 @@ export const BossAdminDashboard = ({
                             </td>
                             <td className="p-3 text-right">
                               <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => handleOpenDeputeColleges(officer)}
+                                  className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 flex items-center gap-1 transition-colors"
+                                  title="Depute this officer to colleges"
+                                >
+                                  <Building2 className="w-3.5 h-3.5" />
+                                  <span>Depute Colleges</span>
+                                </button>
+
                                 <button
                                   onClick={() => handleToggleOfficerStatus(officer.id, officer.active)}
                                   disabled={isToggleLoading}
@@ -2391,6 +2476,63 @@ export const BossAdminDashboard = ({
                 </div>
               </div>
 
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Depute to Colleges / Institutions (Optional)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAppointOfficerForm(p => ({ ...p, institutionIds: institutions.map(i => i.id) }))}
+                      className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                    >
+                      Select All
+                    </button>
+                    <span className="text-slate-300 dark:text-slate-700">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setAppointOfficerForm(p => ({ ...p, institutionIds: [] }))}
+                      className="text-[10px] text-slate-500 hover:underline"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+                <div className="max-h-36 overflow-y-auto p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/60 space-y-1.5">
+                  {institutions.length === 0 ? (
+                    <p className="text-[11px] text-slate-400 p-1">No institutions registered yet.</p>
+                  ) : (
+                    institutions.map(inst => {
+                      const isChecked = appointOfficerForm.institutionIds?.includes(inst.id);
+                      return (
+                        <label key={inst.id} className="flex items-center gap-2 p-1.5 hover:bg-white dark:hover:bg-slate-700/60 rounded cursor-pointer transition-colors text-xs">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              setAppointOfficerForm(prev => {
+                                const list = prev.institutionIds || [];
+                                return {
+                                  ...prev,
+                                  institutionIds: isChecked ? list.filter(id => id !== inst.id) : [...list, inst.id]
+                                };
+                              });
+                            }}
+                            className="rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                          />
+                          <span className="font-medium text-slate-800 dark:text-slate-200">{inst.name}</span>
+                          <span className="text-[10px] text-slate-400 ml-auto font-mono">({inst.code || 'INST'})</span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Selected: {appointOfficerForm.institutionIds?.length || 0} / {institutions.length} institutions.
+                </p>
+              </div>
+
               <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300">
                 <strong>Assigned Role:</strong> ROLE = <span className="font-mono font-bold">VIGILANCE_OFFICER</span>. Officers log in using the Staff Login tab with either their Official Email or Staff ID.
               </div>
@@ -2409,6 +2551,153 @@ export const BossAdminDashboard = ({
                   className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-colors"
                 >
                   {appointOfficerLoading ? 'Appointing...' : 'Appoint Vigilance Officer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: DEPUTE COLLEGES TO VIGILANCE OFFICER */}
+      {showDeputeCollegesModal && selectedOfficerForDepute && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div className="bg-[#0F172A] text-white p-5 flex items-center justify-between border-b border-slate-800">
+              <div>
+                <h3 className="text-base font-bold flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-400" />
+                  <span>Depute Colleges to Officer</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {selectedOfficerForDepute.fullName} ({selectedOfficerForDepute.staffId || selectedOfficerForDepute.email})
+                </p>
+              </div>
+              <button
+                onClick={() => setShowDeputeCollegesModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                title="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDeputeColleges} className="p-5 space-y-4">
+              {deputeError && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-800 dark:text-rose-300 font-medium flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <span>{deputeError}</span>
+                </div>
+              )}
+
+              {deputeSuccess && (
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 font-medium flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>{deputeSuccess}</span>
+                </div>
+              )}
+
+              <div className="bg-blue-50/70 dark:bg-blue-950/40 p-3 rounded-xl border border-blue-200 dark:border-blue-900 text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+                <strong>Access Rule:</strong> This Vigilance Officer will <strong>only</strong> be able to observe live feeds, issue warnings, view students, and terminate exams for the selected colleges below.
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="relative flex-1">
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Filter colleges by name, code or city..."
+                      value={deputeSearch}
+                      onChange={(e) => setDeputeSearch(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleSelectAllColleges}
+                      className="px-2.5 py-1.5 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg text-blue-600 dark:text-blue-400 transition-colors"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeselectAllColleges}
+                      className="px-2.5 py-1.5 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-400 transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-850">
+                  {institutions
+                    .filter(inst => {
+                      if (!deputeSearch.trim()) return true;
+                      const q = deputeSearch.toLowerCase();
+                      return inst.name?.toLowerCase().includes(q) ||
+                             inst.code?.toLowerCase().includes(q) ||
+                             inst.city?.toLowerCase().includes(q);
+                    })
+                    .map(inst => {
+                      const isSelected = deputeCollegesSelected.includes(inst.id);
+                      return (
+                        <div
+                          key={inst.id}
+                          onClick={() => handleToggleCollegeDepute(inst.id)}
+                          className={`p-3 flex items-center justify-between cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-blue-50/60 dark:bg-blue-950/30'
+                              : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleToggleCollegeDepute(inst.id)}
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <div>
+                              <p className="text-xs font-bold text-slate-900 dark:text-white">{inst.name}</p>
+                              <p className="text-[11px] text-slate-500">
+                                {inst.city ? `${inst.city}, ${inst.state || ''}` : 'National Campus'}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                            {inst.code || 'INST'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  {institutions.length === 0 && (
+                    <p className="p-4 text-center text-xs text-slate-500">No institutions found.</p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-2 px-1">
+                  <span>Deputed: <strong className="text-blue-600 dark:text-blue-400">{deputeCollegesSelected.length}</strong> of {institutions.length} colleges</span>
+                  {deputeCollegesSelected.length === 0 && (
+                    <span className="text-amber-600 dark:text-amber-400 font-semibold">⚠️ No access granted yet</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowDeputeCollegesModal(false)}
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={deputeLoading}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  {deputeLoading ? 'Saving Deputations...' : `Save Deputations (${deputeCollegesSelected.length})`}
                 </button>
               </div>
             </form>

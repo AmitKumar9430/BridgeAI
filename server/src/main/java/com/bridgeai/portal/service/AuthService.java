@@ -22,6 +22,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final InstitutionRepository institutionRepository;
+    private final com.bridgeai.portal.repository.OfficerInstitutionRepository officerInstitutionRepository;
     private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
@@ -450,6 +451,26 @@ public class AuthService {
     }
 
     public UserDto toDto(User user) {
+        java.util.List<Long> assignedInstIds = new java.util.ArrayList<>();
+        java.util.List<String> assignedInstNames = new java.util.ArrayList<>();
+        java.util.List<java.util.Map<String, Object>> assignedInsts = new java.util.ArrayList<>();
+
+        if (user.getRole() == Role.ROLE_VIGILANCE_OFFICER && user.getId() != null) {
+            try {
+                var mappings = officerInstitutionRepository.findByOfficerId(user.getId());
+                for (var m : mappings) {
+                    assignedInstIds.add(m.getInstitutionId());
+                    if (m.getInstitutionName() != null) assignedInstNames.add(m.getInstitutionName());
+                    java.util.Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("id", m.getInstitutionId());
+                    map.put("name", m.getInstitutionName());
+                    map.put("code", m.getInstitutionCode());
+                    map.put("assignedAt", m.getAssignedAt());
+                    assignedInsts.add(map);
+                }
+            } catch (Exception ignored) {}
+        }
+
         return UserDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -464,6 +485,9 @@ public class AuthService {
                 .assignedSubject(user.getAssignedSubject())
                 .superAdminId(user.getSuperAdminId())
                 .superAdminName(user.getSuperAdminName())
+                .assignedInstitutionIds(assignedInstIds)
+                .assignedInstitutionNames(assignedInstNames)
+                .assignedInstitutions(assignedInsts)
                 .createdAt(user.getCreatedAt())
                 .lastLoginAt(user.getLastLoginAt())
                 .build();

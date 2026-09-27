@@ -128,6 +128,9 @@ public class AuthDtos {
         private String assignedSubject;
         private Long superAdminId;
         private String superAdminName;
+        private java.util.List<Long> assignedInstitutionIds;
+        private java.util.List<String> assignedInstitutionNames;
+        private java.util.List<java.util.Map<String, Object>> assignedInstitutions;
         private java.time.LocalDateTime createdAt;
         private java.time.LocalDateTime lastLoginAt;
     }
@@ -216,6 +219,16 @@ public class AuthDtos {
 
         @Builder.Default
         private boolean active = true;
+
+        private java.util.List<Long> institutionIds;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class AssignOfficerInstitutionsRequest {
+        private java.util.List<Long> institutionIds;
     }
 
     @Data

@@ -66,6 +66,18 @@ public class VigilanceController {
         return ResponseEntity.ok(vigilanceService.resetOfficerPassword(id, request, bossEmail, ip));
     }
 
+    @PutMapping("/boss/vigilance/officers/{id}/institutions")
+    @PreAuthorize("hasAuthority('ROLE_BOSS_ADMIN')")
+    public ResponseEntity<UserDto> assignOfficerInstitutions(
+            @PathVariable Long id,
+            @RequestBody AssignOfficerInstitutionsRequest request,
+            Authentication auth,
+            HttpServletRequest req) {
+        String bossEmail = auth != null ? auth.getName() : "boss@bridgeai.edu";
+        String ip = req.getRemoteAddr();
+        return ResponseEntity.ok(vigilanceService.assignInstitutionsToOfficer(id, request.getInstitutionIds(), bossEmail, ip));
+    }
+
     @GetMapping("/boss/vigilance/activity")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_VIGILANCE_OFFICER')")
     public ResponseEntity<List<AuditLog>> getOfficerActivities() {
@@ -80,19 +92,28 @@ public class VigilanceController {
 
     @GetMapping("/boss/vigilance/warnings")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_VIGILANCE_OFFICER')")
-    public ResponseEntity<List<VigilanceRecord>> getWarningsIssued() {
-        return ResponseEntity.ok(vigilanceService.getWarningsIssued());
+    public ResponseEntity<List<VigilanceRecord>> getWarningsIssued(Authentication auth) {
+        String email = auth != null ? auth.getName() : null;
+        return ResponseEntity.ok(vigilanceService.getWarningsIssued(email));
     }
 
     @GetMapping("/boss/vigilance/terminations")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_VIGILANCE_OFFICER')")
-    public ResponseEntity<List<Map<String, Object>>> getStudentTerminations() {
-        return ResponseEntity.ok(vigilanceService.getStudentTerminations());
+    public ResponseEntity<List<Map<String, Object>>> getStudentTerminations(Authentication auth) {
+        String email = auth != null ? auth.getName() : null;
+        return ResponseEntity.ok(vigilanceService.getStudentTerminations(email));
     }
 
     // =========================================================================
     // VIGILANCE OFFICER WORKSPACE ENDPOINTS
     // =========================================================================
+
+    @GetMapping("/vigilance/my-deputed-institutions")
+    @PreAuthorize("hasAnyAuthority('ROLE_VIGILANCE_OFFICER', 'ROLE_BOSS_ADMIN', 'ROLE_SUPER_ADMIN')")
+    public ResponseEntity<List<Map<String, Object>>> getMyDeputedInstitutions(Authentication auth) {
+        String email = auth != null ? auth.getName() : "";
+        return ResponseEntity.ok(vigilanceService.getMyDeputedInstitutions(email));
+    }
 
     @PostMapping("/vigilance/action")
     @PreAuthorize("hasAnyAuthority('ROLE_VIGILANCE_OFFICER', 'ROLE_BOSS_ADMIN')")
@@ -107,14 +128,16 @@ public class VigilanceController {
 
     @GetMapping("/vigilance/live-attempts")
     @PreAuthorize("hasAnyAuthority('ROLE_VIGILANCE_OFFICER', 'ROLE_BOSS_ADMIN')")
-    public ResponseEntity<List<Map<String, Object>>> getLiveExamMonitoringFeed() {
-        return ResponseEntity.ok(vigilanceService.getLiveExamMonitoringFeed());
+    public ResponseEntity<List<Map<String, Object>>> getLiveExamMonitoringFeed(Authentication auth) {
+        String email = auth != null ? auth.getName() : null;
+        return ResponseEntity.ok(vigilanceService.getLiveExamMonitoringFeed(email));
     }
 
     @GetMapping("/vigilance/surveillance-tree")
     @PreAuthorize("hasAnyAuthority('ROLE_VIGILANCE_OFFICER', 'ROLE_BOSS_ADMIN')")
-    public ResponseEntity<Map<String, Object>> getSurveillanceTree() {
-        return ResponseEntity.ok(vigilanceService.getSurveillanceTree());
+    public ResponseEntity<Map<String, Object>> getSurveillanceTree(Authentication auth) {
+        String email = auth != null ? auth.getName() : null;
+        return ResponseEntity.ok(vigilanceService.getSurveillanceTree(email));
     }
 
     @PostMapping("/vigilance/evidence/capture")
