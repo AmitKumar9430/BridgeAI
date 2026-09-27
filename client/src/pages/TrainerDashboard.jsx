@@ -10,7 +10,8 @@ import {
   FileText, FolderGit2, FileCode, Presentation, Archive, UploadCloud, RefreshCw,
   Download, Upload, Check, Lock, Star, Target, X, Globe, Building2, Layers,
   PanelLeftOpen, PanelLeftClose, Code2, Terminal, Code, ListOrdered, History, KeyRound, Edit3,
-  BookOpen, Pencil, ChevronDown, ChevronUp, Eye, EyeOff, ThumbsUp
+  BookOpen, Pencil, ChevronDown, ChevronUp, Eye, EyeOff, ThumbsUp,
+  Monitor, Smartphone
 } from 'lucide-react';
 import { DashboardSidebar } from '../components/common/DashboardSidebar';
 import { LiveSessionsTab } from '../components/common/LiveSessionsTab';
