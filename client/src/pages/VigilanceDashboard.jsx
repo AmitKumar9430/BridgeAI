@@ -225,12 +225,15 @@ export const VigilanceDashboard = ({
           for (const inst of treeRes.data.institutions) {
             for (const ex of inst.exams || []) {
               for (const st of ex.students || []) {
-                if (st.cameraFrame || st.screenFrame) {
+                if (st.cameraFrame || st.screenFrame || st.phoneFrame) {
                   backendFrames[st.attemptId] = {
                     cameraFrame: st.cameraFrame,
                     screenFrame: st.screenFrame,
+                    phoneFrame: st.phoneFrame,
                     cameraConnected: st.cameraConnected,
                     screenConnected: st.screenConnected,
+                    phoneConnected: st.phoneConnected,
+                    phonePositionValid: st.phonePositionValid,
                     timestamp: Date.now()
                   };
                 }
@@ -255,7 +258,7 @@ export const VigilanceDashboard = ({
     }
   };
 
-  // Real-time broadcast channel listener for local candidate video/screen streams
+  // Real-time broadcast channel listener for local candidate video/screen/phone streams
   useEffect(() => {
     let bc = null;
     try {
@@ -266,18 +269,47 @@ export const VigilanceDashboard = ({
             setLiveFrames(prev => ({
               ...prev,
               [e.data.attemptId]: {
-                cameraFrame: e.data.cameraFrame,
-                screenFrame: e.data.screenFrame,
-                cameraConnected: e.data.cameraConnected,
-                screenConnected: e.data.screenConnected,
+                ...(prev[e.data.attemptId] || {}),
+                cameraFrame: e.data.cameraFrame || prev[e.data.attemptId]?.cameraFrame,
+                screenFrame: e.data.screenFrame || prev[e.data.attemptId]?.screenFrame,
+                phoneFrame: e.data.phoneFrame || prev[e.data.attemptId]?.phoneFrame,
+                cameraConnected: e.data.cameraConnected !== undefined ? e.data.cameraConnected : prev[e.data.attemptId]?.cameraConnected,
+                screenConnected: e.data.screenConnected !== undefined ? e.data.screenConnected : prev[e.data.attemptId]?.screenConnected,
+                phoneConnected: e.data.phoneConnected !== undefined ? e.data.phoneConnected : prev[e.data.attemptId]?.phoneConnected,
+                phonePositionValid: e.data.phonePositionValid !== undefined ? e.data.phonePositionValid : prev[e.data.attemptId]?.phonePositionValid,
                 audioConnected: e.data.audioConnected,
                 audioLevel: e.data.audioLevel,
-                timestamp: e.data.timestamp
+                timestamp: e.data.timestamp || Date.now()
               }
             }));
             const isTarget = String(selectedStudentRef.current?.attemptId) === String(e.data.attemptId);
             if (e.data.audioChunk && isTarget) {
               playCandidateAudioChunk(e.data.audioChunk);
+            }
+          } else if (e.data?.type === 'PHONE_FRAME_UPDATE') {
+            const sessionKey = e.data.attemptId;
+            if (sessionKey) {
+              setLiveFrames(prev => ({
+                ...prev,
+                [sessionKey]: {
+                  ...(prev[sessionKey] || {}),
+                  phoneFrame: e.data.phoneFrame,
+                  phoneConnected: true,
+                  phonePositionValid: Boolean(e.data.phonePositionValid),
+                  timestamp: Date.now()
+                }
+              }));
+            }
+            if (selectedStudentRef.current && (
+              String(selectedStudentRef.current.attemptId) === String(sessionKey) ||
+              String(selectedStudentRef.current.examId) === String(e.data.examId)
+            )) {
+              setSelectedStudent(prev => prev ? {
+                ...prev,
+                phoneFrame: e.data.phoneFrame,
+                phoneConnected: true,
+                phonePositionValid: Boolean(e.data.phonePositionValid)
+              } : prev);
             }
           } else if (e.data?.type === 'AUDIO_CHUNK' && e.data.attemptId) {
             const isTarget = String(selectedStudentRef.current?.attemptId) === String(e.data.attemptId);
@@ -305,7 +337,7 @@ export const VigilanceDashboard = ({
     };
   }, []);
 
-  // Fast polling of live stream frame & audio when active candidate is being monitored or viewed in fullscreen
+  // Fast polling of live stream frame, phone stream & audio when active candidate is being monitored or viewed in fullscreen
   useEffect(() => {
     if (!selectedStudent?.attemptId) return;
     const pollCandidateStream = async () => {
@@ -321,24 +353,53 @@ export const VigilanceDashboard = ({
             }
           }
 
+          let fetchedPhoneFrame = res.data.phoneFrame;
+          let fetchedPhoneConnected = res.data.phoneConnected;
+          let fetchedPhonePositionValid = res.data.phonePositionValid;
+
+          // If phoneFrame is not in primary stream, fetch from dedicated phone-stream endpoint
+          if (!fetchedPhoneFrame && selectedStudent.phoneProtectionEnabled) {
+            try {
+              const phRes = await api.get(`/vigilance/feed/phone-stream/${selectedStudent.attemptId}`);
+              if (phRes.data?.phoneFrame) {
+                fetchedPhoneFrame = phRes.data.phoneFrame;
+                fetchedPhoneConnected = Boolean(phRes.data.phoneConnected);
+                fetchedPhonePositionValid = Boolean(phRes.data.phonePositionValid);
+              } else if (selectedStudent.studentId && selectedStudent.examId) {
+                const preRes = await api.get(`/vigilance/feed/phone-stream/pre_${selectedStudent.studentId}_${selectedStudent.examId}`);
+                if (preRes.data?.phoneFrame) {
+                  fetchedPhoneFrame = preRes.data.phoneFrame;
+                  fetchedPhoneConnected = Boolean(preRes.data.phoneConnected);
+                  fetchedPhonePositionValid = Boolean(preRes.data.phonePositionValid);
+                }
+              }
+            } catch (ignored) {}
+          }
+
           setLiveFrames(prev => ({
             ...prev,
             [selectedStudent.attemptId]: {
               cameraFrame: res.data.cameraFrame,
               screenFrame: res.data.screenFrame,
+              phoneFrame: fetchedPhoneFrame || prev[selectedStudent.attemptId]?.phoneFrame,
               cameraConnected: res.data.cameraConnected,
               screenConnected: res.data.screenConnected,
+              phoneConnected: fetchedPhoneConnected !== undefined ? fetchedPhoneConnected : prev[selectedStudent.attemptId]?.phoneConnected,
+              phonePositionValid: fetchedPhonePositionValid !== undefined ? fetchedPhonePositionValid : prev[selectedStudent.attemptId]?.phonePositionValid,
               audioConnected: res.data.audioConnected,
               audioLevel: res.data.audioLevel,
-              timestamp: res.data.timestamp
+              timestamp: res.data.timestamp || Date.now()
             }
           }));
           setSelectedStudent(prev => prev ? {
             ...prev,
             cameraFrame: res.data.cameraFrame,
             screenFrame: res.data.screenFrame,
+            phoneFrame: fetchedPhoneFrame || prev.phoneFrame,
             cameraConnected: res.data.cameraConnected,
             screenConnected: res.data.screenConnected,
+            phoneConnected: fetchedPhoneConnected !== undefined ? fetchedPhoneConnected : prev.phoneConnected,
+            phonePositionValid: fetchedPhonePositionValid !== undefined ? fetchedPhonePositionValid : prev.phonePositionValid,
             audioConnected: res.data.audioConnected,
             audioLevel: res.data.audioLevel
           } : prev);

@@ -70,17 +70,35 @@ public class VigilanceService {
         String finalAudio = hasNewAudio ? audioChunk : (prev != null ? prev.getAudioChunk() : null);
         long finalAudioTimestamp = hasNewAudio ? System.currentTimeMillis() : (prev != null ? prev.getAudioTimestamp() : 0L);
 
-        boolean finalPhoneConnected = phoneConnected != null ? phoneConnected : (prev != null && prev.isPhoneConnected());
-        boolean finalPhonePositionValid = phonePositionValid != null ? phonePositionValid : (prev != null && prev.isPhonePositionValid());
         String finalPhoneFrame = (phoneFrame != null && !phoneFrame.isBlank()) ? phoneFrame : (prev != null ? prev.getPhoneFrame() : null);
         long finalPhoneTimestamp = (phoneFrame != null && !phoneFrame.isBlank()) ? System.currentTimeMillis() : (prev != null ? prev.getPhoneTimestamp() : 0L);
+        boolean finalPhoneConnected = phoneConnected != null ? phoneConnected : (prev != null && prev.isPhoneConnected());
+        boolean finalPhonePositionValid = phonePositionValid != null ? phonePositionValid : (prev != null && prev.isPhonePositionValid());
 
         Long numericAttemptId = null;
         try {
             numericAttemptId = Long.parseLong(sessionKey);
         } catch (Exception ignored) {}
 
-        liveStreamFrames.put(sessionKey, LiveStreamFrame.builder()
+        // If numeric attemptId and phoneFrame is still missing/stale, cross-check pre_<studentId>_<examId>
+        if (numericAttemptId != null && (finalPhoneFrame == null || finalPhoneFrame.isBlank() || (System.currentTimeMillis() - finalPhoneTimestamp > 30000))) {
+            try {
+                Optional<ExamAttempt> opt = examAttemptRepository.findById(numericAttemptId);
+                if (opt.isPresent()) {
+                    ExamAttempt att = opt.get();
+                    String preKey = "pre_" + att.getStudentId() + "_" + att.getExamId();
+                    LiveStreamFrame preFrame = liveStreamFrames.get(preKey);
+                    if (preFrame != null && preFrame.getPhoneFrame() != null && !preFrame.getPhoneFrame().isBlank() && (System.currentTimeMillis() - preFrame.getPhoneTimestamp() < 60000)) {
+                        finalPhoneFrame = preFrame.getPhoneFrame();
+                        finalPhoneConnected = preFrame.isPhoneConnected();
+                        finalPhonePositionValid = preFrame.isPhonePositionValid();
+                        finalPhoneTimestamp = preFrame.getPhoneTimestamp();
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        LiveStreamFrame current = LiveStreamFrame.builder()
                 .attemptId(numericAttemptId)
                 .cameraFrame(cameraFrame != null ? cameraFrame : (prev != null ? prev.getCameraFrame() : null))
                 .screenFrame(screenFrame != null ? screenFrame : (prev != null ? prev.getScreenFrame() : null))
@@ -95,7 +113,9 @@ public class VigilanceService {
                 .audioLevel(audioLevel)
                 .audioTimestamp(finalAudioTimestamp)
                 .timestamp(System.currentTimeMillis())
-                .build());
+                .build();
+
+        liveStreamFrames.put(sessionKey, current);
     }
 
     public void saveLiveStreamFrame(Long attemptId, String cameraFrame, String screenFrame, 
@@ -125,14 +145,74 @@ public class VigilanceService {
             prev.setTimestamp(now);
             liveStreamFrames.put(sessionKey, prev);
         } else {
-            liveStreamFrames.put(sessionKey, LiveStreamFrame.builder()
+            prev = LiveStreamFrame.builder()
                     .attemptId(numericAttemptId)
                     .phoneFrame(phoneFrame)
                     .phoneConnected(phoneConnected)
                     .phonePositionValid(phonePositionValid)
                     .phoneTimestamp(now)
                     .timestamp(now)
-                    .build());
+                    .build();
+            liveStreamFrames.put(sessionKey, prev);
+        }
+
+        // Cross-sync: If sessionKey is pre_<studentId>_<examId>, also update any active ExamAttempt for this student & exam
+        if (sessionKey.startsWith("pre_")) {
+            String[] parts = sessionKey.split("_");
+            if (parts.length >= 3) {
+                try {
+                    Long studentId = Long.parseLong(parts[1]);
+                    Long examId = Long.parseLong(parts[2]);
+                    List<ExamAttempt> attempts = examAttemptRepository.findByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
+                    for (ExamAttempt att : attempts) {
+                        if ("IN_PROGRESS".equalsIgnoreCase(att.getStatus())) {
+                            String attKey = String.valueOf(att.getId());
+                            LiveStreamFrame attPrev = liveStreamFrames.get(attKey);
+                            if (attPrev != null) {
+                                attPrev.setPhoneFrame(phoneFrame != null ? phoneFrame : attPrev.getPhoneFrame());
+                                attPrev.setPhoneConnected(phoneConnected);
+                                attPrev.setPhonePositionValid(phonePositionValid);
+                                attPrev.setPhoneTimestamp(now);
+                                liveStreamFrames.put(attKey, attPrev);
+                            } else {
+                                liveStreamFrames.put(attKey, LiveStreamFrame.builder()
+                                        .attemptId(att.getId())
+                                        .phoneFrame(phoneFrame)
+                                        .phoneConnected(phoneConnected)
+                                        .phonePositionValid(phonePositionValid)
+                                        .phoneTimestamp(now)
+                                        .timestamp(now)
+                                        .build());
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+        } else if (numericAttemptId != null) {
+            // If sessionKey is numeric attemptId, also cross-sync to pre_<studentId>_<examId>
+            try {
+                Optional<ExamAttempt> opt = examAttemptRepository.findById(numericAttemptId);
+                if (opt.isPresent()) {
+                    ExamAttempt att = opt.get();
+                    String preKey = "pre_" + att.getStudentId() + "_" + att.getExamId();
+                    LiveStreamFrame prePrev = liveStreamFrames.get(preKey);
+                    if (prePrev != null) {
+                        prePrev.setPhoneFrame(phoneFrame != null ? phoneFrame : prePrev.getPhoneFrame());
+                        prePrev.setPhoneConnected(phoneConnected);
+                        prePrev.setPhonePositionValid(phonePositionValid);
+                        prePrev.setPhoneTimestamp(now);
+                        liveStreamFrames.put(preKey, prePrev);
+                    } else {
+                        liveStreamFrames.put(preKey, LiveStreamFrame.builder()
+                                .phoneFrame(phoneFrame)
+                                .phoneConnected(phoneConnected)
+                                .phonePositionValid(phonePositionValid)
+                                .phoneTimestamp(now)
+                                .timestamp(now)
+                                .build());
+                    }
+                }
+            } catch (Exception ignored) {}
         }
     }
 
@@ -142,13 +222,81 @@ public class VigilanceService {
     }
 
     public LiveStreamFrame getLiveStreamFrame(String sessionKey) {
-        if (sessionKey == null) return null;
-        return liveStreamFrames.get(sessionKey);
+        if (sessionKey == null || sessionKey.isBlank()) return null;
+        LiveStreamFrame frame = liveStreamFrames.get(sessionKey);
+        long now = System.currentTimeMillis();
+
+        Long numericAttemptId = null;
+        try {
+            numericAttemptId = Long.parseLong(sessionKey);
+        } catch (Exception ignored) {}
+
+        if (numericAttemptId != null) {
+            boolean phoneMissingOrStale = (frame == null || frame.getPhoneFrame() == null || frame.getPhoneFrame().isBlank() || (now - frame.getPhoneTimestamp() > 60000));
+            if (phoneMissingOrStale) {
+                try {
+                    Optional<ExamAttempt> opt = examAttemptRepository.findById(numericAttemptId);
+                    if (opt.isPresent()) {
+                        ExamAttempt att = opt.get();
+                        String preKey = "pre_" + att.getStudentId() + "_" + att.getExamId();
+                        LiveStreamFrame preFrame = liveStreamFrames.get(preKey);
+                        if (preFrame != null && preFrame.getPhoneFrame() != null && !preFrame.getPhoneFrame().isBlank() && (now - preFrame.getPhoneTimestamp() < 60000)) {
+                            if (frame == null) {
+                                frame = LiveStreamFrame.builder()
+                                        .attemptId(numericAttemptId)
+                                        .phoneFrame(preFrame.getPhoneFrame())
+                                        .phoneConnected(preFrame.isPhoneConnected())
+                                        .phonePositionValid(preFrame.isPhonePositionValid())
+                                        .phoneTimestamp(preFrame.getPhoneTimestamp())
+                                        .timestamp(now)
+                                        .build();
+                                liveStreamFrames.put(sessionKey, frame);
+                            } else {
+                                frame.setPhoneFrame(preFrame.getPhoneFrame());
+                                frame.setPhoneConnected(preFrame.isPhoneConnected());
+                                frame.setPhonePositionValid(preFrame.isPhonePositionValid());
+                                frame.setPhoneTimestamp(preFrame.getPhoneTimestamp());
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+        } else if (sessionKey.startsWith("pre_")) {
+            boolean phoneMissingOrStale = (frame == null || frame.getPhoneFrame() == null || frame.getPhoneFrame().isBlank() || (now - frame.getPhoneTimestamp() > 60000));
+            if (phoneMissingOrStale) {
+                String[] parts = sessionKey.split("_");
+                if (parts.length >= 3) {
+                    try {
+                        Long studentId = Long.parseLong(parts[1]);
+                        Long examId = Long.parseLong(parts[2]);
+                        List<ExamAttempt> attempts = examAttemptRepository.findByExamIdAndStudentIdOrderByStartedAtDesc(examId, studentId);
+                        for (ExamAttempt att : attempts) {
+                            if ("IN_PROGRESS".equalsIgnoreCase(att.getStatus())) {
+                                LiveStreamFrame attFrame = liveStreamFrames.get(String.valueOf(att.getId()));
+                                if (attFrame != null && attFrame.getPhoneFrame() != null && !attFrame.getPhoneFrame().isBlank() && (now - attFrame.getPhoneTimestamp() < 60000)) {
+                                    if (frame == null) {
+                                        frame = attFrame;
+                                    } else {
+                                        frame.setPhoneFrame(attFrame.getPhoneFrame());
+                                        frame.setPhoneConnected(attFrame.isPhoneConnected());
+                                        frame.setPhonePositionValid(attFrame.isPhonePositionValid());
+                                        frame.setPhoneTimestamp(attFrame.getPhoneTimestamp());
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+
+        return frame;
     }
 
     public LiveStreamFrame getLiveStreamFrame(Long attemptId) {
         if (attemptId == null) return null;
-        return liveStreamFrames.get(String.valueOf(attemptId));
+        return getLiveStreamFrame(String.valueOf(attemptId));
     }
 
     @Transactional
@@ -448,8 +596,11 @@ public class VigilanceService {
             boolean isSubmitted = "SUBMITTED".equalsIgnoreCase(att.getStatus());
             int examDur = (exam != null && exam.getDurationMinutes() > 0) ? exam.getDurationMinutes() : 60;
 
-            // Check active live stream frame arriving from student browser
-            LiveStreamFrame streamFrame = liveStreamFrames.get(att.getId());
+            // Check active live stream frame arriving from student browser or phone
+            LiveStreamFrame streamFrame = getLiveStreamFrame(att.getId());
+            if (streamFrame == null && att.getStudentId() != null && att.getExamId() != null) {
+                streamFrame = getLiveStreamFrame("pre_" + att.getStudentId() + "_" + att.getExamId());
+            }
             boolean hasActiveStream = streamFrame != null && (System.currentTimeMillis() - streamFrame.getTimestamp() < 90000);
 
             // Candidate is live ONLY if:
@@ -510,11 +661,12 @@ public class VigilanceService {
 
             studentMap.put("phoneProtectionEnabled", exam != null && exam.isPhoneProtectionEnabled());
             int audioLevel = 0;
-            if (hasActiveStream && streamFrame != null) {
+            boolean isPhoneActive = streamFrame != null && (streamFrame.isPhoneConnected() || (streamFrame.getPhoneFrame() != null && !streamFrame.getPhoneFrame().isBlank()));
+            if (streamFrame != null) {
                 studentMap.put("cameraFrame", streamFrame.getCameraFrame());
                 studentMap.put("screenFrame", streamFrame.getScreenFrame());
                 studentMap.put("phoneFrame", streamFrame.getPhoneFrame());
-                studentMap.put("phoneConnected", streamFrame.isPhoneConnected());
+                studentMap.put("phoneConnected", isPhoneActive);
                 studentMap.put("phonePositionValid", streamFrame.isPhonePositionValid());
                 studentMap.put("audioChunk", streamFrame.getAudioChunk());
                 studentMap.put("audioTimestamp", streamFrame.getAudioTimestamp());
@@ -534,7 +686,7 @@ public class VigilanceService {
 
             studentMap.put("cameraConnected", cameraConnected);
             studentMap.put("screenConnected", screenConnected);
-            studentMap.put("phoneConnected", (streamFrame != null && streamFrame.isPhoneConnected()));
+            studentMap.put("phoneConnected", isPhoneActive);
             studentMap.put("audioConnected", audioConnected);
             studentMap.put("audioLevel", audioLevel);
             studentMap.put("networkConnected", networkConnected);

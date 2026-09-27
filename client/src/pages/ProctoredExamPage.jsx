@@ -407,13 +407,24 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     const isPhoneReq = Boolean(examMeta?.phoneProtectionEnabled || examData?.phoneProtectionEnabled);
     if (!isPhoneReq) return;
 
-    const currentAttemptId = examData?.attemptId || `pre_${user?.id || 1}_${examId}`;
+    const preCheckSessionId = `pre_${user?.id || 1}_${examId}`;
+    const currentAttemptId = examData?.attemptId || preCheckSessionId;
     const interval = setInterval(async () => {
       try {
-        const res = await api.get(`/vigilance/feed/phone-stream/${currentAttemptId}`);
+        let res = await api.get(`/vigilance/feed/phone-stream/${currentAttemptId}`);
+        if (!res.data?.phoneFrame && currentAttemptId !== preCheckSessionId) {
+          try {
+            const fallbackRes = await api.get(`/vigilance/feed/phone-stream/${preCheckSessionId}`);
+            if (fallbackRes.data?.phoneFrame) {
+              res = fallbackRes;
+            }
+          } catch (ignored) {}
+        }
+
         if (res.data) {
           if (res.data.phoneFrame) {
             setPhoneStreamFrame(res.data.phoneFrame);
+            setPhoneConnected(true);
           }
           if (res.data.phoneConnected !== undefined) {
             setPhoneConnected(Boolean(res.data.phoneConnected));
@@ -425,7 +436,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
       } catch (e) {
         // Silent poll error
       }
-    }, 1800);
+    }, 1200);
 
     return () => clearInterval(interval);
   }, [examMeta?.phoneProtectionEnabled, examData?.phoneProtectionEnabled, examData?.attemptId, examId, user?.id]);
