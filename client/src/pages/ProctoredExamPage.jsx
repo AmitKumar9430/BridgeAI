@@ -2463,6 +2463,26 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         codingSubmissions
       });
 
+      // Notify phone stream and backend that exam is completed
+      if (typeof BroadcastChannel !== 'undefined') {
+        try {
+          const bc = new BroadcastChannel('bridgeai_surveillance_feed');
+          bc.postMessage({
+            type: 'EXAM_COMPLETED',
+            attemptId: examData?.attemptId || examId,
+            examId: examId,
+            status: 'COMPLETED'
+          });
+          bc.close();
+        } catch (e) {}
+      }
+
+      const activeAttemptId = examData?.attemptId || `pre_${user?.id || 1}_${examId}`;
+      api.post(`/vigilance/feed/exam-status/${activeAttemptId}`, {
+        isCompleted: true,
+        status: 'COMPLETED'
+      }).catch(() => {});
+
       if (document.fullscreenElement) {
         document.exitFullscreen().catch(() => {});
       }
@@ -2541,7 +2561,8 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
     const isScreenReady = screenStatus === 'active' && !!screenStream;
     const isScreenRejected = screenStatus === 'invalid_surface';
     const isPhoneRequired = Boolean(examMeta?.phoneProtectionEnabled);
-    const isPhoneReady = !isPhoneRequired || (phoneConnected && phonePositionValid);
+    const isPhoneChecklistComplete = Boolean(phoneChecklist.studentFaceVisible && phoneChecklist.screenKeyboardVisible && phoneChecklist.workspaceVisible);
+    const isPhoneReady = !isPhoneRequired || (phoneConnected && (phonePositionValid || isPhoneChecklistComplete) && !!phoneStreamFrame);
     const canInitiateStart = isCamReady && isMicReady && !isScreenRejected && agreedToRules && protectionPassed && isPhoneReady;
 
     return (
@@ -2843,7 +2864,11 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                         Position Verification Checklist:
                       </span>
                       <div className="space-y-1 text-[11px]">
-                        <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPhoneChecklist(prev => ({ ...prev, studentFaceVisible: !prev.studentFaceVisible }))}
+                          className="w-full flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 text-left transition-colors cursor-pointer"
+                        >
                           {phoneChecklist.studentFaceVisible ? (
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                           ) : (
@@ -2852,8 +2877,12 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                           <span className={phoneChecklist.studentFaceVisible ? 'text-emerald-700 dark:text-emerald-300 font-medium' : 'text-slate-500 dark:text-slate-400'}>
                             Candidate Face &amp; Hands Visible
                           </span>
-                        </div>
-                        <div className="flex items-center gap-2">
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPhoneChecklist(prev => ({ ...prev, screenKeyboardVisible: !prev.screenKeyboardVisible }))}
+                          className="w-full flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 text-left transition-colors cursor-pointer"
+                        >
                           {phoneChecklist.screenKeyboardVisible ? (
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                           ) : (
@@ -2862,8 +2891,12 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                           <span className={phoneChecklist.screenKeyboardVisible ? 'text-emerald-700 dark:text-emerald-300 font-medium' : 'text-slate-500 dark:text-slate-400'}>
                             Laptop Screen &amp; Keyboard Visible
                           </span>
-                        </div>
-                        <div className="flex items-center gap-2">
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPhoneChecklist(prev => ({ ...prev, workspaceVisible: !prev.workspaceVisible }))}
+                          className="w-full flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 text-left transition-colors cursor-pointer"
+                        >
                           {phoneChecklist.workspaceVisible ? (
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                           ) : (
@@ -2872,7 +2905,7 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
                           <span className={phoneChecklist.workspaceVisible ? 'text-emerald-700 dark:text-emerald-300 font-medium' : 'text-slate-500 dark:text-slate-400'}>
                             Desk Surroundings Clear of Forbidden Items
                           </span>
-                        </div>
+                        </button>
                       </div>
                     </div>
                   </div>

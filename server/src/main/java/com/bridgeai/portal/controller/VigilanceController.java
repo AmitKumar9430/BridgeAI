@@ -200,14 +200,24 @@ public class VigilanceController {
         VigilanceService.LiveStreamFrame frame = vigilanceService.getLiveStreamFrame(attemptId);
         boolean isConnected = frame != null && (frame.isPhoneConnected() || (frame.getPhoneFrame() != null && !frame.getPhoneFrame().isBlank())) && (System.currentTimeMillis() - frame.getPhoneTimestamp() < 45000);
         boolean isValid = frame != null && frame.isPhonePositionValid();
+        boolean isCompleted = vigilanceService.isAttemptCompleted(attemptId);
         String phoneFrame = (frame != null) ? frame.getPhoneFrame() : null;
         return ResponseEntity.ok(Map.of(
                 "attemptId", attemptId,
                 "phoneConnected", isConnected,
                 "phonePositionValid", isValid,
+                "examCompleted", isCompleted,
                 "phoneFrame", phoneFrame != null ? phoneFrame : "",
                 "timestamp", frame != null ? frame.getPhoneTimestamp() : 0L
         ));
+    }
+
+    @PostMapping("/vigilance/feed/exam-status/{attemptId}")
+    public ResponseEntity<Map<String, Object>> markExamStatus(
+            @PathVariable String attemptId,
+            @RequestBody(required = false) Map<String, Object> payload) {
+        vigilanceService.markAttemptCompleted(attemptId);
+        return ResponseEntity.ok(Map.of("status", "EXAM_STATUS_UPDATED", "attemptId", attemptId, "examCompleted", true));
     }
 
     @GetMapping("/vigilance/feed/stream/{attemptId}")
