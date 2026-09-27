@@ -186,7 +186,7 @@ public class VigilanceController {
 
     @PostMapping("/vigilance/feed/phone-stream/{attemptId}")
     public ResponseEntity<Map<String, Object>> pushPhoneStream(
-            @PathVariable Long attemptId,
+            @PathVariable String attemptId,
             @RequestBody Map<String, Object> payload) {
         String phoneFrame = (String) payload.get("phoneFrame");
         boolean phoneConnected = payload.containsKey("phoneConnected") ? Boolean.TRUE.equals(payload.get("phoneConnected")) : true;
@@ -196,7 +196,7 @@ public class VigilanceController {
     }
 
     @GetMapping("/vigilance/feed/phone-stream/{attemptId}")
-    public ResponseEntity<Map<String, Object>> getPhoneStream(@PathVariable Long attemptId) {
+    public ResponseEntity<Map<String, Object>> getPhoneStream(@PathVariable String attemptId) {
         VigilanceService.LiveStreamFrame frame = vigilanceService.getLiveStreamFrame(attemptId);
         boolean isConnected = frame != null && frame.isPhoneConnected() && (System.currentTimeMillis() - frame.getPhoneTimestamp() < 15000);
         boolean isValid = frame != null && frame.isPhonePositionValid();

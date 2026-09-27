@@ -50,14 +50,22 @@ public class VigilanceService {
         private long timestamp;
     }
 
-    private final Map<Long, LiveStreamFrame> liveStreamFrames = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, LiveStreamFrame> liveStreamFrames = new java.util.concurrent.ConcurrentHashMap<>();
 
     public void saveLiveStreamFrame(Long attemptId, String cameraFrame, String screenFrame, 
                                     boolean cameraConnected, boolean screenConnected, 
                                     String audioChunk, boolean audioConnected, int audioLevel,
                                     String phoneFrame, Boolean phoneConnected, Boolean phonePositionValid) {
         if (attemptId == null) return;
-        LiveStreamFrame prev = liveStreamFrames.get(attemptId);
+        saveLiveStreamFrame(String.valueOf(attemptId), cameraFrame, screenFrame, cameraConnected, screenConnected, audioChunk, audioConnected, audioLevel, phoneFrame, phoneConnected, phonePositionValid);
+    }
+
+    public void saveLiveStreamFrame(String sessionKey, String cameraFrame, String screenFrame, 
+                                    boolean cameraConnected, boolean screenConnected, 
+                                    String audioChunk, boolean audioConnected, int audioLevel,
+                                    String phoneFrame, Boolean phoneConnected, Boolean phonePositionValid) {
+        if (sessionKey == null || sessionKey.isBlank()) return;
+        LiveStreamFrame prev = liveStreamFrames.get(sessionKey);
         boolean hasNewAudio = audioChunk != null && !audioChunk.isBlank();
         String finalAudio = hasNewAudio ? audioChunk : (prev != null ? prev.getAudioChunk() : null);
         long finalAudioTimestamp = hasNewAudio ? System.currentTimeMillis() : (prev != null ? prev.getAudioTimestamp() : 0L);
@@ -67,8 +75,13 @@ public class VigilanceService {
         String finalPhoneFrame = (phoneFrame != null && !phoneFrame.isBlank()) ? phoneFrame : (prev != null ? prev.getPhoneFrame() : null);
         long finalPhoneTimestamp = (phoneFrame != null && !phoneFrame.isBlank()) ? System.currentTimeMillis() : (prev != null ? prev.getPhoneTimestamp() : 0L);
 
-        liveStreamFrames.put(attemptId, LiveStreamFrame.builder()
-                .attemptId(attemptId)
+        Long numericAttemptId = null;
+        try {
+            numericAttemptId = Long.parseLong(sessionKey);
+        } catch (Exception ignored) {}
+
+        liveStreamFrames.put(sessionKey, LiveStreamFrame.builder()
+                .attemptId(numericAttemptId)
                 .cameraFrame(cameraFrame != null ? cameraFrame : (prev != null ? prev.getCameraFrame() : null))
                 .screenFrame(screenFrame != null ? screenFrame : (prev != null ? prev.getScreenFrame() : null))
                 .cameraConnected(cameraConnected)
@@ -95,20 +108,25 @@ public class VigilanceService {
         saveLiveStreamFrame(attemptId, cameraFrame, screenFrame, cameraConnected, screenConnected, null, true, 0, null, null, null);
     }
 
-    public void savePhoneStreamFrame(Long attemptId, String phoneFrame, boolean phoneConnected, boolean phonePositionValid) {
-        if (attemptId == null) return;
-        LiveStreamFrame prev = liveStreamFrames.get(attemptId);
+    public void savePhoneStreamFrame(String sessionKey, String phoneFrame, boolean phoneConnected, boolean phonePositionValid) {
+        if (sessionKey == null || sessionKey.isBlank()) return;
+        LiveStreamFrame prev = liveStreamFrames.get(sessionKey);
         long now = System.currentTimeMillis();
+        Long numericAttemptId = null;
+        try {
+            numericAttemptId = Long.parseLong(sessionKey);
+        } catch (Exception ignored) {}
+
         if (prev != null) {
             prev.setPhoneFrame(phoneFrame != null ? phoneFrame : prev.getPhoneFrame());
             prev.setPhoneConnected(phoneConnected);
             prev.setPhonePositionValid(phonePositionValid);
             prev.setPhoneTimestamp(now);
             prev.setTimestamp(now);
-            liveStreamFrames.put(attemptId, prev);
+            liveStreamFrames.put(sessionKey, prev);
         } else {
-            liveStreamFrames.put(attemptId, LiveStreamFrame.builder()
-                    .attemptId(attemptId)
+            liveStreamFrames.put(sessionKey, LiveStreamFrame.builder()
+                    .attemptId(numericAttemptId)
                     .phoneFrame(phoneFrame)
                     .phoneConnected(phoneConnected)
                     .phonePositionValid(phonePositionValid)
@@ -118,8 +136,19 @@ public class VigilanceService {
         }
     }
 
+    public void savePhoneStreamFrame(Long attemptId, String phoneFrame, boolean phoneConnected, boolean phonePositionValid) {
+        if (attemptId == null) return;
+        savePhoneStreamFrame(String.valueOf(attemptId), phoneFrame, phoneConnected, phonePositionValid);
+    }
+
+    public LiveStreamFrame getLiveStreamFrame(String sessionKey) {
+        if (sessionKey == null) return null;
+        return liveStreamFrames.get(sessionKey);
+    }
+
     public LiveStreamFrame getLiveStreamFrame(Long attemptId) {
-        return liveStreamFrames.get(attemptId);
+        if (attemptId == null) return null;
+        return liveStreamFrames.get(String.valueOf(attemptId));
     }
 
     @Transactional
