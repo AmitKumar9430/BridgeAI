@@ -201,15 +201,30 @@ public class VigilanceController {
         boolean isConnected = frame != null && (frame.isPhoneConnected() || (frame.getPhoneFrame() != null && !frame.getPhoneFrame().isBlank())) && (System.currentTimeMillis() - frame.getPhoneTimestamp() < 45000);
         boolean isValid = frame != null && frame.isPhonePositionValid();
         boolean isCompleted = vigilanceService.isAttemptCompleted(attemptId);
+        boolean isTerminated = frame != null && frame.isPhoneTerminated();
+        String terminationReason = frame != null ? frame.getPhoneTerminationReason() : null;
         String phoneFrame = (frame != null) ? frame.getPhoneFrame() : null;
         return ResponseEntity.ok(Map.of(
                 "attemptId", attemptId,
                 "phoneConnected", isConnected,
                 "phonePositionValid", isValid,
                 "examCompleted", isCompleted,
+                "phoneTerminated", isTerminated,
+                "phoneTerminationReason", terminationReason != null ? terminationReason : "",
                 "phoneFrame", phoneFrame != null ? phoneFrame : "",
                 "timestamp", frame != null ? frame.getPhoneTimestamp() : 0L
         ));
+    }
+
+    @PostMapping("/vigilance/feed/phone-stream/{attemptId}/terminate")
+    public ResponseEntity<Map<String, Object>> terminatePhoneStream(
+            @PathVariable String attemptId,
+            @RequestBody(required = false) Map<String, Object> payload) {
+        String reason = payload != null && payload.get("reason") != null 
+                ? (String) payload.get("reason") 
+                : "You closed or reloaded the smartphone camera during the active assessment.";
+        vigilanceService.markPhoneTerminated(attemptId, reason);
+        return ResponseEntity.ok(Map.of("status", "PHONE_STREAM_TERMINATED", "attemptId", attemptId, "reason", reason));
     }
 
     @PostMapping("/vigilance/feed/exam-status/{attemptId}")

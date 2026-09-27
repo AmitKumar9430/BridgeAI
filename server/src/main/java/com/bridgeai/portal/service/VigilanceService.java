@@ -43,6 +43,8 @@ public class VigilanceService {
         private boolean phoneConnected;
         private boolean phonePositionValid;
         private long phoneTimestamp;
+        private boolean phoneTerminated;
+        private String phoneTerminationReason;
         private String audioChunk;
         private boolean audioConnected;
         private int audioLevel;
@@ -220,6 +222,23 @@ public class VigilanceService {
     public void savePhoneStreamFrame(Long attemptId, String phoneFrame, boolean phoneConnected, boolean phonePositionValid) {
         if (attemptId == null) return;
         savePhoneStreamFrame(String.valueOf(attemptId), phoneFrame, phoneConnected, phonePositionValid);
+    }
+
+    public void markPhoneTerminated(String sessionKey, String reason) {
+        if (sessionKey == null || sessionKey.isBlank()) return;
+        LiveStreamFrame frame = liveStreamFrames.get(sessionKey);
+        if (frame != null) {
+            frame.setPhoneTerminated(true);
+            frame.setPhoneTerminationReason(reason);
+            frame.setPhoneConnected(false);
+        } else {
+            liveStreamFrames.put(sessionKey, LiveStreamFrame.builder()
+                    .phoneTerminated(true)
+                    .phoneTerminationReason(reason)
+                    .phoneConnected(false)
+                    .timestamp(System.currentTimeMillis())
+                    .build());
+        }
     }
 
     public LiveStreamFrame getLiveStreamFrame(String sessionKey) {

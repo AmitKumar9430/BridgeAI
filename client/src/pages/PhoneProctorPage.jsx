@@ -100,9 +100,102 @@ export const PhoneProctorPage = () => {
     }
   }, [params.examId, params.examTitle]);
 
+  // Prevent Pull-to-Refresh gesture, Keyboard Reloads, and Back Navigation on Phone
+  useEffect(() => {
+    if (isExamCompleted) return;
+
+    let touchStartY = 0;
+    const handleTouchStart = (e) => {
+      if (e.touches && e.touches.length === 1) {
+        touchStartY = e.touches[0].clientY;
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      if (e.touches && e.touches.length === 1) {
+        const touchCurrentY = e.touches[0].clientY;
+        // User pulling down from top of viewport (Pull-to-refresh gesture)
+        if (touchCurrentY > touchStartY && window.scrollY <= 0) {
+          if (e.cancelable) {
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    // Block keyboard reload and close shortcuts (F5, Ctrl+R, Cmd+R, Ctrl+W)
+    const handleKeyDown = (e) => {
+      if (isExamCompleted) return;
+      if (
+        e.key === 'F5' ||
+        (e.ctrlKey && (e.key === 'r' || e.key === 'R' || e.key === 'F5' || e.key === 'w' || e.key === 'W')) ||
+        (e.metaKey && (e.key === 'r' || e.key === 'R' || e.key === 'w' || e.key === 'W'))
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowPhoneLeaveWarning(true);
+        return false;
+      }
+    };
+
+    // Intercept hardware Back button / swipe back gesture on Android/iOS
+    const handlePopState = () => {
+      if (!isExamCompleted) {
+        window.history.pushState(null, document.title, window.location.href);
+        setShowPhoneLeaveWarning(true);
+      }
+    };
+
+    // Push initial trap history state
+    window.history.pushState(null, document.title, window.location.href);
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('keydown', handleKeyDown, true);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [isExamCompleted]);
+
   // Detect tab-switch, minimizing, or closing phone camera during active exam
   useEffect(() => {
     if (isExamCompleted) return;
+
+    const sendTerminationSignal = (reason) => {
+      const details = reason || 'Student reloaded, navigated away from, or closed the smartphone 3rd-angle camera during the active examination.';
+      const payload = JSON.stringify({
+        attemptId: params.attemptId,
+        examId: params.examId,
+        violationType: 'PHONE_CAMERA_CLOSED',
+        details,
+        reason: details,
+        timestamp: Date.now()
+      });
+
+      if (bcRef.current) {
+        try {
+          bcRef.current.postMessage({
+            type: 'PHONE_CAMERA_TERMINATED',
+            attemptId: params.attemptId,
+            examId: params.examId,
+            reason: details,
+            timestamp: Date.now()
+          });
+        } catch (err) {}
+      }
+
+      try {
+        if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+          const blob = new Blob([payload], { type: 'application/json' });
+          navigator.sendBeacon(`/api/vigilance/feed/phone-stream/${params.attemptId}/terminate`, blob);
+          navigator.sendBeacon('/api/exams/violation', blob);
+        }
+      } catch (err) {}
+    };
 
     const handleVisibilityChange = () => {
       if (isExamCompleted) return;
@@ -132,17 +225,7 @@ export const PhoneProctorPage = () => {
           if (count <= 0) {
             clearInterval(leaveCountdownTimerRef.current);
             leaveCountdownTimerRef.current = null;
-            if (bcRef.current) {
-              try {
-                bcRef.current.postMessage({
-                  type: 'PHONE_CAMERA_TERMINATED',
-                  attemptId: params.attemptId,
-                  examId: params.examId,
-                  reason: 'You closed or minimized the 3rd-angle phone camera during the proctored exam.',
-                  timestamp: Date.now()
-                });
-              } catch (e) {}
-            }
+            sendTerminationSignal('You closed, minimized, or switched away from the smartphone camera during the active assessment.');
           }
         }, 1000);
       } else {
@@ -167,34 +250,16 @@ export const PhoneProctorPage = () => {
 
     const handleBeforeUnload = (e) => {
       if (!isExamCompleted) {
-        if (bcRef.current) {
-          try {
-            bcRef.current.postMessage({
-              type: 'PHONE_CAMERA_TERMINATED',
-              attemptId: params.attemptId,
-              examId: params.examId,
-              reason: 'Phone camera page closed by candidate',
-              timestamp: Date.now()
-            });
-          } catch (err) {}
-        }
+        sendTerminationSignal('You reloaded, closed, or navigated away from the smartphone 3rd-angle camera during the active examination.');
         e.preventDefault();
-        e.returnValue = 'WARNING: Closing your phone camera will automatically terminate and submit your examination.';
+        e.returnValue = 'CRITICAL WARNING: Reloading or closing your phone camera will immediately terminate and submit your examination.';
         return e.returnValue;
       }
     };
 
     const handlePageHide = () => {
-      if (!isExamCompleted && bcRef.current) {
-        try {
-          bcRef.current.postMessage({
-            type: 'PHONE_CAMERA_TERMINATED',
-            attemptId: params.attemptId,
-            examId: params.examId,
-            reason: 'Phone camera page hidden or closed',
-            timestamp: Date.now()
-          });
-        } catch (err) {}
+      if (!isExamCompleted) {
+        sendTerminationSignal('You reloaded, closed, or navigated away from the smartphone 3rd-angle camera during the active examination.');
       }
     };
 
@@ -540,6 +605,8 @@ export const PhoneProctorPage = () => {
   return (
     <div
       onClick={handleScreenTap}
+      onContextMenu={(e) => e.preventDefault()}
+      style={{ overscrollBehavior: 'none', touchAction: 'none', WebkitUserSelect: 'none' }}
       className="fixed inset-0 w-full h-full bg-black text-white flex flex-col justify-between overflow-hidden font-sans select-none"
     >
       {/* 1. FULL-SCREEN BACKGROUND CAMERA VIDEO FEED */}
@@ -718,9 +785,10 @@ export const PhoneProctorPage = () => {
           </div>
         </div>
 
-        <p className="text-[10px] text-center text-slate-400">
-          Leave smartphone propped at 45° angle facing you &amp; your laptop.
-        </p>
+        <div className="flex items-center justify-center gap-1.5 py-1 px-2.5 bg-slate-900/90 border border-slate-700/60 rounded-lg text-[10px] text-slate-300 font-medium">
+          <Lock className="w-3 h-3 text-amber-400 shrink-0" />
+          <span>Screen &amp; Camera Locked &mdash; Do not reload or switch apps</span>
+        </div>
       </div>
 
       {/* 5. HIGH-PRIORITY PHONE LEAVE / CAMERA CLOSED WARNING OVERLAY */}

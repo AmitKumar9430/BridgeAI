@@ -457,6 +457,12 @@ export const ProctoredExamPage = ({ examId, onExamCompleted, onCancel }) => {
         }
 
         if (res.data) {
+          if (res.data.phoneTerminated) {
+            if (examStartedRef.current && !submittingRef.current) {
+              handlePhoneCameraTerminated(res.data.phoneTerminationReason || 'You closed or reloaded the smartphone camera during the active assessment.');
+              return;
+            }
+          }
           if (res.data.phoneFrame) {
             setPhoneStreamFrame(res.data.phoneFrame);
             setPhoneConnected(true);
