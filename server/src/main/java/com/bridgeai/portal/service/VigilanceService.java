@@ -543,7 +543,8 @@ public class VigilanceService {
         User saved = userRepository.save(officer);
 
         if (req.getInstitutionIds() != null && !req.getInstitutionIds().isEmpty()) {
-            for (Long instId : req.getInstitutionIds()) {
+            Set<Long> uniqueInstIds = new LinkedHashSet<>(req.getInstitutionIds());
+            for (Long instId : uniqueInstIds) {
                 institutionRepository.findById(instId).ifPresent(inst -> {
                     officerInstitutionRepository.save(OfficerInstitutionMapping.builder()
                             .officerId(saved.getId())
@@ -555,6 +556,7 @@ public class VigilanceService {
                             .build());
                 });
             }
+            officerInstitutionRepository.flush();
         }
 
         auditLogService.log(bossAdminEmail, "ROLE_BOSS_ADMIN", "VIGILANCE_OFFICER_APPOINTED", "User", saved.getId(),
@@ -574,9 +576,11 @@ public class VigilanceService {
         }
 
         officerInstitutionRepository.deleteByOfficerId(officerId);
+        officerInstitutionRepository.flush();
 
         if (institutionIds != null && !institutionIds.isEmpty()) {
-            for (Long instId : institutionIds) {
+            Set<Long> uniqueInstIds = new LinkedHashSet<>(institutionIds);
+            for (Long instId : uniqueInstIds) {
                 institutionRepository.findById(instId).ifPresent(inst -> {
                     officerInstitutionRepository.save(OfficerInstitutionMapping.builder()
                             .officerId(officerId)
@@ -588,6 +592,7 @@ public class VigilanceService {
                             .build());
                 });
             }
+            officerInstitutionRepository.flush();
         }
 
         auditLogService.log(bossAdminEmail, "ROLE_BOSS_ADMIN", "VIGILANCE_OFFICER_DEPUTATION_UPDATED", "User", officerId,
@@ -703,11 +708,15 @@ public class VigilanceService {
         }
 
         User saved = userRepository.save(officer);
+        userRepository.flush();
 
         // Update deputed colleges if provided
         if (req.getInstitutionIds() != null) {
             officerInstitutionRepository.deleteByOfficerId(id);
-            for (Long instId : req.getInstitutionIds()) {
+            officerInstitutionRepository.flush();
+
+            Set<Long> uniqueInstIds = new LinkedHashSet<>(req.getInstitutionIds());
+            for (Long instId : uniqueInstIds) {
                 institutionRepository.findById(instId).ifPresent(inst -> {
                     officerInstitutionRepository.save(OfficerInstitutionMapping.builder()
                             .officerId(saved.getId())
@@ -719,6 +728,7 @@ public class VigilanceService {
                             .build());
                 });
             }
+            officerInstitutionRepository.flush();
         }
 
         auditLogService.log(bossAdminEmail, "ROLE_BOSS_ADMIN", "VIGILANCE_OFFICER_UPDATED", "User", saved.getId(),
