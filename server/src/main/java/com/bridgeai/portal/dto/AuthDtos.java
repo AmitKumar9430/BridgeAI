@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.util.List;
 import java.util.Map;
 
 public class AuthDtos {
@@ -314,5 +315,30 @@ public class AuthDtos {
         private String studentName;
         private Long examId;
         private String message;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class UpdateVigilanceOfficerRequest {
+        @NotBlank(message = "Full name is required")
+        private String fullName;
+        @NotBlank(message = "Email is required")
+        private String email;
+        private String phone;
+        @NotBlank(message = "Staff ID is required")
+        private String staffId;
+        private String password; // optional password update
+        private boolean active;
+        private List<Long> institutionIds;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class DeleteEvidenceRequest {
+        private String reason;
     }
 }

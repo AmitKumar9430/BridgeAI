@@ -11,7 +11,7 @@ import {
   Video, Monitor, Mic, MicOff, Camera, MessageSquare, CameraOff,
   Building2, GraduationCap, ChevronDown, ChevronUp, Radio, AlertOctagon,
   Image as ImageIcon, Download, CheckSquare, Maximize2, Minimize2, Sparkles, UserCheck,
-  Play, StopCircle, QrCode, Smartphone, Tablet, Copy, Volume2, VolumeX
+  Play, StopCircle, QrCode, Smartphone, Tablet, Copy, Volume2, VolumeX, Trash2, History
 } from 'lucide-react';
 import { ChangePasswordModal } from '../components/common/ChangePasswordModal';
 
@@ -43,6 +43,14 @@ export const VigilanceDashboard = ({
   const [warnings, setWarnings] = useState([]);
   const [terminations, setTerminations] = useState([]);
   const [evidenceList, setEvidenceList] = useState([]);
+  const [evidenceDeletionHistory, setEvidenceDeletionHistory] = useState([]);
+  const [evidenceSubTab, setEvidenceSubTab] = useState('gallery'); // 'gallery' | 'history'
+  const [showDeleteEvidenceModal, setShowDeleteEvidenceModal] = useState(false);
+  const [selectedEvidenceForDelete, setSelectedEvidenceForDelete] = useState(null);
+  const [deleteEvidenceReason, setDeleteEvidenceReason] = useState('');
+  const [deleteEvidenceLoading, setDeleteEvidenceLoading] = useState(false);
+  const [deleteEvidenceError, setDeleteEvidenceError] = useState(null);
+  const [deleteEvidenceSuccess, setDeleteEvidenceSuccess] = useState(null);
   const [activityLogs, setActivityLogs] = useState([]);
   const [deputedInstitutions, setDeputedInstitutions] = useState([]);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -209,17 +217,22 @@ export const VigilanceDashboard = ({
     if (!isBackground) setLoading(true);
     setFeedRefreshing(true);
     try {
-      const [treeRes, warnRes, termRes, evidRes, actRes, depRes] = await Promise.all([
+      const [treeRes, warnRes, termRes, evidRes, actRes, depRes, evidDelRes] = await Promise.all([
         api.get('/vigilance/surveillance-tree'),
         api.get('/boss/vigilance/warnings').catch(() => ({ data: [] })),
         api.get('/boss/vigilance/terminations').catch(() => ({ data: [] })),
         api.get('/vigilance/evidence').catch(() => ({ data: [] })),
         api.get('/boss/vigilance/activity').catch(() => ({ data: [] })),
-        api.get('/vigilance/my-deputed-institutions').catch(() => ({ data: [] }))
+        api.get('/vigilance/my-deputed-institutions').catch(() => ({ data: [] })),
+        api.get('/vigilance/evidence/deletion-history').catch(() => ({ data: [] }))
       ]);
 
       if (depRes?.data) {
         setDeputedInstitutions(depRes.data);
+      }
+
+      if (evidDelRes?.data) {
+        setEvidenceDeletionHistory(evidDelRes.data);
       }
 
       if (treeRes.data) {
@@ -261,6 +274,37 @@ export const VigilanceDashboard = ({
     } finally {
       if (!isBackground) setLoading(false);
       setFeedRefreshing(false);
+    }
+  };
+
+  const handleOpenDeleteEvidenceModal = (evid) => {
+    setSelectedEvidenceForDelete(evid);
+    setDeleteEvidenceReason('');
+    setDeleteEvidenceError(null);
+    setDeleteEvidenceSuccess(null);
+    setShowDeleteEvidenceModal(true);
+  };
+
+  const handleConfirmDeleteEvidence = async (e) => {
+    if (e) e.preventDefault();
+    if (!selectedEvidenceForDelete) return;
+    setDeleteEvidenceLoading(true);
+    setDeleteEvidenceError(null);
+    try {
+      await api.delete(`/vigilance/evidence/${selectedEvidenceForDelete.id}`, {
+        data: { reason: deleteEvidenceReason || 'Deleted by Vigilance Officer' }
+      });
+      setDeleteEvidenceSuccess('Evidence record deleted and permanently recorded in immutable deletion history.');
+      setTimeout(() => {
+        setShowDeleteEvidenceModal(false);
+        setSelectedEvidenceForDelete(null);
+        setDeleteEvidenceSuccess(null);
+      }, 1000);
+      fetchSurveillanceFeed(true);
+    } catch (err) {
+      setDeleteEvidenceError(err?.response?.data?.message || 'Failed to delete evidence item.');
+    } finally {
+      setDeleteEvidenceLoading(false);
     }
   };
 
@@ -1898,75 +1942,200 @@ export const VigilanceDashboard = ({
         {/* TAB 4: EVIDENCE REPOSITORY */}
         {activeTab === 'evidence' && (
           <div className="space-y-4">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex items-center justify-between">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Institutional Evidence Repository
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-rose-500" />
+                  <span>Institutional Evidence Repository</span>
                 </h3>
-                <p className="text-xs text-slate-500">Immutable gallery of captured video/screen frames and visual fraud records.</p>
+                <p className="text-xs text-slate-500">Secure gallery of captured evidentiary frames with immutable deletion audit ledger.</p>
               </div>
-              <span className="text-xs font-semibold text-slate-500">
-                {evidenceList.length} Captured Items
-              </span>
+              
+              {/* Evidence Sub-Navigation */}
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                <button
+                  onClick={() => setEvidenceSubTab('gallery')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    evidenceSubTab === 'gallery'
+                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-slate-700'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span>Captured Gallery</span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-[10px] font-mono">
+                    {evidenceList.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setEvidenceSubTab('history')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    evidenceSubTab === 'history'
+                      ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-xs border border-rose-200 dark:border-rose-900/50'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Deletion History</span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-[10px] font-mono border border-rose-200 dark:border-rose-900/50">
+                    {evidenceDeletionHistory.length}
+                  </span>
+                </button>
+              </div>
             </div>
 
-            {evidenceList.length === 0 ? (
-              <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
-                <ImageIcon className="w-12 h-12 text-slate-400 mx-auto" />
-                <h3 className="font-bold text-slate-900 dark:text-white text-base">No Evidence Frames Captured</h3>
-                <p className="text-xs text-slate-500">Use the "[ Capture Evidence ]" action inside any live student monitoring session to record evidentiary snapshots.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {evidenceList.map((evid) => (
-                  <div
-                    key={evid.id}
-                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
-                  >
-                    {/* Evidence Preview Image */}
+            {/* SUB-VIEW A: CAPTURED EVIDENCE GALLERY */}
+            {evidenceSubTab === 'gallery' && (
+              evidenceList.length === 0 ? (
+                <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                  <ImageIcon className="w-12 h-12 text-slate-400 mx-auto" />
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">No Evidence Frames Captured</h3>
+                  <p className="text-xs text-slate-500">Use the "[ Capture Evidence ]" action inside any live student monitoring session to record evidentiary snapshots.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {evidenceList.map((evid) => (
                     <div
-                      onClick={() => setPreviewEvidenceItem(evid)}
-                      className="aspect-video bg-black relative cursor-pointer group flex items-center justify-center"
+                      key={evid.id}
+                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group/card"
                     >
-                      {evid.evidenceSnapshot ? (
-                        <img
-                          src={evid.evidenceSnapshot}
-                          alt="Evidence Frame"
-                          className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
-                        />
-                      ) : (
-                        <div className="text-slate-500 text-xs font-mono">Frame Snapshot Stored</div>
-                      )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="px-3 py-1.5 rounded-xl bg-white/90 text-slate-900 text-xs font-bold shadow-lg flex items-center gap-1.5">
-                          <Maximize2 className="w-3.5 h-3.5" />
-                          <span>View Full Frame</span>
-                        </span>
+                      {/* Evidence Preview Image */}
+                      <div
+                        onClick={() => setPreviewEvidenceItem(evid)}
+                        className="aspect-video bg-black relative cursor-pointer group flex items-center justify-center"
+                      >
+                        {evid.evidenceSnapshot ? (
+                          <img
+                            src={evid.evidenceSnapshot}
+                            alt="Evidence Frame"
+                            className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                          />
+                        ) : (
+                          <div className="text-slate-500 text-xs font-mono">Frame Snapshot Stored</div>
+                        )}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="px-3 py-1.5 rounded-xl bg-white/90 text-slate-900 text-xs font-bold shadow-lg flex items-center gap-1.5">
+                            <Maximize2 className="w-3.5 h-3.5" />
+                            <span>View Full Frame</span>
+                          </span>
+                        </div>
+                        <div className="absolute top-2 left-2 bg-indigo-950/80 border border-indigo-500/40 text-indigo-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded">
+                          {evid.evidenceId || `EVD-#${evid.id}`}
+                        </div>
                       </div>
-                      <div className="absolute top-2 left-2 bg-indigo-950/80 border border-indigo-500/40 text-indigo-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded">
-                        {evid.evidenceId || `EVD-#${evid.id}`}
-                      </div>
-                    </div>
 
-                    <div className="p-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-900 dark:text-white text-xs">
-                          {evid.studentName}
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400">
-                          Att #{evid.attemptId}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-2">
-                        {evid.reason}
-                      </p>
-                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                        <span>Captured by: {evid.officerName}</span>
-                        <span>{evid.timestamp ? new Date(evid.timestamp).toLocaleDateString() : 'N/A'}</span>
+                      <div className="p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-900 dark:text-white text-xs">
+                            {evid.studentName}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            Att #{evid.attemptId}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-2">
+                          {evid.reason}
+                        </p>
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                          <span>By: {evid.officerName}</span>
+                          <span>{evid.timestamp ? new Date(evid.timestamp).toLocaleDateString() : 'N/A'}</span>
+                        </div>
+
+                        {/* Officer Action Toolbar */}
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {evid.instituteName || 'Institutional Record'}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenDeleteEvidenceModal(evid);
+                            }}
+                            className="px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-transparent hover:border-rose-200 dark:hover:border-rose-900 transition-colors flex items-center gap-1"
+                            title="Delete this evidence snapshot"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )
+            )}
+
+            {/* SUB-VIEW B: EVIDENCE DELETION AUDIT HISTORY */}
+            {evidenceSubTab === 'history' && (
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4 text-rose-600" />
+                      <span>Evidence Deletion Audit History</span>
+                    </h3>
+                    <p className="text-xs text-slate-500">Immutable ledger recording all evidence snapshot deletions by Vigilance Officers.</p>
                   </div>
-                ))}
+                  <span className="text-xs font-mono font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900">
+                    {evidenceDeletionHistory.length} Deletions Logged
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                      <tr>
+                        <th className="px-4 py-3">Timestamp</th>
+                        <th className="px-4 py-3">Officer</th>
+                        <th className="px-4 py-3">Action</th>
+                        <th className="px-4 py-3">Target Evidence / Details</th>
+                        <th className="px-4 py-3">IP Address</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {evidenceDeletionHistory.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" className="px-4 py-8 text-center text-slate-400">
+                            No evidence snapshot deletions recorded. All captured evidence remains intact.
+                          </td>
+                        </tr>
+                      ) : (
+                        evidenceDeletionHistory.map((log) => (
+                          <tr key={log.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                            <td className="px-4 py-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
+                              {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="font-semibold text-slate-900 dark:text-white block">
+                                {log.performedByEmail}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {log.performedByRole || 'ROLE_VIGILANCE_OFFICER'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900 whitespace-nowrap">
+                                {log.action}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-slate-700 dark:text-slate-300">
+                              <div className="font-medium text-xs text-slate-900 dark:text-white">
+                                Evidence #{log.entityId}
+                              </div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">
+                                {log.details}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-slate-400 font-mono text-[11px]">
+                              {log.ipAddress || '127.0.0.1'}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
@@ -1980,7 +2149,7 @@ export const VigilanceDashboard = ({
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                   Vigilance Bureau Immutable Activity Logs
                 </h3>
-                <p className="text-xs text-slate-500">Cryptographically secure audit trail of all officer logins, warnings, evidence captures, and terminations.</p>
+                <p className="text-xs text-slate-500">Cryptographically secure audit trail of all officer logins, warnings, evidence captures, deletions, and terminations.</p>
               </div>
               <span className="text-xs font-semibold text-slate-500">
                 Total Log Entries: {activityLogs.length}
@@ -2007,30 +2176,43 @@ export const VigilanceDashboard = ({
                       </td>
                     </tr>
                   ) : (
-                    activityLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                        <td className="px-4 py-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
-                          {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}
-                        </td>
-                        <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">
-                          {log.performedByEmail}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                            {log.action}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-500">
-                          {log.entityName} #{log.entityId}
-                        </td>
-                        <td className="px-4 py-3 max-w-xs text-slate-600 dark:text-slate-300 truncate">
-                          {log.details}
-                        </td>
-                        <td className="px-4 py-3 text-slate-400 font-mono text-[11px]">
-                          {log.ipAddress || '127.0.0.1'}
-                        </td>
-                      </tr>
-                    ))
+                    activityLogs.map((log) => {
+                      const isDeletion = log.action === 'VIGILANCE_EVIDENCE_DELETED';
+                      const isTermination = log.action === 'VIGILANCE_EXAM_TERMINATED';
+                      const isWarning = log.action === 'VIGILANCE_WARNING_ISSUED';
+                      return (
+                        <tr key={log.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                          <td className="px-4 py-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
+                            {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">
+                            {log.performedByEmail}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
+                              isDeletion
+                                ? 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900'
+                                : isTermination
+                                ? 'bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 border-red-200 dark:border-red-900'
+                                : isWarning
+                                ? 'bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900'
+                                : 'bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
+                            }`}>
+                              {log.action}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-500">
+                            {log.entityName} #{log.entityId}
+                          </td>
+                          <td className="px-4 py-3 max-w-xs text-slate-600 dark:text-slate-300 truncate">
+                            {log.details}
+                          </td>
+                          <td className="px-4 py-3 text-slate-400 font-mono text-[11px]">
+                            {log.ipAddress || '127.0.0.1'}
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -3261,6 +3443,103 @@ export const VigilanceDashboard = ({
             </div>
           </div>,
           document.body
+        )}
+
+        {/* MODAL: DELETE EVIDENCE CONFIRMATION */}
+        {showDeleteEvidenceModal && selectedEvidenceForDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+              <div className="bg-[#0F172A] text-white p-5 flex items-center justify-between border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                    <Trash2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold">Delete Evidence Snapshot</h3>
+                    <p className="text-[11px] text-slate-400">Vigilance Institutional Repository</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDeleteEvidenceModal(false)}
+                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleConfirmDeleteEvidence} className="p-5 space-y-4">
+                {deleteEvidenceError && (
+                  <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-800 dark:text-rose-300 font-medium flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                    <span>{deleteEvidenceError}</span>
+                  </div>
+                )}
+
+                {deleteEvidenceSuccess && (
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 font-medium flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>{deleteEvidenceSuccess}</span>
+                  </div>
+                )}
+
+                <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl text-xs text-amber-900 dark:text-amber-200 space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>Audit Trail Notice</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    Deleting this evidence item removes the media snapshot. An immutable record of this deletion (including your identity, timestamp, and justification) will be permanently recorded in the Vigilance Bureau and Boss Admin audit ledgers.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1.5 text-xs font-mono">
+                  <div className="flex justify-between text-slate-500">
+                    <span>Evidence Ref:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{selectedEvidenceForDelete.evidenceId || `EVD-#${selectedEvidenceForDelete.id}`}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500">
+                    <span>Candidate:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{selectedEvidenceForDelete.studentName} (Attempt #{selectedEvidenceForDelete.attemptId})</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500">
+                    <span>Original Reason:</span>
+                    <span className="text-slate-700 dark:text-slate-300 truncate max-w-[200px]">{selectedEvidenceForDelete.reason}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Deletion Justification / Reason <span className="text-slate-400 font-normal">(Required for Audit Trail)</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={deleteEvidenceReason}
+                    onChange={(e) => setDeleteEvidenceReason(e.target.value)}
+                    placeholder="e.g. False trigger snapshot / Verified harmless candidate movement after manual review."
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+
+                <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteEvidenceModal(false)}
+                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={deleteEvidenceLoading}
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>{deleteEvidenceLoading ? 'Deleting...' : 'Confirm & Delete'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
 
         {/* CHANGE PASSWORD MODAL */}

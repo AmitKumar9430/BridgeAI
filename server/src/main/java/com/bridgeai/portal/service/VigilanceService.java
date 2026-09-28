@@ -674,6 +674,98 @@ public class VigilanceService {
     }
 
     @Transactional
+    public UserDto updateVigilanceOfficer(Long id, UpdateVigilanceOfficerRequest req, String bossAdminEmail, String ip) {
+        User officer = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Vigilance Officer not found with id: " + id));
+
+        if (officer.getRole() != Role.ROLE_VIGILANCE_OFFICER) {
+            throw new IllegalArgumentException("User is not a Vigilance Officer.");
+        }
+
+        String email = req.getEmail().trim().toLowerCase();
+        String staffId = req.getStaffId().trim().toUpperCase();
+
+        if (!officer.getEmail().equalsIgnoreCase(email) && userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("An account with email " + email + " already exists.");
+        }
+        if (!officer.getStaffId().equalsIgnoreCase(staffId) && userRepository.existsByStaffId(staffId)) {
+            throw new IllegalArgumentException("A staff member with Staff ID " + staffId + " already exists.");
+        }
+
+        officer.setFullName(req.getFullName().trim());
+        officer.setEmail(email);
+        officer.setPhone(req.getPhone() != null ? req.getPhone().trim() : null);
+        officer.setStaffId(staffId);
+        officer.setActive(req.isActive());
+
+        if (req.getPassword() != null && !req.getPassword().isBlank()) {
+            officer.setPassword(passwordEncoder.encode(req.getPassword()));
+        }
+
+        User saved = userRepository.save(officer);
+
+        // Update deputed colleges if provided
+        if (req.getInstitutionIds() != null) {
+            officerInstitutionRepository.deleteByOfficerId(id);
+            for (Long instId : req.getInstitutionIds()) {
+                institutionRepository.findById(instId).ifPresent(inst -> {
+                    officerInstitutionRepository.save(OfficerInstitutionMapping.builder()
+                            .officerId(saved.getId())
+                            .institutionId(inst.getId())
+                            .institutionName(inst.getName())
+                            .institutionCode(inst.getCode())
+                            .assignedBy(bossAdminEmail)
+                            .assignedAt(LocalDateTime.now())
+                            .build());
+                });
+            }
+        }
+
+        auditLogService.log(bossAdminEmail, "ROLE_BOSS_ADMIN", "VIGILANCE_OFFICER_UPDATED", "User", saved.getId(),
+                "Updated details for Vigilance Officer: " + saved.getFullName() + " (" + saved.getStaffId() + ")", ip);
+
+        log.info("Boss Admin {} updated Vigilance Officer {} ({})", bossAdminEmail, saved.getFullName(), saved.getStaffId());
+        return authService.toDto(saved);
+    }
+
+    @Transactional
+    public void deleteVigilanceOfficer(Long id, String bossAdminEmail, String ip) {
+        User officer = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Vigilance Officer not found with id: " + id));
+
+        if (officer.getRole() != Role.ROLE_VIGILANCE_OFFICER) {
+            throw new IllegalArgumentException("User is not a Vigilance Officer.");
+        }
+
+        String officerName = officer.getFullName();
+        String officerStaffId = officer.getStaffId();
+        String officerEmail = officer.getEmail();
+
+        officerInstitutionRepository.deleteByOfficerId(id);
+        userRepository.delete(officer);
+
+        auditLogService.log(bossAdminEmail, "ROLE_BOSS_ADMIN", "VIGILANCE_OFFICER_DELETED", "User", id,
+                "Deleted Vigilance Officer account: " + officerName + " (" + officerStaffId + ", Email: " + officerEmail + ")", ip);
+
+        log.warn("Boss Admin {} deleted Vigilance Officer {} ({})", bossAdminEmail, officerName, officerStaffId);
+    }
+
+    public List<AuditLog> getOfficerAuditTrail(Long officerId, String callerEmail) {
+        User officer = null;
+        if (officerId != null) {
+            officer = userRepository.findById(officerId).orElse(null);
+        } else if (callerEmail != null && !callerEmail.isBlank()) {
+            officer = userRepository.findByEmail(callerEmail).orElse(null);
+        }
+
+        if (officer == null) {
+            return auditLogRepository.findByPerformedByRoleOrderByTimestampDesc("ROLE_VIGILANCE_OFFICER");
+        }
+
+        return auditLogRepository.findByPerformedByEmailOrderByTimestampDesc(officer.getEmail());
+    }
+
+    @Transactional
     public VigilanceRecord recordVigilanceAction(VigilanceActionRequest req, String officerEmail, String ip) {
         User officer = userRepository.findByEmail(officerEmail)
                 .orElse(null);
@@ -1308,7 +1400,80 @@ public class VigilanceService {
     }
 
     public List<VigilanceRecord> getAllEvidence() {
-        return vigilanceRecordRepository.findByEvidenceIdIsNotNullOrderByTimestampDesc();
+        return getAllEvidence(null);
+    }
+
+    public List<VigilanceRecord> getAllEvidence(String callerEmail) {
+        Set<String> allowedInsts = getOfficerAllowedInstitutions(callerEmail);
+        List<VigilanceRecord> all = vigilanceRecordRepository.findByEvidenceIdIsNotNullOrderByTimestampDesc();
+        if (allowedInsts == null) return all;
+        if (allowedInsts.isEmpty()) {
+            User officer = userRepository.findByEmail(callerEmail).orElse(null);
+            if (officer == null) return Collections.emptyList();
+            return all.stream().filter(r -> officer.getId().equals(r.getOfficerId()) || 
+                    (officer.getStaffId() != null && officer.getStaffId().equalsIgnoreCase(r.getOfficerStaffId()))).toList();
+        }
+
+        return all.stream().filter(r -> {
+            if (r.getExamId() != null) {
+                Optional<Exam> eOpt = examRepository.findById(r.getExamId());
+                if (eOpt.isPresent() && eOpt.get().getInstitutionName() != null) {
+                    if (allowedInsts.contains(eOpt.get().getInstitutionName().trim().toLowerCase())) {
+                        return true;
+                    }
+                }
+            }
+            if (r.getStudentId() != null) {
+                Optional<User> uOpt = userRepository.findById(r.getStudentId());
+                if (uOpt.isPresent() && uOpt.get().getInstitutionName() != null) {
+                    return allowedInsts.contains(uOpt.get().getInstitutionName().trim().toLowerCase());
+                }
+            }
+            return false;
+        }).toList();
+    }
+
+    @Transactional
+    public void deleteEvidence(Long id, String reason, String callerEmail, String ip) {
+        VigilanceRecord record = vigilanceRecordRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Evidence record not found with id: " + id));
+
+        User caller = userRepository.findByEmail(callerEmail).orElse(null);
+        String callerRole = caller != null ? caller.getRole().name() : "ROLE_VIGILANCE_OFFICER";
+        String officerStaffId = caller != null && caller.getStaffId() != null ? caller.getStaffId() : "VO-001";
+        String officerName = caller != null ? caller.getFullName() : "Vigilance Officer";
+
+        String finalReason = (reason != null && !reason.isBlank()) ? reason.trim() : "Deleted by authorized officer.";
+        String evId = record.getEvidenceId() != null ? record.getEvidenceId() : ("EVD-" + record.getId());
+
+        String details = String.format("Deleted Evidence Record [%s] for Candidate: %s (#%d), Attempt: #%d, Exam: %s. Justification: %s. Captured originally by: %s (%s)",
+                evId, record.getStudentName(), record.getStudentId(), record.getAttemptId(), record.getExamTitle(), finalReason, record.getOfficerName(), record.getOfficerStaffId());
+
+        // Log into institutional audit logs
+        auditLogService.log(callerEmail, callerRole, "VIGILANCE_EVIDENCE_DELETED", "VigilanceRecord", record.getId(), details, ip);
+
+        log.warn("Evidence {} deleted by {} ({}) - Reason: {}", evId, officerName, officerStaffId, finalReason);
+        vigilanceRecordRepository.delete(record);
+    }
+
+    public List<AuditLog> getEvidenceDeletionHistory(String callerEmail, Long officerId) {
+        if (officerId != null) {
+            User officer = userRepository.findById(officerId).orElse(null);
+            if (officer != null) {
+                return auditLogRepository.findByPerformedByEmailAndActionInOrderByTimestampDesc(
+                        officer.getEmail(), List.of("VIGILANCE_EVIDENCE_DELETED"));
+            }
+        }
+
+        if (callerEmail != null && !callerEmail.isBlank()) {
+            User caller = userRepository.findByEmail(callerEmail).orElse(null);
+            if (caller != null && caller.getRole() == Role.ROLE_VIGILANCE_OFFICER) {
+                return auditLogRepository.findByPerformedByEmailAndActionInOrderByTimestampDesc(
+                        callerEmail, List.of("VIGILANCE_EVIDENCE_DELETED"));
+            }
+        }
+
+        return auditLogRepository.findByActionInOrderByTimestampDesc(List.of("VIGILANCE_EVIDENCE_DELETED"));
     }
 
     // =========================================================================

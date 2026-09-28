@@ -9,7 +9,7 @@ import {
   Trash2, CheckCircle, XCircle, Filter, Plus, ShieldCheck, UserPlus, Phone, Mail,
   MapPin, Globe, Calendar, Award, ChevronDown, ChevronRight, Layers, Sparkles,
   BookOpen, GraduationCap, Search, ExternalLink, Target, Clock, X,
-  PanelLeftOpen, PanelLeftClose, Edit3, Video, FileText, Ban, Power
+  PanelLeftOpen, PanelLeftClose, Edit3, Video, FileText, Ban, Power, History
 } from 'lucide-react';
 import { DashboardSidebar } from '../components/common/DashboardSidebar';
 import { LiveSessionsTab } from '../components/common/LiveSessionsTab';
@@ -167,6 +167,35 @@ export const BossAdminDashboard = ({
   const [deputeLoading, setDeputeLoading] = useState(false);
   const [deputeError, setDeputeError] = useState(null);
   const [deputeSuccess, setDeputeSuccess] = useState(null);
+
+  // Edit Officer Modal State
+  const [showEditOfficerModal, setShowEditOfficerModal] = useState(false);
+  const [editingOfficerForm, setEditingOfficerForm] = useState({
+    id: null,
+    fullName: '',
+    email: '',
+    mobileNumber: '',
+    staffId: '',
+    password: '',
+    accountStatus: 'ACTIVE',
+    institutionIds: []
+  });
+  const [editOfficerLoading, setEditOfficerLoading] = useState(false);
+  const [editOfficerError, setEditOfficerError] = useState(null);
+  const [editOfficerSuccess, setEditOfficerSuccess] = useState(null);
+
+  // Delete Officer Modal State
+  const [showDeleteOfficerModal, setShowDeleteOfficerModal] = useState(false);
+  const [selectedOfficerForDelete, setSelectedOfficerForDelete] = useState(null);
+  const [deleteOfficerLoading, setDeleteOfficerLoading] = useState(false);
+  const [deleteOfficerError, setDeleteOfficerError] = useState(null);
+
+  // Officer History Modal State
+  const [showOfficerHistoryModal, setShowOfficerHistoryModal] = useState(false);
+  const [selectedOfficerForHistory, setSelectedOfficerForHistory] = useState(null);
+  const [officerHistoryLogs, setOfficerHistoryLogs] = useState([]);
+  const [officerHistoryLoading, setOfficerHistoryLoading] = useState(false);
+  const [activityOfficerFilter, setActivityOfficerFilter] = useState('ALL');
 
   // Institution CRUD Handlers
   const handleDeleteInstitution = async (id, name) => {
@@ -596,6 +625,98 @@ export const BossAdminDashboard = ({
 
   const handleDeselectAllColleges = () => {
     setDeputeCollegesSelected([]);
+  };
+
+  const handleOpenEditOfficer = (officer) => {
+    const assignedIds = (officer.assignedInstitutionIds || (officer.assignedInstitutions ? officer.assignedInstitutions.map(i => i.id) : [])).map(Number);
+    setEditingOfficerForm({
+      id: officer.id,
+      fullName: officer.fullName || '',
+      email: officer.email || '',
+      mobileNumber: officer.mobileNumber || officer.phone || '',
+      staffId: officer.staffId || '',
+      password: '',
+      accountStatus: officer.active ? 'ACTIVE' : 'INACTIVE',
+      institutionIds: assignedIds
+    });
+    setEditOfficerError(null);
+    setEditOfficerSuccess(null);
+    setShowEditOfficerModal(true);
+  };
+
+  const handleSaveEditOfficer = async (e) => {
+    e.preventDefault();
+    if (!editingOfficerForm.id) return;
+    setEditOfficerLoading(true);
+    setEditOfficerError(null);
+    setEditOfficerSuccess(null);
+    try {
+      const res = await api.put(`/boss/vigilance/officers/${editingOfficerForm.id}`, editingOfficerForm);
+      setEditOfficerSuccess(`Vigilance Officer ${res.data.fullName} updated successfully.`);
+      setVigilanceOfficers(prev => prev.map(o => o.id === editingOfficerForm.id ? { ...o, ...res.data } : o));
+      setTimeout(() => {
+        setShowEditOfficerModal(false);
+        setEditOfficerSuccess(null);
+      }, 1200);
+      fetchVigilanceData();
+    } catch (err) {
+      setEditOfficerError(err.response?.data?.message || err.message || 'Failed to update vigilance officer');
+    } finally {
+      setEditOfficerLoading(false);
+    }
+  };
+
+  const handleOpenDeleteOfficer = (officer) => {
+    setSelectedOfficerForDelete(officer);
+    setDeleteOfficerError(null);
+    setShowDeleteOfficerModal(true);
+  };
+
+  const handleConfirmDeleteOfficer = async () => {
+    if (!selectedOfficerForDelete) return;
+    setDeleteOfficerLoading(true);
+    setDeleteOfficerError(null);
+    try {
+      await api.delete(`/boss/vigilance/officers/${selectedOfficerForDelete.id}`);
+      setVigilanceOfficers(prev => prev.filter(o => o.id !== selectedOfficerForDelete.id));
+      setShowDeleteOfficerModal(false);
+      setSelectedOfficerForDelete(null);
+      fetchVigilanceData();
+    } catch (err) {
+      setDeleteOfficerError(err.response?.data?.message || err.message || 'Failed to delete vigilance officer');
+    } finally {
+      setDeleteOfficerLoading(false);
+    }
+  };
+
+  const handleOpenOfficerHistory = async (officer) => {
+    setSelectedOfficerForHistory(officer);
+    setShowOfficerHistoryModal(true);
+    setOfficerHistoryLoading(true);
+    setOfficerHistoryLogs([]);
+    try {
+      const res = await api.get(`/boss/vigilance/officers/${officer.id}/history`);
+      setOfficerHistoryLogs(res.data || []);
+    } catch (err) {
+      console.warn('Failed to load officer history:', err);
+    } finally {
+      setOfficerHistoryLoading(false);
+    }
+  };
+
+  const handleFilterOfficerActivities = async (officerIdOrAll) => {
+    setActivityOfficerFilter(officerIdOrAll);
+    try {
+      if (officerIdOrAll === 'ALL') {
+        const res = await api.get('/boss/vigilance/activity');
+        setVigilanceActivities(res.data || []);
+      } else {
+        const res = await api.get(`/boss/vigilance/activity?officerId=${officerIdOrAll}`);
+        setVigilanceActivities(res.data || []);
+      }
+    } catch (err) {
+      console.warn('Failed to filter officer activity logs:', err);
+    }
   };
 
   const openProfileModal = (userId, initialObj = null) => {
@@ -1951,37 +2072,64 @@ export const BossAdminDashboard = ({
                               </span>
                             </td>
                             <td className="p-3 text-right">
-                              <div className="flex items-center justify-end gap-2">
+                              <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                                <button
+                                  onClick={() => handleOpenEditOfficer(officer)}
+                                  className="px-2 py-1 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-1 transition-colors"
+                                  title="Edit officer profile, password, or deputations"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5 text-blue-500" />
+                                  <span>Edit</span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleOpenOfficerHistory(officer)}
+                                  className="px-2 py-1 text-xs font-semibold rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 flex items-center gap-1 transition-colors"
+                                  title="View this officer's complete audit trail & activity history"
+                                >
+                                  <History className="w-3.5 h-3.5 text-indigo-500" />
+                                  <span>History</span>
+                                </button>
+
                                 <button
                                   onClick={() => handleOpenDeputeColleges(officer)}
-                                  className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 flex items-center gap-1 transition-colors"
+                                  className="px-2 py-1 text-xs font-semibold rounded-lg border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 flex items-center gap-1 transition-colors"
                                   title="Depute this officer to colleges"
                                 >
                                   <Building2 className="w-3.5 h-3.5" />
-                                  <span>Depute Colleges</span>
+                                  <span>Depute</span>
                                 </button>
 
                                 <button
                                   onClick={() => handleToggleOfficerStatus(officer.id, officer.active)}
                                   disabled={isToggleLoading}
-                                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors flex items-center gap-1.5 ${
+                                  className={`px-2 py-1 text-xs font-semibold rounded-lg border transition-colors flex items-center gap-1 ${
                                     officer.active
-                                      ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200'
-                                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'
+                                      ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
                                   }`}
                                   title={officer.active ? 'Deactivate this account immediately' : 'Reactivate this account'}
                                 >
                                   <Power className="w-3.5 h-3.5" />
-                                  <span>{isToggleLoading ? 'Updating...' : officer.active ? 'Deactivate' : 'Activate'}</span>
+                                  <span>{isToggleLoading ? '...' : officer.active ? 'Disable' : 'Enable'}</span>
                                 </button>
 
                                 <button
                                   onClick={() => handleOpenResetOfficerPassword(officer)}
-                                  className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-300 flex items-center gap-1 transition-colors"
+                                  className="px-2 py-1 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-300 flex items-center gap-1 transition-colors"
                                   title="Reset password for this officer"
                                 >
-                                  <KeyRound className="w-3.5 h-3.5 text-blue-500" />
-                                  <span>Reset Password</span>
+                                  <KeyRound className="w-3.5 h-3.5 text-amber-500" />
+                                  <span>Password</span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleOpenDeleteOfficer(officer)}
+                                  className="px-2 py-1 text-xs font-semibold rounded-lg border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 flex items-center gap-1 transition-colors"
+                                  title="Delete this officer permanently"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                                  <span>Delete</span>
                                 </button>
                               </div>
                             </td>
@@ -2127,14 +2275,31 @@ export const BossAdminDashboard = ({
           {/* SUB-VIEW 4: OFFICER AUDIT TRAILS */}
           {vigilanceSubTab === 'activities' && (
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
-              <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Vigilance Officer Activity Log</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Actions taken specifically by accounts with ROLE_VIGILANCE_OFFICER.</p>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Vigilance Officer Activity & Deletion Audit Log</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Auditable ledger of logins, warnings, terminations, evidence captures, and evidence deletions.</p>
                 </div>
-                <span className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                  Total Logged Events: {vigilanceActivities.length}
-                </span>
+
+                <div className="flex items-center gap-2">
+                  <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <select
+                    value={activityOfficerFilter}
+                    onChange={(e) => handleFilterOfficerActivities(e.target.value)}
+                    className="px-2.5 py-1 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-rose-500 font-sans"
+                  >
+                    <option value="ALL">All Vigilance Officers</option>
+                    {vigilanceOfficers.map(o => (
+                      <option key={o.id} value={o.id}>
+                        {o.fullName} ({o.staffId || o.email})
+                      </option>
+                    ))}
+                  </select>
+
+                  <span className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg shrink-0">
+                    {vigilanceActivities.length} Events
+                  </span>
+                </div>
               </div>
 
               <div className="overflow-x-auto">
@@ -2145,28 +2310,46 @@ export const BossAdminDashboard = ({
                       <th className="p-3">Officer Email</th>
                       <th className="p-3">Action</th>
                       <th className="p-3">Action Details</th>
+                      <th className="p-3">IP Address</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {vigilanceActivities.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="p-8 text-center text-slate-500 dark:text-slate-400 font-sans">
-                          No officer activities logged yet.
+                        <td colSpan={5} className="p-8 text-center text-slate-500 dark:text-slate-400 font-sans">
+                          No officer activities logged for the selected filter.
                         </td>
                       </tr>
                     ) : (
-                      vigilanceActivities.map(log => (
-                        <tr key={log.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
-                          <td className="p-3 text-slate-500 dark:text-slate-400">{new Date(log.timestamp).toLocaleString()}</td>
-                          <td className="p-3 text-slate-900 dark:text-white font-medium">{log.performedByEmail}</td>
-                          <td className="p-3">
-                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-900 font-sans">
-                              {log.action}
-                            </span>
-                          </td>
-                          <td className="p-3 text-slate-700 dark:text-slate-300 max-w-md font-sans">{log.details}</td>
-                        </tr>
-                      ))
+                      vigilanceActivities.map(log => {
+                        const isDeletion = log.action === 'VIGILANCE_EVIDENCE_DELETED';
+                        const isTermination = log.action === 'VIGILANCE_EXAM_TERMINATED';
+                        const isWarning = log.action === 'VIGILANCE_WARNING_ISSUED';
+                        const isOfficerUpdate = log.action === 'VIGILANCE_OFFICER_UPDATED' || log.action === 'VIGILANCE_OFFICER_DELETED';
+                        return (
+                          <tr key={log.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
+                            <td className="p-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">{new Date(log.timestamp).toLocaleString()}</td>
+                            <td className="p-3 text-slate-900 dark:text-white font-medium">{log.performedByEmail}</td>
+                            <td className="p-3">
+                              <span className={`px-2 py-0.5 rounded text-[11px] font-bold border font-sans whitespace-nowrap ${
+                                isDeletion
+                                  ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-900'
+                                  : isTermination
+                                  ? 'bg-red-100 dark:bg-red-950/80 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900'
+                                  : isWarning
+                                  ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900'
+                                  : isOfficerUpdate
+                                  ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-900'
+                                  : 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900'
+                              }`}>
+                                {log.action}
+                              </span>
+                            </td>
+                            <td className="p-3 text-slate-700 dark:text-slate-300 max-w-md font-sans">{log.details}</td>
+                            <td className="p-3 text-slate-400 font-mono text-[11px]">{log.ipAddress || '127.0.0.1'}</td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -2775,6 +2958,395 @@ export const BossAdminDashboard = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT VIGILANCE OFFICER */}
+      {showEditOfficerModal && editingOfficerForm.id && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="bg-[#0F172A] text-white p-5 flex items-center justify-between border-b border-slate-800 shrink-0">
+              <div>
+                <h3 className="text-base font-bold flex items-center gap-2">
+                  <Edit3 className="w-4 h-4 text-blue-400" />
+                  <span>Edit Vigilance Officer</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">Update profile, status, password & college deputations</p>
+              </div>
+              <button
+                onClick={() => setShowEditOfficerModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditOfficer} className="p-5 space-y-3.5 overflow-y-auto">
+              {editOfficerError && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-800 dark:text-rose-300 font-medium flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <span>{editOfficerError}</span>
+                </div>
+              )}
+
+              {editOfficerSuccess && (
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 font-medium flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>{editOfficerSuccess}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Staff / User ID <span className="text-rose-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingOfficerForm.staffId}
+                    onChange={(e) => setEditingOfficerForm({ ...editingOfficerForm, staffId: e.target.value })}
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Account Status <span className="text-rose-600">*</span>
+                  </label>
+                  <select
+                    value={editingOfficerForm.accountStatus}
+                    onChange={(e) => setEditingOfficerForm({ ...editingOfficerForm, accountStatus: e.target.value })}
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-800 dark:text-white"
+                  >
+                    <option value="ACTIVE">ACTIVE (Authorized to Login)</option>
+                    <option value="INACTIVE">INACTIVE (Revoked Access)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Full Name <span className="text-rose-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editingOfficerForm.fullName}
+                  onChange={(e) => setEditingOfficerForm({ ...editingOfficerForm, fullName: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Official Email <span className="text-rose-600">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={editingOfficerForm.email}
+                    onChange={(e) => setEditingOfficerForm({ ...editingOfficerForm, email: e.target.value })}
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Mobile Number
+                  </label>
+                  <input
+                    type="text"
+                    value={editingOfficerForm.mobileNumber}
+                    onChange={(e) => setEditingOfficerForm({ ...editingOfficerForm, mobileNumber: e.target.value })}
+                    placeholder="+91-9876543210"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  New Password <span className="text-slate-400 font-normal">(Leave empty to retain existing password)</span>
+                </label>
+                <input
+                  type="text"
+                  value={editingOfficerForm.password}
+                  onChange={(e) => setEditingOfficerForm({ ...editingOfficerForm, password: e.target.value })}
+                  placeholder="Leave empty or enter new password"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Deputed Colleges & Institutions ({editingOfficerForm.institutionIds.length} Selected)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingOfficerForm(p => ({ ...p, institutionIds: institutions.map(i => Number(i.id)) }))}
+                      className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                    >
+                      Select All
+                    </button>
+                    <span className="text-slate-300 dark:text-slate-700">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setEditingOfficerForm(p => ({ ...p, institutionIds: [] }))}
+                      className="text-[10px] text-slate-500 hover:underline"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-36 overflow-y-auto p-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/40 space-y-1.5">
+                  {institutions.length === 0 ? (
+                    <p className="text-xs text-slate-400 py-2 text-center">No institutions available.</p>
+                  ) : (
+                    institutions.map(inst => {
+                      const isChecked = editingOfficerForm.institutionIds.includes(Number(inst.id));
+                      return (
+                        <label
+                          key={inst.id}
+                          className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 cursor-pointer text-xs"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              const instId = Number(inst.id);
+                              setEditingOfficerForm(p => ({
+                                ...p,
+                                institutionIds: isChecked
+                                  ? p.institutionIds.filter(id => id !== instId)
+                                  : [...p.institutionIds, instId]
+                              }));
+                            }}
+                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <div className="truncate">
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{inst.name}</span>
+                            <span className="text-[10px] text-slate-400 ml-1 font-mono">({inst.code || 'N/A'})</span>
+                          </div>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowEditOfficerModal(false)}
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editOfficerLoading}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors"
+                >
+                  {editOfficerLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: DELETE VIGILANCE OFFICER */}
+      {showDeleteOfficerModal && selectedOfficerForDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="bg-rose-950 text-white p-5 flex items-center justify-between border-b border-rose-900">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-rose-600/30 border border-rose-500 flex items-center justify-center text-rose-300">
+                  <Trash2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold">Delete Vigilance Officer</h3>
+                  <p className="text-[11px] text-rose-300">Boss Admin Permanent Action</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDeleteOfficerModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-rose-900 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {deleteOfficerError && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-800 dark:text-rose-300 font-medium flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <span>{deleteOfficerError}</span>
+                </div>
+              )}
+
+              <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl text-xs text-rose-900 dark:text-rose-200 space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-rose-800 dark:text-rose-300">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Permanent Account Deletion</span>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  Are you sure you want to delete this Vigilance Officer account? The officer will immediately lose surveillance access, all college deputations will be unassigned, and this action will be logged in the immutable security audit trail.
+                </p>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1.5 text-xs font-mono">
+                <div className="flex justify-between text-slate-500">
+                  <span>Officer Name:</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{selectedOfficerForDelete.fullName}</span>
+                </div>
+                <div className="flex justify-between text-slate-500">
+                  <span>Staff ID:</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{selectedOfficerForDelete.staffId || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between text-slate-500">
+                  <span>Official Email:</span>
+                  <span className="text-slate-700 dark:text-slate-300">{selectedOfficerForDelete.email}</span>
+                </div>
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteOfficerModal(false)}
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteOfficer}
+                  disabled={deleteOfficerLoading}
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{deleteOfficerLoading ? 'Deleting...' : 'Confirm & Delete Officer'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: SPECIFIC OFFICER AUDIT TRAIL / HISTORY */}
+      {showOfficerHistoryModal && selectedOfficerForHistory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden max-h-[85vh] flex flex-col">
+            <div className="bg-[#0F172A] text-white p-5 flex items-center justify-between border-b border-slate-800 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                  <History className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold">Officer Audit Trail & Surveillance History</h3>
+                  <p className="text-[11px] text-slate-400">
+                    {selectedOfficerForHistory.fullName} ({selectedOfficerForHistory.staffId || selectedOfficerForHistory.email})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowOfficerHistoryModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 flex-1 overflow-y-auto space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Total Activity & Governance Logs: {officerHistoryLogs.length}
+                </span>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  Role: ROLE_VIGILANCE_OFFICER
+                </span>
+              </div>
+
+              <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 font-semibold">
+                      <th className="p-2.5">Timestamp</th>
+                      <th className="p-2.5">Action</th>
+                      <th className="p-2.5">Target / Entity</th>
+                      <th className="p-2.5">Details & Justifications</th>
+                      <th className="p-2.5">IP</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {officerHistoryLoading ? (
+                      <tr>
+                        <td colSpan={5} className="p-6 text-center text-slate-400 font-sans">
+                          Loading audit trail...
+                        </td>
+                      </tr>
+                    ) : officerHistoryLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-6 text-center text-slate-400 font-sans">
+                          No audit history logs recorded for this officer yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      officerHistoryLogs.map(log => {
+                        const isDeletion = log.action === 'VIGILANCE_EVIDENCE_DELETED';
+                        const isTermination = log.action === 'VIGILANCE_EXAM_TERMINATED';
+                        const isWarning = log.action === 'VIGILANCE_WARNING_ISSUED';
+                        return (
+                          <tr key={log.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
+                            <td className="p-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap text-[11px]">
+                              {new Date(log.timestamp).toLocaleString()}
+                            </td>
+                            <td className="p-2.5">
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border font-sans whitespace-nowrap ${
+                                isDeletion
+                                  ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-900'
+                                  : isTermination
+                                  ? 'bg-red-100 dark:bg-red-950/80 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900'
+                                  : isWarning
+                                  ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900'
+                                  : 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900'
+                              }`}>
+                                {log.action}
+                              </span>
+                            </td>
+                            <td className="p-2.5 text-slate-700 dark:text-slate-300 text-[11px]">
+                              {log.entityName} #{log.entityId}
+                            </td>
+                            <td className="p-2.5 text-slate-700 dark:text-slate-300 font-sans text-xs max-w-xs">
+                              {log.details}
+                            </td>
+                            <td className="p-2.5 text-slate-400 text-[10px]">
+                              {log.ipAddress || '127.0.0.1'}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex justify-end shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowOfficerHistoryModal(false)}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-bold rounded-xl transition-colors"
+              >
+                Close History
+              </button>
+            </div>
           </div>
         </div>
       )}

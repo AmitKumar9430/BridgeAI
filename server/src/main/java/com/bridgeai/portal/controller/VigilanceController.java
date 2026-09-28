@@ -43,6 +43,36 @@ public class VigilanceController {
         return ResponseEntity.ok(vigilanceService.appointVigilanceOfficer(request, bossEmail, ip));
     }
 
+    @PutMapping("/boss/vigilance/officers/{id}")
+    @PreAuthorize("hasAuthority('ROLE_BOSS_ADMIN')")
+    public ResponseEntity<UserDto> updateVigilanceOfficer(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateVigilanceOfficerRequest request,
+            Authentication auth,
+            HttpServletRequest req) {
+        String bossEmail = auth != null ? auth.getName() : "boss@bridgeai.edu";
+        String ip = req.getRemoteAddr();
+        return ResponseEntity.ok(vigilanceService.updateVigilanceOfficer(id, request, bossEmail, ip));
+    }
+
+    @DeleteMapping("/boss/vigilance/officers/{id}")
+    @PreAuthorize("hasAuthority('ROLE_BOSS_ADMIN')")
+    public ResponseEntity<Map<String, String>> deleteVigilanceOfficer(
+            @PathVariable Long id,
+            Authentication auth,
+            HttpServletRequest req) {
+        String bossEmail = auth != null ? auth.getName() : "boss@bridgeai.edu";
+        String ip = req.getRemoteAddr();
+        vigilanceService.deleteVigilanceOfficer(id, bossEmail, ip);
+        return ResponseEntity.ok(Map.of("message", "Vigilance Officer deleted successfully."));
+    }
+
+    @GetMapping("/boss/vigilance/officers/{id}/history")
+    @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_VIGILANCE_OFFICER')")
+    public ResponseEntity<List<AuditLog>> getOfficerHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(vigilanceService.getOfficerAuditTrail(id, null));
+    }
+
     @PutMapping("/boss/vigilance/officers/{id}/status")
     @PreAuthorize("hasAuthority('ROLE_BOSS_ADMIN')")
     public ResponseEntity<UserDto> toggleOfficerStatus(
@@ -80,8 +110,11 @@ public class VigilanceController {
 
     @GetMapping("/boss/vigilance/activity")
     @PreAuthorize("hasAnyAuthority('ROLE_BOSS_ADMIN', 'ROLE_VIGILANCE_OFFICER')")
-    public ResponseEntity<List<AuditLog>> getOfficerActivities() {
-        return ResponseEntity.ok(vigilanceService.getOfficerActivities());
+    public ResponseEntity<List<AuditLog>> getOfficerActivities(
+            @RequestParam(required = false) Long officerId,
+            Authentication auth) {
+        String email = auth != null ? auth.getName() : null;
+        return ResponseEntity.ok(vigilanceService.getOfficerAuditTrail(officerId, email));
     }
 
     @GetMapping("/boss/vigilance/reports")
@@ -153,8 +186,32 @@ public class VigilanceController {
 
     @GetMapping("/vigilance/evidence")
     @PreAuthorize("hasAnyAuthority('ROLE_VIGILANCE_OFFICER', 'ROLE_BOSS_ADMIN')")
-    public ResponseEntity<List<VigilanceRecord>> getAllEvidence() {
-        return ResponseEntity.ok(vigilanceService.getAllEvidence());
+    public ResponseEntity<List<VigilanceRecord>> getAllEvidence(Authentication auth) {
+        String email = auth != null ? auth.getName() : null;
+        return ResponseEntity.ok(vigilanceService.getAllEvidence(email));
+    }
+
+    @DeleteMapping("/vigilance/evidence/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_VIGILANCE_OFFICER', 'ROLE_BOSS_ADMIN')")
+    public ResponseEntity<Map<String, String>> deleteEvidence(
+            @PathVariable Long id,
+            @RequestBody(required = false) DeleteEvidenceRequest request,
+            Authentication auth,
+            HttpServletRequest req) {
+        String email = auth != null ? auth.getName() : "vigilance@bridgeai.edu";
+        String ip = req.getRemoteAddr();
+        String reason = request != null ? request.getReason() : "Deleted by authorized officer.";
+        vigilanceService.deleteEvidence(id, reason, email, ip);
+        return ResponseEntity.ok(Map.of("message", "Evidence record deleted and deletion history recorded successfully."));
+    }
+
+    @GetMapping("/vigilance/evidence/deletion-history")
+    @PreAuthorize("hasAnyAuthority('ROLE_VIGILANCE_OFFICER', 'ROLE_BOSS_ADMIN')")
+    public ResponseEntity<List<AuditLog>> getEvidenceDeletionHistory(
+            @RequestParam(required = false) Long officerId,
+            Authentication auth) {
+        String email = auth != null ? auth.getName() : null;
+        return ResponseEntity.ok(vigilanceService.getEvidenceDeletionHistory(email, officerId));
     }
 
     @PostMapping("/vigilance/chat/send")
